@@ -27,6 +27,13 @@ export type CallRecordingRecorder = Readonly<{
   stop(): Promise<CallRecordingStopResult | undefined>;
 }>;
 
+export type CallRecordingAudioTrack = Readonly<{
+  stream: MediaStream;
+  pause(): void;
+  resume(): void;
+  stop(): Promise<void>;
+}>;
+
 export type SaveAudioRecordingInput = Readonly<{
   conversationId: string;
   conversationTitle: string;
@@ -63,12 +70,10 @@ export type CallRecordingServiceDependencies = Readonly<{
   isRecordableCallMode(callMode: CallMode): boolean;
   warmup(): Promise<void>;
   recorder: CallRecordingRecorder;
-  getPlatform(): string;
   getConversationTitle(conversationId: string): string;
-  getLoopbackAudioStream(): Promise<MediaStream | null>;
-  getMacLoopbackAudioStream(): Promise<MediaStream | null>;
-  getMicrophoneStream(): Promise<MediaStream | null>;
-  stopMacLoopbackAudio(): void;
+  createAudioTrack(
+    onFatalError: (error: Error) => void
+  ): Promise<CallRecordingAudioTrack>;
   speakerActivity: SpeakerActivity;
   saveRecording(input: SaveAudioRecordingInput): Promise<unknown>;
   showError(): void;
@@ -87,7 +92,9 @@ export class CallRecordingServiceCore {
   readonly #dependencies: CallRecordingServiceDependencies;
   #state: MinutesRecordingState = { status: 'idle' };
   #captureLease: MinutesCaptureLease | undefined;
+  #audioTrack: CallRecordingAudioTrack | undefined;
   #finalizationPromise: Promise<CallRecordingMetadata | null> | undefined;
+  #pendingAudioError: Error | undefined;
 
   constructor(dependencies: CallRecordingServiceDependencies) {
     this.#dependencies = dependencies;
@@ -128,6 +135,7 @@ export class CallRecordingServiceCore {
 
     this.#captureLease = captureLease;
     this.#finalizationPromise = undefined;
+    this.#pendingAudioError = undefined;
     let startupSucceeded = false;
 
     try {
@@ -138,45 +146,37 @@ export class CallRecordingServiceCore {
         } catch {
           // Best-effort cleanup matches the previous recorder recovery path.
         }
+        await this.#stopAudioTrack();
         this.#dependencies.speakerActivity.stop();
       }
 
       const conversationTitle = this.#dependencies.getConversationTitle(
         options.conversationId
       );
-      const streams = new Array<MediaStream>();
-      const loopback =
-        this.#dependencies.getPlatform() === 'darwin'
-          ? await this.#dependencies.getMacLoopbackAudioStream()
-          : await this.#dependencies.getLoopbackAudioStream();
-      if (loopback) {
-        streams.push(loopback);
+      const audioTrack = await this.#dependencies.createAudioTrack(error => {
+        this.#handleAudioError(error);
+      });
+      this.#audioTrack = audioTrack;
+      if (this.#pendingAudioError) {
+        throw new Error('RingRTC audio tap failed during startup', {
+          cause: this.#pendingAudioError,
+        });
       }
 
-      const microphone = await this.#dependencies.getMicrophoneStream();
-      if (microphone) {
-        streams.push(microphone);
-      }
-
-      if (streams.length === 0) {
-        this.#dependencies.showError();
-        return false;
-      }
-
-      const started = await recorder.start(streams, {
+      const started = await recorder.start([audioTrack.stream], {
         onPcm: sampleCount => {
           this.#dependencies.speakerActivity.onRecordingPcm(sampleCount);
         },
       });
       if (!started) {
-        for (const stream of streams) {
-          for (const track of stream.getTracks()) {
-            track.stop();
-          }
-        }
-        this.#dependencies.stopMacLoopbackAudio();
+        await this.#stopAudioTrack();
         this.#dependencies.showError();
         return false;
+      }
+      if (this.#pendingAudioError) {
+        throw new Error('RingRTC audio tap failed during startup', {
+          cause: this.#pendingAudioError,
+        });
       }
 
       const recordingStartedAt = this.#dependencies.now();
@@ -207,7 +207,7 @@ export class CallRecordingServiceCore {
           // Cleanup remains best effort after a failed start.
         }
       }
-      this.#dependencies.stopMacLoopbackAudio();
+      await this.#stopAudioTrack();
       this.#dependencies.speakerActivity.stop();
       this.#setState({ status: 'idle' });
       this.#dependencies.showError();
@@ -236,6 +236,7 @@ export class CallRecordingServiceCore {
       return false;
     }
 
+    this.#audioTrack?.pause();
     this.#dependencies.speakerActivity.pause();
     this.#setState({
       ...this.#state,
@@ -254,7 +255,9 @@ export class CallRecordingServiceCore {
     if (!captureLease?.resume()) {
       return false;
     }
+    this.#audioTrack?.resume();
     if (!this.#dependencies.recorder.resume()) {
+      this.#audioTrack?.pause();
       captureLease.pause();
       return false;
     }
@@ -348,8 +351,12 @@ export class CallRecordingServiceCore {
       const { conversationId, conversationTitle, callMode, eraId, startedAt } =
         active;
       const endedAt = this.#dependencies.now();
-      const recording = await this.#dependencies.recorder.stop();
-      this.#dependencies.stopMacLoopbackAudio();
+      let recording: CallRecordingStopResult | undefined;
+      try {
+        recording = await this.#dependencies.recorder.stop();
+      } finally {
+        await this.#stopAudioTrack();
+      }
       const rawSpeakerActivityLog = this.#dependencies.speakerActivity.stop();
 
       if (!recording || recording.mp3.byteLength === 0) {
@@ -398,5 +405,23 @@ export class CallRecordingServiceCore {
   #setState(state: MinutesRecordingState): void {
     this.#state = state;
     this.#dependencies.emitState(state);
+  }
+
+  async #stopAudioTrack(): Promise<void> {
+    const audioTrack = this.#audioTrack;
+    this.#audioTrack = undefined;
+    if (audioTrack) {
+      await audioTrack.stop();
+    }
+  }
+
+  #handleAudioError(error: Error): void {
+    if (this.#state.status !== 'recording' && this.#state.status !== 'paused') {
+      this.#pendingAudioError = error;
+      return;
+    }
+    this.#dependencies.log.error('RingRTC audio tap failed', error);
+    this.#dependencies.showError();
+    void this.stopRecording();
   }
 }

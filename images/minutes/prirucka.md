@@ -154,14 +154,14 @@ Soubory: audio `.mp3`, sdílené video `.webm`, `.json` metadata, `.transcript.m
 
 Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
 
-### Nahrávání na macOS
+### Zvuk nahrávky a oprávnění
 
-Nahrávání systémového zvuku (co slyšíte od ostatních) vyžaduje na macOS dvě oprávnění:
+Audio i video nahrávka používají zvuk přímo z RingRTC: vzdálený playout a lokální vstup, který Signal posílá do hovoru. Recorder neotevírá vlastní mikrofon ani systémový loopback.
 
-1. **Screen Recording** — v **System Settings → Privacy & Security → Screen Recording** povolte Minutes. Systémový dialog se poprvé zobrazí až při prvním pokusu o nahrávání.
-2. **Microphone** — stejné místo, sekce **Microphone**.
+1. **Microphone** je potřeba pro samotný Signal hovor. Když je mikrofon v Signalu ztlumený, lokální větev nahrávky obsahuje ticho.
+2. **Screen Recording** je potřeba pouze tehdy, když přes Signal sdílíte obrazovku. Nahrávání žádné druhé snímání obrazovky nespouští.
 
-> **Po povolení Screen Recording je nutné aplikaci restartovat** — do restartu se nahrává **jen mikrofon** (bez zvuku ostatních účastníků).
+Příchozí zvuk se bere před operačním systémovým výstupem, takže není závislý na hlasitosti reproduktorů ani na vybraném fyzickém výstupu.
 
 ---
 

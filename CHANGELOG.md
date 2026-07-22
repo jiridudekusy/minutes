@@ -17,6 +17,10 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 - Samostatné nahrávání sdíleného videa hovoru do WebM: ukládá pouze prezentaci přenášenou přes Signal (nikdy kamery ani UI); vlastní sdílení čte přímo z odchozího RingRTC video streamu bez dalšího snímání obrazovky, při absenci sdílení používá černý obraz a zvuk přímo z RingRTC; podporuje pause/resume a automatické uložení při konci hovoru
 
+### Fixed
+
+- Samostatné MP3 nahrávání nyní čte lokální odchozí i vzdálený zvuk přímo z RingRTC stejně jako WebM; neotevírá vlastní mikrofon ani macOS/Windows loopback a respektuje ztlumení mikrofonu v Signalu
+
 ## [8.21.0-m1.0.11] - 2026-07-19
 
 ### Added

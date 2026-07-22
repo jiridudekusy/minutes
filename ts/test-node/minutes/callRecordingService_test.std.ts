@@ -26,8 +26,12 @@ function createStream(): MediaStream {
 
 function createHarness(options?: {
   coordinator?: MinutesCaptureCoordinator;
-  getLoopbackStream?: () => Promise<MediaStream | null>;
-  getMicrophoneStream?: () => Promise<MediaStream | null>;
+  createRingRtcAudioTrack?: (onFatalError: (error: Error) => void) => Promise<{
+    stream: MediaStream;
+    pause(): void;
+    resume(): void;
+    stop(): Promise<void>;
+  }>;
   recorderStart?: () => Promise<boolean>;
   recorderStop?: () => Promise<RecorderStopResult | undefined>;
   saveRecording?: () => Promise<unknown>;
@@ -38,9 +42,13 @@ function createHarness(options?: {
     pause: 0,
     recorderStart: 0,
     recorderStop: 0,
+    ringRtcCreate: 0,
+    ringRtcPause: 0,
+    ringRtcResume: 0,
+    ringRtcStop: 0,
     resume: 0,
     save: 0,
-    stopLoopback: 0,
+    showError: 0,
   };
   let recorderActive = false;
 
@@ -74,14 +82,24 @@ function createHarness(options?: {
         );
       },
     },
-    getPlatform: () => 'linux',
     getConversationTitle: () => 'Alice',
-    getLoopbackAudioStream:
-      options?.getLoopbackStream ?? (async () => createStream()),
-    getMacLoopbackAudioStream: async () => null,
-    getMicrophoneStream: options?.getMicrophoneStream ?? (async () => null),
-    stopMacLoopbackAudio: () => {
-      calls.stopLoopback += 1;
+    createAudioTrack: async onFatalError => {
+      calls.ringRtcCreate += 1;
+      if (options?.createRingRtcAudioTrack) {
+        return options.createRingRtcAudioTrack(onFatalError);
+      }
+      return {
+        stream: createStream(),
+        pause: () => {
+          calls.ringRtcPause += 1;
+        },
+        resume: () => {
+          calls.ringRtcResume += 1;
+        },
+        stop: async () => {
+          calls.ringRtcStop += 1;
+        },
+      };
     },
     speakerActivity: {
       onRecordingPcm: () => undefined,
@@ -94,7 +112,9 @@ function createHarness(options?: {
       calls.save += 1;
       return options?.saveRecording?.() ?? '/recordings/call.mp3';
     },
-    showError: () => undefined,
+    showError: () => {
+      calls.showError += 1;
+    },
     showFileSaved: () => undefined,
     enqueueRecordingTranscription: () => {
       calls.enqueue += 1;
@@ -127,9 +147,14 @@ describe('CallRecordingService capture coordination', () => {
   });
 
   it('reserves audio synchronously before awaiting a capture source', async () => {
-    const { promise, resolve } = Promise.withResolvers<MediaStream | null>();
+    const { promise, resolve } = Promise.withResolvers<{
+      stream: MediaStream;
+      pause(): void;
+      resume(): void;
+      stop(): Promise<void>;
+    }>();
     const { coordinator, service } = createHarness({
-      getLoopbackStream: () => promise,
+      createRingRtcAudioTrack: () => promise,
     });
 
     const startPromise = service.startRecording(recordingOptions);
@@ -140,14 +165,28 @@ describe('CallRecordingService capture coordination', () => {
       'Cannot start capture while coordinator is audio-recording'
     );
 
-    resolve(createStream());
+    resolve({
+      stream: createStream(),
+      pause: () => undefined,
+      resume: () => undefined,
+      stop: async () => undefined,
+    });
     assert.strictEqual(await startPromise, true);
   });
 
-  it('releases audio when no capture source is available', async () => {
+  it('records MP3 solely from the RingRTC call stream', async () => {
+    const { calls, service } = createHarness();
+
+    assert.strictEqual(await service.startRecording(recordingOptions), true);
+    assert.strictEqual(calls.ringRtcCreate, 1);
+    assert.strictEqual(calls.recorderStart, 1);
+  });
+
+  it('releases audio when the RingRTC source is unavailable', async () => {
     const { coordinator, service } = createHarness({
-      getLoopbackStream: async () => null,
-      getMicrophoneStream: async () => null,
+      createRingRtcAudioTrack: async () => {
+        throw new Error('RingRTC unavailable');
+      },
     });
 
     assert.strictEqual(await service.startRecording(recordingOptions), false);
@@ -165,7 +204,7 @@ describe('CallRecordingService capture coordination', () => {
 
   it('releases audio when startup throws', async () => {
     const { coordinator, service } = createHarness({
-      getLoopbackStream: async () => {
+      createRingRtcAudioTrack: async () => {
         throw new Error('capture failed');
       },
     });
@@ -180,9 +219,14 @@ describe('CallRecordingService capture coordination', () => {
     let sourceCalls = 0;
     const { service } = createHarness({
       coordinator,
-      getLoopbackStream: async () => {
+      createRingRtcAudioTrack: async () => {
         sourceCalls += 1;
-        return createStream();
+        return {
+          stream: createStream(),
+          pause: () => undefined,
+          resume: () => undefined,
+          stop: async () => undefined,
+        };
       },
     });
 
@@ -197,11 +241,39 @@ describe('CallRecordingService capture coordination', () => {
 
     assert.strictEqual(service.pauseRecording(), true);
     assert.strictEqual(calls.pause, 1);
+    assert.strictEqual(calls.ringRtcPause, 1);
     assert.strictEqual(coordinator.state, 'audio-paused');
 
     assert.strictEqual(service.resumeRecording(), true);
     assert.strictEqual(calls.resume, 1);
+    assert.strictEqual(calls.ringRtcResume, 1);
     assert.strictEqual(coordinator.state, 'audio-recording');
+  });
+
+  it('stops and reports a RingRTC audio failure during recording', async () => {
+    let reportFatalError: ((error: Error) => void) | undefined;
+    const { calls, coordinator, service } = createHarness({
+      createRingRtcAudioTrack: async onFatalError => {
+        reportFatalError = onFatalError;
+        return {
+          stream: createStream(),
+          pause: () => undefined,
+          resume: () => undefined,
+          stop: async () => {
+            calls.ringRtcStop += 1;
+          },
+        };
+      },
+    });
+    assert.strictEqual(await service.startRecording(recordingOptions), true);
+
+    reportFatalError?.(new Error('tap overflow'));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    assert.strictEqual(calls.showError, 1);
+    assert.strictEqual(calls.recorderStop, 1);
+    assert.strictEqual(calls.ringRtcStop, 1);
+    assert.strictEqual(coordinator.state, 'idle');
   });
 
   it('keeps finalizing through durable save and deduplicates concurrent stops', async () => {
@@ -222,6 +294,7 @@ describe('CallRecordingService capture coordination', () => {
     assert.strictEqual(coordinator.state, 'finalizing');
     assert.strictEqual(calls.recorderStop, 1);
     await saveStarted;
+    assert.strictEqual(calls.ringRtcStop, 1);
     assert.strictEqual(calls.save, 1);
 
     resolve('/recordings/call.mp3');

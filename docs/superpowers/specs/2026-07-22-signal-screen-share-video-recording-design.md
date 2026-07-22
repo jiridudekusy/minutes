@@ -48,7 +48,7 @@ A new coordinator under `ts/minutes/` owns the mutually exclusive mode:
 - `video-paused`
 - `finalizing`
 
-The existing audio service keeps its current behavior but acquires and releases its mode through the coordinator. The new video service does the same. The existing call-ended hook delegates finalization to whichever recorder is active, avoiding a second lifecycle hook in Signal calling code.
+The audio service keeps its MP3, transcription, and metadata behavior, but its only media input is the same mixed RingRTC audio track used by video recording. It does not open an independent microphone or operating-system loopback capture. Both audio and video services acquire and release their mode through the coordinator. The existing call-ended hook delegates finalization to whichever recorder is active, avoiding a second lifecycle hook in Signal calling code.
 
 ### Presentation source registry
 
@@ -93,7 +93,7 @@ The fork stays in the separate public `jiridudekusy/minutes-ringrtc` source repo
 
 ### Audio rendering and WebM muxing
 
-A Minutes AudioWorklet reads the RingRTC shared buffers, aligns them by sample counter, mixes local and remote PCM, and writes a continuous audio stream to a `MediaStreamAudioDestinationNode`. Missing short ranges become silence so the media clock does not jump. Samples accumulated while paused are discarded before resume.
+A Minutes AudioWorklet reads the RingRTC shared buffers, aligns them by sample counter, mixes local and remote PCM, and writes a continuous audio stream to a `MediaStreamAudioDestinationNode`. Missing short ranges become silence so the media clock does not jump. Samples accumulated while paused are discarded before resume. This destination track is shared as the sole input abstraction for both the existing MP3 recorder and the WebM recorder.
 
 The destination audio track and compositor video track form the MediaRecorder input stream. Codec selection is deterministic:
 

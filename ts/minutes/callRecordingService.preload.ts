@@ -8,15 +8,7 @@ import { createLogger } from '../logging/log.std.ts';
 import type { SpeakerActivityLog } from './speakerActivity.std.ts';
 import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';
 import { isRecordableCallMode } from './types.std.ts';
-import {
-  CallRecorder,
-  getLoopbackAudioStream,
-  getMicrophoneStream,
-} from './callRecorder.dom.ts';
-import {
-  getMacLoopbackAudioStream,
-  stopMacLoopbackAudio,
-} from './macLoopbackAudio.preload.ts';
+import { CallRecorder } from './callRecorder.dom.ts';
 import {
   RECORDING_STATE_CHANGED,
   recordingStateEvents,
@@ -28,6 +20,7 @@ import {
   CallRecordingServiceCore,
   type CallRecordingServiceDependencies,
 } from './callRecordingServiceCore.std.ts';
+import { RingRtcAudioTrack } from './ringRtcAudioTrack.preload.ts';
 
 const log = createLogger('minutes/callRecording');
 
@@ -36,16 +29,12 @@ const dependencies: CallRecordingServiceDependencies = {
   isRecordableCallMode,
   warmup: () => CallRecorder.warmup(),
   recorder: new CallRecorder(),
-  getPlatform: () => window.platform,
   getConversationTitle: conversationId => {
     const conversation =
       window.ConversationController.get(conversationId) ?? undefined;
     return conversation?.getTitle() ?? conversationId;
   },
-  getLoopbackAudioStream,
-  getMacLoopbackAudioStream,
-  getMicrophoneStream,
-  stopMacLoopbackAudio,
+  createAudioTrack: onFatalError => RingRtcAudioTrack.create({ onFatalError }),
   speakerActivity: speakerActivityLogger,
   saveRecording: input =>
     ipcRenderer.invoke('minutes:save-recording', input) as Promise<unknown>,

@@ -160,20 +160,20 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 ## Call recording behavior
 
 - **Přímé a skupinové hovory** — v liště jsou dvě vzájemně výlučné akce:
-  - **Nahrávání zvuku** — stávající MP3 (loopback + mikrofon)
+  - **Nahrávání zvuku** — MP3 ze smíšeného RingRTC streamu (lokální odchozí vstup + vzdálený playout)
   - **Nahrávání sdíleného videa** — WebM pouze z prezentace přenášené přes Signal a audia RingRTC; vlastní sdílení se bere z odchozího RingRTC video streamu, ne z nového snímání obrazovky; bez prezentace běží černý obraz
   - **Pause / Resume / Stop** ovládají právě aktivní režim
 - Při ukončení hovoru se aktivní nahrávka automaticky uloží
 - Používá Signal lame MP3 encoder worklet
-- Systémové (loopback) audio: Windows přes `desktopCapturer` (WASAPI), macOS přes vlastní balíček `packages/mac-audio-tap` (ScreenCaptureKit, macOS 13+)
+- Audio recorder neotevírá samostatný mikrofon ani systémový loopback; ztlumení mikrofonu v Signalu proto vytvoří v lokální větvi nahrávky ticho
 
 > Recording laws vary by jurisdiction — ensure participants consent.
 
-### macOS oprávnění pro nahrávání hovoru
+### macOS oprávnění
 
-- **Screen Recording** (TCC) — nutné pro zachycení systémového zvuku (ScreenCaptureKit). První pokus o nahrávání vyvolá systémový dialog; po jeho povolení je nutné **aplikaci restartovat** — do té doby se nahrává **jen mikrofon**.
-- **Microphone** — standardní oprávnění, vyžádá se stejně jako u ostatních appek.
-- Obě oprávnění lze zkontrolovat/nastavit v **System Settings → Privacy & Security → Screen Recording / Microphone**.
+- Nahrávání nevyžaduje další oprávnění nad rámec samotného Signal hovoru a případného sdílení obrazovky.
+- **Microphone** používá Signal pro hovor; recorder čte až RingRTC větev, kterou Signal posílá dál.
+- **Screen Recording** používá Signal jen tehdy, když uživatel skutečně sdílí obrazovku; recorder žádné druhé snímání nespouští.
 
 ## Chat summary
 
@@ -195,17 +195,15 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 ```
 ts/minutes/
   callRecorder.dom.ts              # MP3 capture
-  callRecordingService.preload.ts  # lifecycle (onCallEnded), platform branch (Win/mac)
-  macLoopbackAudio.preload.ts      # macOS loopback wrapper nad @minutes/mac-audio-tap
+  callRecordingService.preload.ts  # MP3 lifecycle nad RingRTC audio trackem
+  ringRtcAudio*.ts                 # lokální/remote PCM, timeline, mix a AudioWorklet
   chatSummaryService.preload.ts    # chat export + AI
   whisperTranscribe.main.ts        # lokální Whisper
   aiSettings*.ts / *Summary.main.ts
   components/                      # UI modaly, recording controls
   index.preload.ts                 # bootstrap
 
-packages/mac-audio-tap/          # native ScreenCaptureKit addon (macOS system audio)
-
-app/minutes_channel.main.ts      # IPC: save files, loopback
+app/minutes_channel.main.ts      # IPC: ukládání MP3 a metadata
 
 Hooks (keep small for upstream merges):
   ts/services/calling.preload.ts   # onCallEnded
