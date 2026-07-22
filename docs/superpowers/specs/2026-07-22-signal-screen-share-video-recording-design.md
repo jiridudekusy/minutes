@@ -52,13 +52,15 @@ The existing audio service keeps its current behavior but acquires and releases 
 
 ### Presentation source registry
 
-A Minutes-owned registry tracks the current Signal presentation element without opening a new capture source. It accepts only sources whose Signal call state identifies them as presentations:
+A Minutes-owned registry tracks the current Signal presentation source without opening a new capture source. It accepts only sources whose Signal call state identifies them as presentations:
 
-- the existing local `<video>` preview while `presentingSource` is active;
+- an off-screen canvas fed only by RingRTC's outgoing-video tap while the local user is presenting;
 - the direct-call remote canvas while the remote participant is `presenting`;
 - a group participant canvas while that participant is `sharingScreen`.
 
 The registry stores the source element plus a stable source identity. Unmounting, presenter changes, PiP transitions, and call changes unregister stale sources. Signal's current presenter selection is authoritative if more than one candidate is temporarily mounted.
+
+Registration alone is not proof that a canvas already contains a presentation frame. A direct or group canvas may still hold its last camera bitmap while Signal switches the participant to screen sharing. Every presentation change therefore creates a new `not-ready` source generation. The compositor remains black until Signal's renderer explicitly marks the first frame for that generation as rendered. Remote canvas renderers call a small `markPresentationFrameRendered` hook immediately after drawing the presentation frame. The local RingRTC adapter marks the generation ready only after receiving and drawing the first active tapped frame. An explicit inactive tap event unregisters the local canvas immediately, so mute, share stop, and source transitions cannot retain a stale frame. A timeout or elapsed-time heuristic is not sufficient, because it could leak a stale camera frame.
 
 The integration points in upstream Signal components are restricted to imports and small register/unregister calls. Selection, lifecycle, and recording logic remain in `ts/minutes/`.
 
@@ -68,11 +70,11 @@ A Minutes-owned off-screen canvas produces a fixed 1920x1080 stream at 15 fps. E
 
 The compositor uses `HTMLCanvasElement.captureStream(15)`. If the active presentation changes or disappears, the same output track continues, preserving the MediaRecorder timeline.
 
-### RingRTC audio facade
+### RingRTC media facade
 
 The public RingRTC 2.69.7 Node API exposes device selection, muting controls, voice-processing configuration, and audio levels, but not PCM samples. A TypeScript-only wrapper therefore cannot satisfy the requirement.
 
-Minutes will maintain a small, versioned RingRTC fork and distribute it behind a compatibility package, logically named `@minutes/ringrtc`. The Minutes dependency installs that package through the existing `@signalapp/ringrtc` dependency key, so current Signal imports remain unchanged. The facade preserves the full upstream API and adds only a versioned audio-tap capability.
+Minutes will maintain a small, versioned RingRTC fork and distribute it behind a compatibility package, logically named `@minutes/ringrtc`. The Minutes dependency installs that package through the existing `@signalapp/ringrtc` dependency key, so current Signal imports remain unchanged. The facade preserves the full upstream API and adds versioned audio- and outgoing-video-tap capabilities.
 
 The native addition exposes bounded shared ring buffers rather than invoking JavaScript every 10 ms. It provides:
 
@@ -83,7 +85,11 @@ The native addition exposes bounded shared ring buffers rather than invoking Jav
 
 This definition intentionally concerns the call's PCM media boundary, not encrypted RTP packets or codec-identical reconstruction. It guarantees that the recorder does not open or sample an audio device independently. Muting the local microphone in Signal must produce silence in the local tap while leaving remote playout unaffected.
 
-The fork stays in a separate `minutes-ringrtc` source repository. Its CI builds the native Node addon against the Electron version used by Minutes and publishes macOS ARM64 and Windows x64 prebuilds. The compatibility package fetches only Minutes-controlled, checksum-verified release artifacts. A Minutes release must fail if the required prebuild is missing or its tap API version does not match.
+The outgoing-video tap is attached in RingRTC's Electron `sendVideoFrame` boundary immediately before the frame enters `outgoing_video_source`. It copies only the tightly packed pixel payload RingRTC consumes, never the caller's oversized reusable buffer. The tap is a bounded latest-event slot and returns either a new I420, NV12, or RGBA frame or an explicit inactive event. It captures only while RingRTC's outgoing video track is enabled and, for this feature, while RingRTC identifies that track as screen share. Enabling or disabling either gate creates a new not-ready/inactive event before any later frame can become visible.
+
+This is the unencoded media frame Signal supplies to RingRTC, not a copy of the desktop and not an encrypted or codec-identical RTP recording. WebRTC may subsequently scale or drop frames for bandwidth adaptation. Tapping encoded RTP would couple the recorder to simulcast, retransmission, encryption, and codec internals and is outside this design.
+
+The fork stays in the separate public `jiridudekusy/minutes-ringrtc` source repository. Its CI builds the native Node addon against the Electron version used by Minutes and publishes macOS ARM64 and Windows x64 prebuilds together with an installable package in a versioned GitHub release. Minutes pins that release tarball directly; the compatibility package then fetches only Minutes-controlled, checksum-verified native artifacts. A Minutes release must fail if the required prebuild is missing or its tap API version does not match.
 
 ### Audio rendering and WebM muxing
 
@@ -107,9 +113,9 @@ Successful completion closes the file and atomically renames it to `.webm`. Side
 ### Start
 
 1. Acquire `video-recording` mode from the coordinator.
-2. Verify the RingRTC audio-tap API version and a supported WebM codec.
+2. Verify the RingRTC audio- and video-tap API versions and a supported WebM codec.
 3. Create the partial-file session.
-4. Start RingRTC audio taps and the AudioWorklet.
+4. Start the RingRTC audio tap, outgoing screen-share video tap, and AudioWorklet.
 5. Start the black compositor stream.
 6. Start MediaRecorder with one-second chunks.
 
@@ -117,7 +123,7 @@ Any failure unwinds already-created resources, closes the partial session, relea
 
 ### Pause and resume
 
-Pause calls `MediaRecorder.pause`, suspends compositor production, and marks the current audio buffer positions. RingRTC continues running the call normally. Resume advances the audio reader positions to the current writers, clears stale presentation timing, resumes the recorder, and continues the shortened output timeline.
+Pause calls `MediaRecorder.pause`, suspends compositor production, and marks the current audio and video reader positions. RingRTC continues running the call normally. Resume advances the audio reader positions to the current writers, consumes the latest video tap state, clears stale presentation readiness, resumes the recorder, and continues the shortened output timeline.
 
 ### Stop and call end
 
@@ -126,6 +132,7 @@ Stop is idempotent. It requests the final MediaRecorder data, waits for all queu
 ## Error handling
 
 - Missing or incompatible RingRTC audio tap: fail before recording starts.
+- Missing or incompatible RingRTC outgoing-video tap: fail before recording starts.
 - Unsupported VP9 and VP8 WebM: fail before recording starts.
 - No active presentation: continue with black video and audio.
 - Presentation element disappears or changes: return to black until the registry supplies the authoritative Signal presentation.
@@ -134,14 +141,14 @@ Stop is idempotent. It requests the final MediaRecorder data, waits for all queu
 - Disk write failure: stop capture, close the writer, retain the `.webm.partial` file, and report its path when available.
 - Application crash: leave the `.webm.partial` file untouched. The first version neither deletes it nor lists it as a completed recording.
 
-Cleanup paths must never stop or mutate Signal's own media tracks. The recorder releases only its compositor track, AudioWorklet, shared-buffer reader, MediaRecorder, and file session.
+Cleanup paths must never stop or mutate Signal's own media tracks. The recorder releases only its compositor track, RingRTC tap readers, AudioWorklet, MediaRecorder, and file session.
 
 ## Minimal Signal Desktop integration
 
 The intended upstream footprint is:
 
 - `package.json` and package metadata: select the compatible Minutes RingRTC build;
-- the already-modified `CallScreen.dom.tsx`: host video controls and register the local presentation element;
+- the already-modified `CallScreen.dom.tsx`: host video controls and publish presentation authority;
 - `DirectCallRemoteParticipant.dom.tsx`: a small presentation-canvas registration hook;
 - `GroupCallRemoteParticipant.dom.tsx`: a small presentation-canvas registration hook;
 - the existing call-end Minutes hook: delegate through the shared capture coordinator.
@@ -170,6 +177,8 @@ Development follows red-green-refactor. Production behavior is introduced only a
 
 - ring-buffer ordering, wraparound, overflow, and concurrent read/write;
 - tap capability and version negotiation;
+- outgoing-video enabled and screen-share-only gating;
+- bounded latest-frame replacement, exact tight payload lengths, and explicit inactive transitions;
 - local/remote channel separation and sample counters;
 - mute gating;
 - repeated start/stop and teardown during a call;
@@ -179,6 +188,7 @@ Development follows red-green-refactor. Production behavior is introduced only a
 
 - coordinator state transitions and audio/video mutual exclusion;
 - authoritative presentation selection and stale-source removal;
+- a newly registered presentation remains black until its first confirmed frame, preventing stale camera-frame leakage;
 - aspect-fit geometry for landscape, portrait, and changing dimensions;
 - black output without a presentation;
 - codec fallback;

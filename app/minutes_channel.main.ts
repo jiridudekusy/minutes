@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { join } from 'node:path';
@@ -20,7 +20,10 @@ import {
   assertAiSummaryReady,
   saveAiSettings,
 } from '../ts/minutes/aiSettings.main.ts';
-import type { AiSettingsSaveInput, AiProvider } from '../ts/minutes/aiSettings.std.ts';
+import type {
+  AiSettingsSaveInput,
+  AiProvider,
+} from '../ts/minutes/aiSettings.std.ts';
 import {
   addBookmark,
   listBookmarks,
@@ -41,7 +44,10 @@ import {
   getLocalLlmExtensionPublic,
   installLocalLlmExtension,
 } from '../ts/minutes/localLlmExtension.main.ts';
-import { listCallRecordings, loadCallRecordingOutput } from '../ts/minutes/recordingsCatalog.main.ts';
+import {
+  listCallRecordings,
+  loadCallRecordingOutput,
+} from '../ts/minutes/recordingsCatalog.main.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
@@ -59,6 +65,7 @@ import {
   installPendingAppUpdate,
   resolveStartupAppUpdateState,
 } from '../ts/minutes/appUpdate.main.ts';
+import { initializeMinutesVideoRecordingChannel } from './minutes_video_recording_channel.main.ts';
 
 const log = createLogger('minutes/main');
 
@@ -86,6 +93,11 @@ async function ensureDir(path: string): Promise<void> {
 }
 
 export function initializeMinutesChannel(): void {
+  initializeMinutesVideoRecordingChannel({
+    ipcMain,
+    recordingsDir: getRecordingsDir(),
+  });
+
   ipcMain.handle('minutes:get-loopback-audio-source', async () => {
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
@@ -115,8 +127,8 @@ export function initializeMinutesChannel(): void {
         eraId?: string;
         startedAt: number;
         endedAt: number;
-        data: Uint8Array;
-        pcm48?: Float32Array;
+        data: Uint8Array<ArrayBuffer>;
+        pcm48?: Float32Array<ArrayBuffer>;
         speakerActivityLog?: SpeakerActivityLog | null;
       }
     ) => {
@@ -133,7 +145,10 @@ export function initializeMinutesChannel(): void {
       await writeFile(filePath, Buffer.from(options.data));
 
       if (options.pcm48 && options.pcm48.length > 0) {
-        const pcmPath = join(recordingsDir, `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`);
+        const pcmPath = join(
+          recordingsDir,
+          `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`
+        );
         await writeFile(
           pcmPath,
           Buffer.from(
@@ -487,7 +502,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -521,7 +536,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -555,7 +570,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }

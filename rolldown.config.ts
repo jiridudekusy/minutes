@@ -238,4 +238,27 @@ export default defineConfig([
       clearScreen: false,
     },
   },
+
+  // minutes screen-share recording — RingRTC PCM source
+  {
+    input: 'ts/minutes/ringRtcAudioSource.std.ts',
+    transform: {
+      define: {
+        process: 'undefined',
+        require: 'undefined',
+        eval: 'undefined',
+      },
+    },
+    output: {
+      file: 'bundles/workers/minutesRingRtcAudioSource.js',
+      exports: 'named',
+      generatedCode: {
+        symbols: false,
+      },
+      codeSplitting: false,
+    },
+    watch: {
+      clearScreen: false,
+    },
+  },
 ]);
