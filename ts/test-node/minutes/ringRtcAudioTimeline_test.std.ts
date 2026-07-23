@@ -33,4 +33,18 @@ describe('RingRtcAudioTimeline', () => {
     assert.deepEqual([...timeline.render(2)], [0.25, 0]);
     assert.equal(timeline.cursor, 12);
   });
+
+  it('rebases a source whose native counter starts after the other source', () => {
+    const timeline = new RingRtcAudioTimeline();
+    timeline.enqueue('remote', 0, Float32Array.from([0.125, 0.125]));
+    assert.deepEqual([...timeline.render(2)], [0.125, 0.125]);
+
+    timeline.enqueue('remote', 2, Float32Array.from([0.125, 0.125]));
+    timeline.enqueue('local', 0, Float32Array.from([0.5, 0.5]));
+    assert.deepEqual([...timeline.render(2)], [0.625, 0.625]);
+
+    timeline.enqueue('remote', 4, Float32Array.from([0.125, 0.125]));
+    timeline.enqueue('local', 2, Float32Array.from([0.5, 0.5]));
+    assert.deepEqual([...timeline.render(2)], [0.625, 0.625]);
+  });
 });

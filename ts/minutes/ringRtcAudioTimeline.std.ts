@@ -24,6 +24,10 @@ function packetEnd(packet: Packet): number {
 
 export class RingRtcAudioTimeline {
   #cursor = 0;
+  readonly #sourceOffsets: Record<AudioSource, number | undefined> = {
+    local: undefined,
+    remote: undefined,
+  };
   readonly #packets: Record<AudioSource, Array<Packet>> = {
     local: [],
     remote: [],
@@ -43,13 +47,27 @@ export class RingRtcAudioTimeline {
         'Audio packet sample offset must be a non-negative integer'
       );
     }
-    if (samples.length === 0 || startSample + samples.length <= this.#cursor) {
+    if (samples.length === 0) {
       return;
     }
 
-    const trim = Math.max(0, this.#cursor - startSample);
+    let sourceOffset = this.#sourceOffsets[source];
+    if (sourceOffset === undefined) {
+      sourceOffset =
+        startSample + samples.length <= this.#cursor
+          ? this.#cursor - startSample
+          : 0;
+      this.#sourceOffsets[source] = sourceOffset;
+    }
+
+    const rebasedStartSample = startSample + sourceOffset;
+    if (rebasedStartSample + samples.length <= this.#cursor) {
+      return;
+    }
+
+    const trim = Math.max(0, this.#cursor - rebasedStartSample);
     this.#packets[source].push({
-      startSample: startSample + trim,
+      startSample: rebasedStartSample + trim,
       samples: trim === 0 ? samples : samples.slice(trim),
     });
   }
@@ -61,6 +79,8 @@ export class RingRtcAudioTimeline {
     this.#cursor = cursor;
     this.#packets.local.length = 0;
     this.#packets.remote.length = 0;
+    this.#sourceOffsets.local = undefined;
+    this.#sourceOffsets.remote = undefined;
   }
 
   render(sampleCount: number): Float32Array<ArrayBuffer> {
