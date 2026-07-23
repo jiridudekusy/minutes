@@ -12,6 +12,8 @@ import {
   type CreateVideoRecordingFileOptions,
   type FinalizeVideoRecordingFileInput,
 } from '../ts/minutes/videoRecordingFile.std.ts';
+import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
+import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 
 type FinalizeOptions = Omit<FinalizeVideoRecordingFileInput, 'sessionId'>;
 
@@ -96,20 +98,24 @@ export class VideoRecordingFileWriter {
   readonly #maxQueuedBytes: number;
   readonly #openFile: (path: string) => Promise<VideoFileHandle>;
   readonly #recordingsDir: string;
+  readonly #renameFile: (source: string, target: string) => Promise<void>;
   readonly #sessions = new Map<string, Session>();
 
   constructor({
     recordingsDir,
     maxQueuedBytes = VideoRecordingFileWriter.DEFAULT_MAX_QUEUED_BYTES,
     openFile = async path => open(path, 'wx'),
+    renameFile = rename,
   }: {
     recordingsDir: string;
     maxQueuedBytes?: number;
     openFile?: (path: string) => Promise<VideoFileHandle>;
+    renameFile?: (source: string, target: string) => Promise<void>;
   }) {
     this.#recordingsDir = recordingsDir;
     this.#maxQueuedBytes = maxQueuedBytes;
     this.#openFile = openFile;
+    this.#renameFile = renameFile;
   }
 
   async create(
@@ -186,11 +192,28 @@ export class VideoRecordingFileWriter {
     ownerId: number,
     sessionId: string,
     options: FinalizeOptions
-  ): Promise<{ filePath: string; metadataPath: string }> {
+  ): Promise<{
+    filePath: string;
+    metadataPath: string;
+    speakerActivityPath: string;
+  }> {
     const session = this.#getOwnedSession(ownerId, sessionId);
+    if (!isSpeakerActivityLog(options.speakerActivityLog)) {
+      throw createVideoRecordingFileError(
+        'Video speaker activity log is invalid',
+        session.partialPath
+      );
+    }
     const metadataPath = session.filePath.replace(/\.webm$/, '.json');
     const metadataPartialPath = `${metadataPath}.partial`;
+    const speakerActivityPath = session.filePath.replace(
+      /\.webm$/,
+      SPEAKER_ACTIVITY_FILE_SUFFIX
+    );
+    const speakerActivityPartialPath = `${speakerActivityPath}.partial`;
     let mediaRenamed = false;
+    let metadataRenamed = false;
+    let speakerActivityRenamed = false;
     try {
       await session.writes;
       await session.handle.sync();
@@ -211,24 +234,42 @@ export class VideoRecordingFileWriter {
             frameRate: session.options.frameRate,
             codec: session.options.codec,
             videoFile: basename(session.filePath),
+            speakerActivityFile: basename(speakerActivityPath),
           },
           null,
           2
         ),
         { encoding: 'utf8', flag: 'wx' }
       );
+      await writeFile(
+        speakerActivityPartialPath,
+        JSON.stringify(options.speakerActivityLog, null, 2),
+        { encoding: 'utf8', flag: 'wx' }
+      );
       await session.handle.close();
-      await rename(session.partialPath, session.filePath);
+      await this.#renameFile(speakerActivityPartialPath, speakerActivityPath);
+      speakerActivityRenamed = true;
+      await this.#renameFile(metadataPartialPath, metadataPath);
+      metadataRenamed = true;
+      await this.#renameFile(session.partialPath, session.filePath);
       mediaRenamed = true;
-      await rename(metadataPartialPath, metadataPath);
     } catch (error) {
       await ignoreFailure(() => session.handle.close());
       if (mediaRenamed) {
         await ignoreFailure(() =>
-          rename(session.filePath, session.partialPath)
+          this.#renameFile(session.filePath, session.partialPath)
         );
       }
+      if (metadataRenamed) {
+        await ignoreFailure(() => rm(metadataPath, { force: true }));
+      }
+      if (speakerActivityRenamed) {
+        await ignoreFailure(() => rm(speakerActivityPath, { force: true }));
+      }
       await ignoreFailure(() => rm(metadataPartialPath, { force: true }));
+      await ignoreFailure(() =>
+        rm(speakerActivityPartialPath, { force: true })
+      );
       if (isVideoRecordingFileError(error)) {
         throw error;
       }
@@ -238,7 +279,11 @@ export class VideoRecordingFileWriter {
       );
     }
     this.#sessions.delete(sessionId);
-    return { filePath: session.filePath, metadataPath };
+    return {
+      filePath: session.filePath,
+      metadataPath,
+      speakerActivityPath,
+    };
   }
 
   async abort(

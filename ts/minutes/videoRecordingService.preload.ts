@@ -16,6 +16,8 @@ import {
   type VideoRecordingState,
 } from './videoRecordingServiceCore.std.ts';
 import { videoRecordingStateEvents } from './videoRecordingStateEvents.std.ts';
+import { speakerActivityLogger } from './speakerActivityLogger.preload.ts';
+import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';
 
 const log = createLogger('minutes/videoRecording');
 
@@ -78,7 +80,8 @@ const core = new VideoRecordingServiceCore({
     finalize: input => videoRecordingFileService.finalize(input),
     abort: input => videoRecordingFileService.abort(input.sessionId),
   },
-  createAudioTrack: onFatalError => RingRtcAudioTrack.create({ onFatalError }),
+  createAudioTrack: (onFatalError, onPcm) =>
+    RingRtcAudioTrack.create({ onFatalError, onPcm }),
   createCompositor: (options, onFatalError) =>
     RingRtcScreenShareCompositor.create({
       conversationId: options.conversationId,
@@ -91,6 +94,22 @@ const core = new VideoRecordingServiceCore({
     ),
   createMediaRecorder: (stream, codec) =>
     createVideoMediaRecorder(stream as MediaStream, codec),
+  speakerActivity: {
+    onRecordingPcm: sampleCount =>
+      speakerActivityLogger.onRecordingPcm(sampleCount),
+    start: options =>
+      speakerActivityLogger.start({
+        ...options,
+        callMode: options.callMode as CallMode.Direct | CallMode.Group,
+      }),
+    pause: () => speakerActivityLogger.pause(),
+    resume: () => speakerActivityLogger.resume(),
+    stop: () => speakerActivityLogger.stop(),
+  },
+  normalizeSpeakerActivityLog: (activityLog, recordedDurationMs) =>
+    activityLog
+      ? clampSpeakerActivityLogToPcmDuration(activityLog, recordedDurationMs)
+      : null,
   emitState: state => {
     videoRecordingStateEvents.emitState(state);
     if (state.status === 'error') {

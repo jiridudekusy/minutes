@@ -1,4 +1,4 @@
-// Copyright 2026 Minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { CallMode } from '../types/CallDisposition.std.ts';
@@ -64,6 +64,91 @@ export type AlignedTranscriptSegment = Readonly<{
   speakerLabel: string;
   speakerId: string;
 }>;
+
+export function isSpeakerActivityLog(
+  value: unknown
+): value is SpeakerActivityLog {
+  if (
+    typeof value !== 'object' ||
+    value == null ||
+    !('version' in value) ||
+    value.version !== SPEAKER_ACTIVITY_LOG_VERSION ||
+    !('conversationId' in value) ||
+    typeof value.conversationId !== 'string' ||
+    !('callMode' in value) ||
+    (value.callMode !== CallMode.Direct && value.callMode !== CallMode.Group) ||
+    !('recordingStartedAt' in value) ||
+    typeof value.recordingStartedAt !== 'number' ||
+    !Number.isFinite(value.recordingStartedAt) ||
+    !('recordingDurationMs' in value) ||
+    typeof value.recordingDurationMs !== 'number' ||
+    !Number.isFinite(value.recordingDurationMs) ||
+    value.recordingDurationMs < 0 ||
+    !('sampleIntervalMs' in value) ||
+    typeof value.sampleIntervalMs !== 'number' ||
+    !Number.isFinite(value.sampleIntervalMs) ||
+    value.sampleIntervalMs <= 0 ||
+    !('participants' in value) ||
+    typeof value.participants !== 'object' ||
+    value.participants == null ||
+    Array.isArray(value.participants) ||
+    !('samples' in value) ||
+    !Array.isArray(value.samples)
+  ) {
+    return false;
+  }
+
+  const participants = value.participants as Record<string, unknown>;
+  for (const participant of Object.values(participants)) {
+    if (
+      typeof participant !== 'object' ||
+      participant == null ||
+      !('displayName' in participant) ||
+      typeof participant.displayName !== 'string' ||
+      !('isLocal' in participant) ||
+      typeof participant.isLocal !== 'boolean' ||
+      ('aci' in participant &&
+        participant.aci != null &&
+        typeof participant.aci !== 'string') ||
+      ('demuxId' in participant &&
+        participant.demuxId != null &&
+        typeof participant.demuxId !== 'number')
+    ) {
+      return false;
+    }
+  }
+
+  return (value.samples as Array<unknown>).every(sample => {
+    if (
+      typeof sample !== 'object' ||
+      sample == null ||
+      !('tMs' in sample) ||
+      typeof sample.tMs !== 'number' ||
+      !Number.isFinite(sample.tMs) ||
+      sample.tMs < 0 ||
+      !('levels' in sample) ||
+      !Array.isArray(sample.levels)
+    ) {
+      return false;
+    }
+    return (sample.levels as Array<unknown>).every(level => {
+      return (
+        typeof level === 'object' &&
+        level != null &&
+        'id' in level &&
+        typeof level.id === 'string' &&
+        'level' in level &&
+        typeof level.level === 'number' &&
+        Number.isFinite(level.level) &&
+        'speaking' in level &&
+        typeof level.speaking === 'boolean' &&
+        (!('speakerTime' in level) ||
+          level.speakerTime == null ||
+          typeof level.speakerTime === 'number')
+      );
+    });
+  });
+}
 
 /** Keep activity samples within actual PCM length so speaker windows cannot outlive audio. */
 export function clampSpeakerActivityLogToPcmDuration(

@@ -3,10 +3,27 @@
 
 import { assert } from 'chai';
 
+import { CallMode } from '../../types/CallDisposition.std.ts';
+import {
+  SPEAKER_ACTIVITY_LOG_VERSION,
+  SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+  type SpeakerActivityLog,
+} from '../../minutes/speakerActivity.std.ts';
 import {
   createVideoRecordingFileService,
   unwrapVideoRecordingFileResult,
 } from '../../minutes/videoRecordingFileService.preload.ts';
+
+const speakerActivityLog: SpeakerActivityLog = {
+  version: SPEAKER_ACTIVITY_LOG_VERSION,
+  conversationId: 'conversation-id',
+  callMode: CallMode.Direct,
+  recordingStartedAt: Date.UTC(2026, 6, 22, 10, 0, 0),
+  recordingDurationMs: 55_000,
+  sampleIntervalMs: SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+  participants: {},
+  samples: [],
+};
 
 describe('unwrapVideoRecordingFileResult', () => {
   it('throws an Error carrying the retained partial path on failure', () => {
@@ -80,7 +97,7 @@ describe('videoRecordingFileService', () => {
     ]);
   });
 
-  it('unwraps the finalized WebM and metadata paths', async () => {
+  it('unwraps the finalized WebM, metadata, and speaker paths', async () => {
     const calls: Array<{ channel: string; input: unknown }> = [];
     const service = createVideoRecordingFileService(async (channel, input) => {
       calls.push({ channel, input });
@@ -89,6 +106,7 @@ describe('videoRecordingFileService', () => {
         value: {
           filePath: '/recordings/call.webm',
           metadataPath: '/recordings/call.json',
+          speakerActivityPath: '/recordings/call.speaker-activity.json',
         },
       };
     });
@@ -97,11 +115,13 @@ describe('videoRecordingFileService', () => {
       sessionId: 'session-id',
       endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
       recordedDurationMs: 55_000,
+      speakerActivityLog,
     });
 
     assert.deepEqual(finalized, {
       filePath: '/recordings/call.webm',
       metadataPath: '/recordings/call.json',
+      speakerActivityPath: '/recordings/call.speaker-activity.json',
     });
     assert.deepEqual(calls, [
       {
@@ -110,9 +130,34 @@ describe('videoRecordingFileService', () => {
           sessionId: 'session-id',
           endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
           recordedDurationMs: 55_000,
+          speakerActivityLog,
         },
       },
     ]);
+  });
+
+  it('preserves the finalized speaker activity sidecar path', async () => {
+    const service = createVideoRecordingFileService(async () => ({
+      ok: true,
+      value: {
+        filePath: '/recordings/call.webm',
+        metadataPath: '/recordings/call.json',
+        speakerActivityPath: '/recordings/call.speaker-activity.json',
+      },
+    }));
+
+    const finalized = await service.finalize({
+      sessionId: 'session-id',
+      endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
+      recordedDurationMs: 55_000,
+      speakerActivityLog,
+    });
+
+    assert.deepEqual(finalized, {
+      filePath: '/recordings/call.webm',
+      metadataPath: '/recordings/call.json',
+      speakerActivityPath: '/recordings/call.speaker-activity.json',
+    });
   });
 
   it('rejects a malformed successful finalize result', async () => {
@@ -127,6 +172,7 @@ describe('videoRecordingFileService', () => {
         sessionId: 'session-id',
         endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
         recordedDurationMs: 55_000,
+        speakerActivityLog,
       });
     } catch (caught) {
       error = caught;

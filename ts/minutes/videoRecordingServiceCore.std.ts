@@ -19,6 +19,7 @@ import type {
   MinutesCaptureCoordinator,
   MinutesCaptureLease,
 } from './captureCoordinator.std.ts';
+import type { SpeakerActivityLog } from './speakerActivity.std.ts';
 
 export const VIDEO_RECORDING_FRAME_RATE = 15;
 export const VIDEO_RECORDING_CHUNK_INTERVAL_MS = 1_000;
@@ -80,9 +81,23 @@ type VideoCompositor = Readonly<{
 
 type RingRtcAudioTrack = Readonly<{
   stream: unknown;
+  resetPcmProgress(): void;
   pause(): void;
   resume(): void;
   stop(): Promise<void>;
+}>;
+
+type VideoSpeakerActivity = Readonly<{
+  onRecordingPcm(sampleCount: number): void;
+  start(options: {
+    conversationId: string;
+    callMode: string;
+    remoteDisplayName: string;
+    recordingStartedAt: number;
+  }): void;
+  pause(): void;
+  resume(): void;
+  stop(): SpeakerActivityLog | null;
 }>;
 
 export type VideoRecordingServiceDependencies = Readonly<{
@@ -92,7 +107,8 @@ export type VideoRecordingServiceDependencies = Readonly<{
   isCodecSupported(codec: string): boolean;
   writer: VideoRecordingWriter;
   createAudioTrack(
-    onFatalError: (error: Error) => void
+    onFatalError: (error: Error) => void,
+    onPcm: (sampleCount: number) => void
   ): Promise<RingRtcAudioTrack>;
   createCompositor(
     options: VideoRecordingStartOptions,
@@ -103,6 +119,11 @@ export type VideoRecordingServiceDependencies = Readonly<{
     stream: unknown,
     codec: VideoRecordingCodec
   ): VideoMediaRecorder;
+  speakerActivity: VideoSpeakerActivity;
+  normalizeSpeakerActivityLog(
+    activityLog: SpeakerActivityLog | null,
+    recordedDurationMs: number
+  ): SpeakerActivityLog | null;
   emitState(state: VideoRecordingState): void;
   now(): number;
   maxQueuedBytes?: number;
@@ -120,6 +141,7 @@ export class VideoRecordingServiceCore {
   #audioTrack: RingRtcAudioTrack | undefined;
   #compositor: VideoCompositor | undefined;
   #recorder: VideoMediaRecorder | undefined;
+  #speakerActivityStarted = false;
   #recorderStarted = false;
   #resolveRecorderStop: (() => void) | undefined;
   #recorderStopPromise: Promise<void> | undefined;
@@ -187,9 +209,14 @@ export class VideoRecordingServiceCore {
         height: VIDEO_OUTPUT_SIZE.height,
         frameRate: VIDEO_RECORDING_FRAME_RATE,
       });
-      this.#audioTrack = await this.#dependencies.createAudioTrack(error => {
-        this.#signalFatalError(error);
-      });
+      this.#audioTrack = await this.#dependencies.createAudioTrack(
+        error => {
+          this.#signalFatalError(error);
+        },
+        sampleCount => {
+          this.#dependencies.speakerActivity.onRecordingPcm(sampleCount);
+        }
+      );
       this.#throwIfFatalError();
       this.#compositor = this.#dependencies.createCompositor(options, error => {
         this.#signalFatalError(error);
@@ -207,6 +234,14 @@ export class VideoRecordingServiceCore {
       this.#recorder.start(VIDEO_RECORDING_CHUNK_INTERVAL_MS);
       this.#recorderStarted = true;
       this.#throwIfFatalError();
+      this.#speakerActivityStarted = true;
+      this.#dependencies.speakerActivity.start({
+        conversationId: options.conversationId,
+        callMode: options.callMode,
+        remoteDisplayName: options.conversationTitle,
+        recordingStartedAt: startedAt,
+      });
+      this.#audioTrack.resetPcmProgress();
 
       this.#setState({
         status: 'recording',
@@ -242,6 +277,7 @@ export class VideoRecordingServiceCore {
       const pausedAt = this.#dependencies.now();
       this.#timeline?.pause(pausedAt);
       this.#captureLease?.pause();
+      this.#dependencies.speakerActivity.pause();
       this.#setState({ ...this.#state, status: 'paused', pausedAt });
       return true;
     } catch (error) {
@@ -264,6 +300,7 @@ export class VideoRecordingServiceCore {
         remoteSample: 0n,
       });
       this.#captureLease?.resume();
+      this.#dependencies.speakerActivity.resume();
       this.#setState({
         status: 'recording',
         conversationId: this.#state.conversationId,
@@ -310,6 +347,7 @@ export class VideoRecordingServiceCore {
     this.#audioTrack = undefined;
     this.#compositor = undefined;
     this.#recorder = undefined;
+    this.#speakerActivityStarted = false;
     this.#recorderStarted = false;
     this.#resolveRecorderStop = undefined;
     this.#recorderStopPromise = undefined;
@@ -446,6 +484,9 @@ export class VideoRecordingServiceCore {
     let partialPath = this.#writerSession?.partialPath;
 
     try {
+      if (this.#speakerActivityStarted) {
+        this.#dependencies.speakerActivity.pause();
+      }
       await this.#stopRecorder(initialKind === 'finalize');
       try {
         await this.#waitForPendingWrites();
@@ -459,11 +500,23 @@ export class VideoRecordingServiceCore {
         !this.#fatalError &&
         this.#writerSession
       ) {
+        const endedAt = this.#dependencies.now();
+        const recordedDurationMs =
+          this.#timeline?.getRecordedDuration(endedAt) ?? 0;
+        const rawSpeakerActivityLog = this.#stopSpeakerActivity();
+        const speakerActivityLog =
+          this.#dependencies.normalizeSpeakerActivityLog(
+            rawSpeakerActivityLog,
+            recordedDurationMs
+          );
+        if (!speakerActivityLog) {
+          throw new Error('Video speaker activity log is unavailable');
+        }
         result = await this.#dependencies.writer.finalize({
           sessionId: this.#writerSession.sessionId,
-          endedAt: this.#dependencies.now(),
-          recordedDurationMs:
-            this.#timeline?.getRecordedDuration(this.#dependencies.now()) ?? 0,
+          endedAt,
+          recordedDurationMs,
+          speakerActivityLog,
         });
         partialPath = undefined;
       } else {
@@ -473,6 +526,12 @@ export class VideoRecordingServiceCore {
       this.#fatalError ??= toError(error);
       partialPath = await this.#abortWriter(partialPath);
     } finally {
+      try {
+        this.#stopSpeakerActivity();
+      } catch (error) {
+        this.#speakerActivityStarted = false;
+        this.#fatalError ??= toError(error);
+      }
       try {
         this.#compositor?.stop();
       } catch (error) {
@@ -554,6 +613,11 @@ export class VideoRecordingServiceCore {
       }
     }
     this.#detachRecorderEvents();
+    try {
+      this.#stopSpeakerActivity();
+    } catch {
+      this.#speakerActivityStarted = false;
+    }
 
     try {
       this.#compositor?.stop();
@@ -583,6 +647,15 @@ export class VideoRecordingServiceCore {
     this.#recorder.ondataavailable = undefined;
     this.#recorder.onerror = undefined;
     this.#recorder.onstop = undefined;
+  }
+
+  #stopSpeakerActivity(): SpeakerActivityLog | null {
+    if (!this.#speakerActivityStarted) {
+      return null;
+    }
+    const activityLog = this.#dependencies.speakerActivity.stop();
+    this.#speakerActivityStarted = false;
+    return activityLog;
   }
 
   #setError(error: unknown, partialPath?: string): void {

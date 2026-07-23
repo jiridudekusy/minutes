@@ -98,13 +98,16 @@ export function createVideoRecordingFileService(
         !('filePath' in value) ||
         typeof value.filePath !== 'string' ||
         !('metadataPath' in value) ||
-        typeof value.metadataPath !== 'string'
+        typeof value.metadataPath !== 'string' ||
+        !('speakerActivityPath' in value) ||
+        typeof value.speakerActivityPath !== 'string'
       ) {
         throw new Error('Invalid finalize video recording file IPC result');
       }
       return {
         filePath: value.filePath,
         metadataPath: value.metadataPath,
+        speakerActivityPath: value.speakerActivityPath,
       };
     },
     async abort(sessionId) {

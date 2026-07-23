@@ -12,6 +12,7 @@ import {
   type RingRtcAudioTapApi,
 } from './ringRtcAudioTapApi.std.ts';
 import type { RingRtcAudioWorkletMessage } from './ringRtcAudioTimeline.std.ts';
+import { readRenderedPcmProgressEvent } from './ringRtcRenderedPcmProgress.std.ts';
 
 const log = createLogger('minutes/ringRtcAudioTrack');
 const POLL_INTERVAL_MS = 20;
@@ -24,12 +25,14 @@ export class RingRtcAudioTrack {
   readonly #worklet: AudioWorkletNode;
   readonly #destination: MediaStreamAudioDestinationNode;
   readonly #onFatalError: (error: Error) => void;
+  readonly #onPcm: ((sampleCount: number) => void) | undefined;
   readonly #pollTimer: ReturnType<typeof setInterval>;
   #paused = false;
   #stopped = false;
   #fatalErrorReported = false;
   #consecutiveOverflowPolls = 0;
   #latestWriterCursor = 0;
+  #progressGeneration = 0;
 
   private constructor(options: {
     api: RingRtcAudioTapApi;
@@ -37,12 +40,23 @@ export class RingRtcAudioTrack {
     worklet: AudioWorkletNode;
     destination: MediaStreamAudioDestinationNode;
     onFatalError: (error: Error) => void;
+    onPcm?: (sampleCount: number) => void;
   }) {
     this.#api = options.api;
     this.#context = options.context;
     this.#worklet = options.worklet;
     this.#destination = options.destination;
     this.#onFatalError = options.onFatalError;
+    this.#onPcm = options.onPcm;
+    this.#worklet.port.onmessage = ({ data }: MessageEvent<unknown>) => {
+      const sampleCount = readRenderedPcmProgressEvent(
+        data,
+        this.#progressGeneration
+      );
+      if (sampleCount !== undefined) {
+        this.#onPcm?.(sampleCount);
+      }
+    };
     this.#pollTimer = setInterval(() => this.#poll(), POLL_INTERVAL_MS);
   }
 
@@ -52,6 +66,7 @@ export class RingRtcAudioTrack {
 
   static async create(options: {
     onFatalError: (error: Error) => void;
+    onPcm?: (sampleCount: number) => void;
   }): Promise<RingRtcAudioTrack> {
     const api = resolveRingRtcAudioTapApi(RingRTC);
     if (!api) {
@@ -84,6 +99,7 @@ export class RingRtcAudioTrack {
         worklet,
         destination,
         onFatalError: options.onFatalError,
+        onPcm: options.onPcm,
       });
       track.#poll();
       return track;
@@ -102,6 +118,18 @@ export class RingRtcAudioTrack {
     return this.#destination.stream;
   }
 
+  resetPcmProgress(): void {
+    if (this.#stopped) {
+      return;
+    }
+    this.#progressGeneration += 1;
+    this.#worklet.port.postMessage({
+      type: 'reset',
+      cursor: this.#latestWriterCursor,
+      generation: this.#progressGeneration,
+    } satisfies RingRtcAudioWorkletMessage);
+  }
+
   pause(): void {
     this.#paused = true;
   }
@@ -111,10 +139,7 @@ export class RingRtcAudioTrack {
       return;
     }
     this.#paused = false;
-    this.#worklet.port.postMessage({
-      type: 'reset',
-      cursor: this.#latestWriterCursor,
-    } satisfies RingRtcAudioWorkletMessage);
+    this.resetPcmProgress();
   }
 
   async stop(): Promise<void> {
@@ -129,6 +154,7 @@ export class RingRtcAudioTrack {
       this.#worklet.port.postMessage({
         type: 'stop',
       } satisfies RingRtcAudioWorkletMessage);
+      this.#worklet.port.onmessage = null;
       this.#worklet.disconnect();
       for (const track of this.#destination.stream.getTracks()) {
         track.stop();

@@ -1,7 +1,15 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { mkdir, mkdtemp, open, readFile, rm, stat } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  rename,
+  rm,
+  stat,
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { EventEmitter } from 'node:events';
@@ -12,6 +20,12 @@ import {
   initializeMinutesVideoRecordingChannel,
   VideoRecordingFileWriter,
 } from '../../../app/minutes_video_recording_channel.main.ts';
+import { CallMode } from '../../types/CallDisposition.std.ts';
+import {
+  SPEAKER_ACTIVITY_LOG_VERSION,
+  SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+  type SpeakerActivityLog,
+} from '../../minutes/speakerActivity.std.ts';
 
 describe('VideoRecordingFileWriter', () => {
   let recordingsDir: string;
@@ -44,6 +58,10 @@ describe('VideoRecordingFileWriter', () => {
     const result = await writer.finalize(7, session.sessionId, {
       endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
       recordedDurationMs: 60_000,
+      speakerActivityLog: createTestSpeakerActivityLog(
+        Date.UTC(2026, 6, 22, 10, 0, 0),
+        60_000
+      ),
     });
 
     assert.deepEqual([...(await readFile(result.filePath))], [1, 2, 3, 4]);
@@ -103,6 +121,11 @@ describe('VideoRecordingFileWriter', () => {
     const result = await writer.finalize(7, session.sessionId, {
       endedAt,
       recordedDurationMs: 55_000,
+      speakerActivityLog: createTestSpeakerActivityLog(
+        startedAt,
+        55_000,
+        CallMode.Group
+      ),
     });
 
     const metadata = JSON.parse(await readFile(result.metadataPath, 'utf8'));
@@ -123,6 +146,180 @@ describe('VideoRecordingFileWriter', () => {
     assert.strictEqual(metadata.videoFile, result.filePath.split('/').at(-1));
     await assertFileDoesNotExist(session.partialPath);
     assert.strictEqual((await stat(result.filePath)).size, 1);
+  });
+
+  it('rejects finalization without a valid speaker activity log', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Direct,
+      startedAt: Date.UTC(2026, 6, 22, 10, 0, 0),
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    await writer.append(7, session.sessionId, Uint8Array.from([1]));
+
+    let error: unknown;
+    try {
+      await writer.finalize(7, session.sessionId, {
+        endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
+        recordedDurationMs: 60_000,
+        speakerActivityLog: undefined as unknown as SpeakerActivityLog,
+      });
+    } catch (caught) {
+      error = caught;
+    }
+
+    assert.instanceOf(error, Error);
+    assert.include(String(error), 'speaker activity');
+    assert.deepEqual([...(await readFile(session.partialPath))], [1]);
+  });
+
+  it('writes the matching speaker activity sidecar and metadata reference', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const startedAt = Date.UTC(2026, 6, 22, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Group,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    await writer.append(7, session.sessionId, Uint8Array.from([1]));
+    const speakerActivityLog: SpeakerActivityLog = {
+      version: SPEAKER_ACTIVITY_LOG_VERSION,
+      conversationId: 'conversation-id',
+      callMode: CallMode.Group,
+      recordingStartedAt: startedAt,
+      recordingDurationMs: 1_000,
+      sampleIntervalMs: SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+      participants: {
+        local: { displayName: 'Jiří', isLocal: true },
+      },
+      samples: [
+        {
+          tMs: 250,
+          levels: [{ id: 'local', level: 8, speaking: true }],
+        },
+      ],
+    };
+
+    const result = await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 1_000,
+      recordedDurationMs: 1_000,
+      speakerActivityLog,
+    });
+
+    const { speakerActivityPath } = result;
+    assert.isString(speakerActivityPath);
+    if (!speakerActivityPath) {
+      assert.fail('speaker activity path is missing');
+    }
+    const sidecar = JSON.parse(await readFile(speakerActivityPath, 'utf8'));
+    assert.deepEqual(sidecar, speakerActivityLog);
+    const metadata = JSON.parse(await readFile(result.metadataPath, 'utf8'));
+    assert.strictEqual(
+      metadata.speakerActivityFile,
+      speakerActivityPath.split('/').at(-1)
+    );
+  });
+
+  it('publishes the speaker sidecar and metadata before the WebM', async () => {
+    const published = new Array<string>();
+    const writer = new VideoRecordingFileWriter({
+      recordingsDir,
+      renameFile: async (source, target) => {
+        published.push(target.split('/').at(-1) ?? target);
+        await rename(source, target);
+      },
+    });
+    const startedAt = Date.UTC(2026, 6, 22, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Group,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    await writer.append(7, session.sessionId, Uint8Array.from([1]));
+
+    await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 1_000,
+      recordedDurationMs: 1_000,
+      speakerActivityLog: {
+        version: SPEAKER_ACTIVITY_LOG_VERSION,
+        conversationId: 'conversation-id',
+        callMode: CallMode.Group,
+        recordingStartedAt: startedAt,
+        recordingDurationMs: 1_000,
+        sampleIntervalMs: SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+        participants: {},
+        samples: [],
+      },
+    });
+
+    assert.match(published[0] ?? '', /\.speaker-activity\.json$/);
+    assert.match(published[1] ?? '', /\.json$/);
+    assert.match(published[2] ?? '', /\.webm$/);
+  });
+
+  it('rolls metadata back when speaker sidecar publication fails', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const startedAt = Date.UTC(2026, 6, 22, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Group,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    await writer.append(7, session.sessionId, Uint8Array.from([1, 2]));
+    const speakerActivityPath = session.partialPath.replace(
+      /\.webm\.partial$/,
+      '.speaker-activity.json'
+    );
+    const metadataPath = session.partialPath.replace(
+      /\.webm\.partial$/,
+      '.json'
+    );
+    await mkdir(speakerActivityPath);
+
+    let error: unknown;
+    try {
+      await writer.finalize(7, session.sessionId, {
+        endedAt: startedAt + 1_000,
+        recordedDurationMs: 1_000,
+        speakerActivityLog: {
+          version: SPEAKER_ACTIVITY_LOG_VERSION,
+          conversationId: 'conversation-id',
+          callMode: CallMode.Group,
+          recordingStartedAt: startedAt,
+          recordingDurationMs: 1_000,
+          sampleIntervalMs: SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+          participants: {},
+          samples: [],
+        },
+      });
+    } catch (caught) {
+      error = caught;
+    }
+
+    assert.instanceOf(error, Error);
+    assert.deepEqual([...(await readFile(session.partialPath))], [1, 2]);
+    await assertFileDoesNotExist(metadataPath);
+    await assertFileDoesNotExist(`${speakerActivityPath}.partial`);
   });
 
   it('idempotently aborts a session and retains its partial file', async () => {
@@ -407,6 +604,10 @@ describe('minutes video recording IPC', () => {
           sessionId: created.sessionId,
           endedAt: Date.UTC(2026, 6, 22, 10, 1, 0),
           recordedDurationMs: 60_000,
+          speakerActivityLog: createTestSpeakerActivityLog(
+            Date.UTC(2026, 6, 22, 10, 0, 0),
+            60_000
+          ),
         }
       );
 
@@ -430,6 +631,23 @@ async function assertFileDoesNotExist(path: string): Promise<void> {
   }
   assert.instanceOf(error, Error);
   assert.include(String(error), 'ENOENT');
+}
+
+function createTestSpeakerActivityLog(
+  recordingStartedAt: number,
+  recordingDurationMs: number,
+  callMode: CallMode.Direct | CallMode.Group = CallMode.Direct
+): SpeakerActivityLog {
+  return {
+    version: SPEAKER_ACTIVITY_LOG_VERSION,
+    conversationId: 'conversation-id',
+    callMode,
+    recordingStartedAt,
+    recordingDurationMs,
+    sampleIntervalMs: SPEAKER_ACTIVITY_SAMPLE_INTERVAL_MS,
+    participants: {},
+    samples: [],
+  };
 }
 
 type FakeSender = EventEmitter & Readonly<{ id: number }>;

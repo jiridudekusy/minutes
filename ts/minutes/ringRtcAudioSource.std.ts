@@ -5,6 +5,10 @@ import {
   RingRtcAudioTimeline,
   type RingRtcAudioWorkletMessage,
 } from './ringRtcAudioTimeline.std.ts';
+import {
+  RingRtcRenderedPcmProgress,
+  type RingRtcAudioWorkletEvent,
+} from './ringRtcRenderedPcmProgress.std.ts';
 
 type AudioWorkletProcessor = Readonly<{ port: MessagePort }>;
 
@@ -31,6 +35,8 @@ class MinutesRingRtcAudioSource
   implements AudioWorkletProcessorImpl
 {
   readonly #timeline = new RingRtcAudioTimeline();
+  readonly #renderedPcmProgress = new RingRtcRenderedPcmProgress();
+  #progressGeneration = 0;
   #stopped = false;
 
   constructor() {
@@ -40,6 +46,8 @@ class MinutesRingRtcAudioSource
         this.#timeline.enqueue(data.source, data.startSample, data.samples);
       } else if (data.type === 'reset') {
         this.#timeline.reset(data.cursor);
+        this.#renderedPcmProgress.reset();
+        this.#progressGeneration = data.generation;
       } else {
         this.#stopped = true;
       }
@@ -59,6 +67,16 @@ class MinutesRingRtcAudioSource
       return true;
     }
     output.set(this.#timeline.render(output.length));
+    const renderedSamples = this.#renderedPcmProgress.addRenderedSamples(
+      output.length
+    );
+    if (renderedSamples > 0) {
+      this.port.postMessage({
+        type: 'rendered-samples',
+        generation: this.#progressGeneration,
+        sampleCount: renderedSamples,
+      } satisfies RingRtcAudioWorkletEvent);
+    }
     return true;
   }
 }

@@ -3,7 +3,11 @@
 
 import { assert } from 'chai';
 
-import { RingRtcAudioTimeline } from '../../minutes/ringRtcAudioTimeline.std.ts';
+import * as ringRtcAudioTimeline from '../../minutes/ringRtcAudioTimeline.std.ts';
+import * as renderedPcmProgress from '../../minutes/ringRtcRenderedPcmProgress.std.ts';
+
+const { RingRtcAudioTimeline } = ringRtcAudioTimeline;
+const { RingRtcRenderedPcmProgress } = renderedPcmProgress;
 
 describe('RingRtcAudioTimeline', () => {
   it('aligns local and remote packets by absolute sample offset and fills gaps with silence', () => {
@@ -46,5 +50,55 @@ describe('RingRtcAudioTimeline', () => {
     timeline.enqueue('remote', 4, Float32Array.from([0.125, 0.125]));
     timeline.enqueue('local', 2, Float32Array.from([0.5, 0.5]));
     assert.deepEqual([...timeline.render(2)], [0.625, 0.625]);
+  });
+});
+
+describe('RingRtc rendered PCM progress', () => {
+  it('reports rendered samples in bounded 250 ms increments', () => {
+    const progress = new RingRtcRenderedPcmProgress();
+
+    assert.strictEqual(progress.addRenderedSamples(11_999), 0);
+    assert.strictEqual(progress.addRenderedSamples(1), 12_000);
+    assert.strictEqual(progress.addRenderedSamples(12_032), 12_000);
+    assert.strictEqual(progress.addRenderedSamples(11_968), 12_000);
+  });
+
+  it('drops partial progress when the recording timeline resets', () => {
+    const progress = new RingRtcRenderedPcmProgress();
+    progress.addRenderedSamples(11_999);
+
+    progress.reset();
+
+    assert.strictEqual(progress.addRenderedSamples(1), 0);
+    assert.strictEqual(progress.addRenderedSamples(11_999), 12_000);
+  });
+
+  it('rejects delayed progress events from an older resume generation', () => {
+    const readEvent = (
+      renderedPcmProgress as typeof renderedPcmProgress & {
+        readRenderedPcmProgressEvent?: (
+          event: unknown,
+          generation: number
+        ) => number | undefined;
+      }
+    ).readRenderedPcmProgressEvent;
+    assert.isFunction(readEvent);
+    if (!readEvent) {
+      return;
+    }
+
+    assert.isUndefined(
+      readEvent(
+        { type: 'rendered-samples', generation: 3, sampleCount: 12_000 },
+        4
+      )
+    );
+    assert.strictEqual(
+      readEvent(
+        { type: 'rendered-samples', generation: 4, sampleCount: 12_000 },
+        4
+      ),
+      12_000
+    );
   });
 });

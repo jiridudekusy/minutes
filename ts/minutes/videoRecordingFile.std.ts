@@ -1,6 +1,8 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import type { SpeakerActivityLog } from './speakerActivity.std.ts';
+
 export const MINUTES_VIDEO_RECORDING_IPC = {
   create: 'minutes:create-video-recording-file',
   append: 'minutes:append-video-recording-chunk',
@@ -38,11 +40,13 @@ export type FinalizeVideoRecordingFileInput = Readonly<{
   sessionId: string;
   endedAt: number;
   recordedDurationMs: number;
+  speakerActivityLog: SpeakerActivityLog;
 }>;
 
 export type FinalizedVideoRecordingFile = Readonly<{
   filePath: string;
   metadataPath: string;
+  speakerActivityPath: string;
 }>;
 
 export type AbortVideoRecordingFileInput = Readonly<{
