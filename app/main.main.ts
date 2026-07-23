@@ -149,10 +149,8 @@ import { getAppRootDir } from '../ts/util/appRootDir.main.ts';
 import { trackHeapSize } from '../ts/util/oomNotifier.node.ts';
 import { sendDummyKeystroke } from './WindowsNotifications.main.ts';
 import { maybeMigrateSafeStorageBackend } from '../ts/util/linuxPasswordStoreMigration.main.ts';
-import {
-  RECORDINGS_DIR_NAME,
-  SUMMARIES_DIR_NAME,
-} from '../ts/minutes/constants.std.ts';
+import { SUMMARIES_DIR_NAME } from '../ts/minutes/constants.std.ts';
+import { resolveMinutesRecordingsDir } from '../ts/minutes/recordingsDirectory.node.ts';
 
 const { chmod, realpath, writeFile } = fsExtra;
 const { get, pick, isNumber, isBoolean, some, debounce, noop } = lodash;
@@ -1410,7 +1408,7 @@ async function openArtCreator() {
 }
 
 async function minutesOpenRecordings(): Promise<void> {
-  const dir = join(app.getPath('userData'), RECORDINGS_DIR_NAME);
+  const dir = resolveMinutesRecordingsDir(app.getPath('documents'));
   await fsExtra.mkdir(dir, { recursive: true });
   await shell.openPath(dir);
 }
@@ -2200,9 +2198,8 @@ electronProtocol.registerSchemesAsPrivileged([
 let ready = false;
 app.on('ready', async () => {
   if (process.env.MINUTES_TEST_PIPELINE === '1') {
-    const { runTestPipelineFromMain } = await import(
-      './minutes_test_pipeline.main.ts'
-    );
+    const { runTestPipelineFromMain } =
+      await import('./minutes_test_pipeline.main.ts');
     await runTestPipelineFromMain();
     return;
   }
@@ -2459,7 +2456,7 @@ app.on('ready', async () => {
     sql,
     configDir: userDataPath,
   });
-  initializeMinutesChannel();
+  await initializeMinutesChannel();
   sqlChannels.initialize(sql);
   PowerChannel.initialize({
     send(event) {

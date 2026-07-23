@@ -33,6 +33,8 @@ legacy `userData/minutes/recordings` directory to the Documents location.
   without changing their names.
 - Existing target files are never overwritten. A conflicting legacy artifact
   remains in the legacy directory and the conflict is logged.
+- Finder and Windows directory metadata such as `.DS_Store`, `Thumbs.db`, and
+  `desktop.ini` are discarded instead of being migrated.
 - Cross-device moves fall back to copy-then-delete after a successful copy.
 - Migration failure does not delete source data and prevents recording channels
   from silently writing to two different locations.

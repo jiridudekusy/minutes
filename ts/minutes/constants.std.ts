@@ -1,11 +1,11 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /** IPC channel prefix for minutes main-process handlers. */
 export const MINUTES_IPC_PREFIX = 'minutes';
 
-/** Subdirectory under Electron userData for call recordings. */
-export const RECORDINGS_DIR_NAME = 'minutes/recordings';
+/** Legacy subdirectory under Electron userData for call recordings. */
+export const LEGACY_RECORDINGS_DIR_NAME = 'minutes/recordings';
 
 /** Subdirectory under Electron userData for chat summaries. */
 export const SUMMARIES_DIR_NAME = 'minutes/summaries';

@@ -33,7 +33,7 @@ The video action has Start, Pause/Resume, and Stop states matching the existing 
 
 Video recording may start before anybody shares. The output then contains black 1920x1080 frames and call audio. When Signal reports an active presenter, the recorder automatically follows that Signal stream. When sharing stops, it returns to black. When the presenter changes, it switches on the next available frame. This applies equally to the local user's Signal screen share and a remote participant's screen share.
 
-Stopping the recording or ending the call finalizes the WebM file. Paused time is excluded from the output timeline. The completed file is saved in the existing `minutes/recordings` directory and shown with the existing file-saved notification pattern.
+Stopping the recording or ending the call finalizes the WebM file. Paused time is excluded from the output timeline. The completed file is saved in `~/Documents/Minutes` alongside audio recordings and shown with the existing file-saved notification pattern.
 
 ## Architecture
 
