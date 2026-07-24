@@ -30,8 +30,8 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. Po skončení se nahrávka uloží automaticky
-3. Pro přepis audio nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
-4. Audio přepis a shrnutí najdete v **Přepisy (Minutes)**
+3. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ---
 
@@ -146,9 +146,9 @@ Stejné nastavení jako u chatů (**Nastavení AI**). Shrnutí vznikne nad hotov
 
 ### Kam se ukládá
 
-`%APPDATA%\Minutes\minutes\recordings\`
+`Dokumenty/Minutes`
 
-Soubory: audio `.mp3`, sdílené video `.webm`, `.json` metadata, `.transcript.md` a volitelně `.summary.md` pro audio přepisy.
+Soubory: audio `.mp3`, sdílené video `.webm`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
 
 ### Právní upozornění
 
@@ -207,7 +207,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Typ | Cesta |
 |-----|--------|
-| Nahrávky hovorů | `%APPDATA%\Minutes\minutes\recordings\` |
+| Nahrávky hovorů | `Dokumenty/Minutes` |
 | Sumáře chatů | `%APPDATA%\Minutes\minutes\summaries\` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |

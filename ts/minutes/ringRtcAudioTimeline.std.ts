@@ -11,6 +11,7 @@ export type RingRtcAudioWorkletMessage =
       samples: Float32Array<ArrayBuffer>;
     }>
   | Readonly<{ type: 'reset'; cursor: number; generation: number }>
+  | Readonly<{ type: 'pause' }>
   | Readonly<{ type: 'stop' }>;
 
 type Packet = Readonly<{

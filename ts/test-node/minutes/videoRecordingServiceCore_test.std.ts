@@ -81,6 +81,7 @@ function createHarness(options?: {
   createMediaRecorder?: () => VideoMediaRecorder;
   fatalDuringAudioCreate?: Error;
   firstAppendGate?: Deferred<void>;
+  finalPcmOnAudioStop?: Float32Array<ArrayBuffer>;
   audioStopError?: Error;
   maxQueuedBytes?: number;
   speakerActivityLog?: SpeakerActivityLog | null;
@@ -90,12 +91,14 @@ function createHarness(options?: {
   const coordinator = new MinutesCaptureCoordinator();
   const recorder = new FakeMediaRecorder(operations);
   const appended = new Array<Array<number>>();
+  const appendedPcm = new Array<Array<number>>();
   const states = new Array<string>();
   const finalizedDurations = new Array<number>();
   const finalizedSpeakerActivity = new Array<unknown>();
+  const enqueuedRecordings = new Array<unknown>();
   const firstAppendStarted = Promise.withResolvers<void>();
   let fatalAudio: ((error: Error) => void) | undefined;
-  let audioPcm: ((sampleCount: number) => void) | undefined;
+  let audioPcm: ((samples: Float32Array<ArrayBuffer>) => void) | undefined;
   let fatalVideo: ((error: Error) => void) | undefined;
   let compositorConversationId: string | undefined;
   let now = 1_000;
@@ -144,6 +147,11 @@ function createHarness(options?: {
           await options?.firstAppendGate?.promise;
         }
       },
+      appendPcm: async input => {
+        const samples = [...input.samples];
+        operations.push(`writer:append-pcm:${samples.join(',')}`);
+        appendedPcm.push(samples);
+      },
       finalize: async input => {
         operations.push('writer:finalize');
         finalizeCalls += 1;
@@ -151,6 +159,7 @@ function createHarness(options?: {
         finalizedSpeakerActivity.push(input.speakerActivityLog);
         return {
           filePath: '/recordings/call.webm',
+          pcmPath: '/recordings/call.pcm.f32',
           metadataPath: '/recordings/call.video.json',
           speakerActivityPath: '/recordings/call.speaker-activity.json',
         };
@@ -175,6 +184,9 @@ function createHarness(options?: {
         resume: () => operations.push('audio:resume'),
         stop: async () => {
           operations.push('audio:stop');
+          if (options?.finalPcmOnAudioStop) {
+            audioPcm?.(options.finalPcmOnAudioStop);
+          }
           if (options?.audioStopError) {
             throw options.audioStopError;
           }
@@ -227,6 +239,9 @@ function createHarness(options?: {
         ? { ...activityLog, recordingDurationMs: recordedDurationMs }
         : null;
     },
+    onFinalized: metadata => {
+      enqueuedRecordings.push(metadata);
+    },
     emitState: state => states.push(state.status),
     now: () => now,
     maxQueuedBytes: options?.maxQueuedBytes,
@@ -234,6 +249,7 @@ function createHarness(options?: {
 
   return {
     appended,
+    appendedPcm,
     coordinator,
     get compositorConversationId() {
       return compositorConversationId;
@@ -248,9 +264,9 @@ function createHarness(options?: {
       assert.isDefined(fatalAudio);
       fatalAudio(error);
     },
-    emitAudioPcm: (sampleCount: number) => {
+    emitAudioPcm: (samples: Float32Array<ArrayBuffer>) => {
       assert.isDefined(audioPcm);
-      audioPcm(sampleCount);
+      audioPcm(samples);
     },
     fatalVideo: (error: Error) => {
       assert.isDefined(fatalVideo);
@@ -261,6 +277,7 @@ function createHarness(options?: {
     },
     finalizedDurations,
     finalizedSpeakerActivity,
+    enqueuedRecordings,
     firstAppendStarted: firstAppendStarted.promise,
     operations,
     recorder,
@@ -303,16 +320,18 @@ describe('VideoRecordingServiceCore', () => {
     );
   });
 
-  it('forwards rendered RingRTC PCM progress to speaker activity', async () => {
+  it('streams rendered RingRTC PCM and advances speaker activity from the same samples', async () => {
     const harness = createHarness();
     assert.strictEqual(
       await harness.service.startRecording(startOptions),
       true
     );
 
-    harness.emitAudioPcm(12_000);
+    harness.emitAudioPcm(Float32Array.from([0.25, -0.5]));
+    await Promise.resolve();
 
-    assert.deepEqual(harness.speakerActivityPcm, [12_000]);
+    assert.deepEqual(harness.appendedPcm, [[0.25, -0.5]]);
+    assert.deepEqual(harness.speakerActivityPcm, [2]);
   });
 
   it('starts a fresh PCM progress generation for the speaker timeline', async () => {
@@ -394,6 +413,48 @@ describe('VideoRecordingServiceCore', () => {
     assert.deepEqual(harness.speakerActivityNormalizeDurations, [1_000]);
   });
 
+  it('enqueues the finalized video for transcription exactly once', async () => {
+    const harness = createHarness();
+    assert.strictEqual(
+      await harness.service.startRecording(startOptions),
+      true
+    );
+    harness.setNow(4_000);
+
+    await Promise.all([
+      harness.service.stopRecording(),
+      harness.service.onCallEnded(),
+    ]);
+
+    assert.lengthOf(harness.enqueuedRecordings, 1);
+    assert.deepInclude(harness.enqueuedRecordings[0], {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      startedAt: 1_000,
+      endedAt: 4_000,
+      filePath: '/recordings/call.webm',
+      durationMs: 3_000,
+    });
+  });
+
+  it('flushes final RingRTC PCM before finalizing recording files', async () => {
+    const harness = createHarness({
+      finalPcmOnAudioStop: Float32Array.from([0.75]),
+    });
+    assert.strictEqual(
+      await harness.service.startRecording(startOptions),
+      true
+    );
+
+    await harness.service.stopRecording();
+
+    assert.deepEqual(harness.appendedPcm, [[0.75]]);
+    assert.isBelow(
+      harness.operations.indexOf('writer:append-pcm:0.75'),
+      harness.operations.indexOf('writer:finalize')
+    );
+  });
+
   it('stops and discards speaker activity when video aborts', async () => {
     const harness = createHarness();
     assert.strictEqual(
@@ -423,6 +484,7 @@ describe('VideoRecordingServiceCore', () => {
     assert.isNull(result);
     assert.strictEqual(harness.finalizeCalls, 0);
     assert.strictEqual(harness.abortCalls, 1);
+    assert.deepEqual(harness.enqueuedRecordings, []);
   });
 
   it('freezes speaker activity before stopping the media recorder', async () => {
@@ -611,6 +673,7 @@ describe('VideoRecordingServiceCore', () => {
     assert.deepEqual(harness.appended, [[1], [2], [3]]);
     assert.deepEqual(result, {
       filePath: '/recordings/call.webm',
+      pcmPath: '/recordings/call.pcm.f32',
       metadataPath: '/recordings/call.video.json',
       speakerActivityPath: '/recordings/call.speaker-activity.json',
     });

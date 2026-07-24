@@ -34,12 +34,12 @@ import {
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
 import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
+import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
 import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
 import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
 import { correctTranscriptWithAi } from './transcriptCorrection.main.ts';
-import { DEFAULT_WHISPER_LANGUAGE, RECORDING_PCM_SIDECAR_SUFFIX, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
-import { SPEAKER_ACTIVITY_FILE_SUFFIX } from './constants.std.ts';
+import { DEFAULT_WHISPER_LANGUAGE, WHISPER_VAD_MODEL_FILE, WHISPER_VAD_MODEL_MIN_BYTES, WHISPER_VAD_MODEL_URL } from './whisperSettings.std.ts';
 import {
   isSpeakerActivityCoverageSufficient,
   replaceLegacyLocalSpeakerLabels,
@@ -303,8 +303,7 @@ async function loadRecordingPcmSidecar(
   recordingPath: string,
   sampleRate = 48_000
 ): Promise<Float32Array> {
-  const basePath = recordingPath.replace(/\.mp3$/i, '');
-  const pcmPath = `${basePath}${RECORDING_PCM_SIDECAR_SUFFIX}`;
+  const { pcmPath } = getRecordingArtifactPaths(recordingPath);
   try {
     const raw = await readFile(pcmPath);
     if (raw.byteLength < 4) {
@@ -524,8 +523,8 @@ function formatTranscriptMarkdown(options: {
 async function loadSpeakerActivityLog(
   recordingPath: string
 ): Promise<SpeakerActivityLog | null> {
-  const basePath = recordingPath.replace(/\.mp3$/i, '');
-  const activityPath = `${basePath}${SPEAKER_ACTIVITY_FILE_SUFFIX}`;
+  const { speakerActivityPath: activityPath } =
+    getRecordingArtifactPaths(recordingPath);
   try {
     const raw = await readFile(activityPath, 'utf8');
     const parsed = JSON.parse(raw) as SpeakerActivityLog;
@@ -682,7 +681,7 @@ export async function transcribeCallRecording(options: {
   const speakerAlignedSegments = getSpeakerAlignedSegments(transcription);
   const result = toTranscribePcmResult(transcription);
 
-  const basePath = options.recordingPath.replace(/\.mp3$/i, '');
+  const { basePath } = getRecordingArtifactPaths(options.recordingPath);
   const transcriptPath = `${basePath}.transcript.md`;
   const alignedSegments: Array<AlignedTranscriptSegment> =
     speakerAlignedSegments.length > 0
@@ -861,7 +860,7 @@ export async function generateCallRecordingSummary(options: {
       throw new Error('Chybí API klíč pro AI shrnutí.');
     }
 
-    const basePath = options.recordingPath.replace(/\.mp3$/i, '');
+    const { basePath } = getRecordingArtifactPaths(options.recordingPath);
     const transcriptPath = `${basePath}.transcript.md`;
     let transcript: string;
     try {

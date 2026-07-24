@@ -50,7 +50,7 @@ The existing RingRTC AudioWorklet already renders the exact mono mix of local
 and remote audio used as the WebM audio track. It remains the only audio
 source.
 
-The worklet event is extended to deliver bounded PCM chunks in addition to
+The worklet event is extended to deliver bounded PCM chunks instead of only
 rendered-sample progress. `RingRtcAudioTrack` exposes those chunks to the video
 recording service. No microphone, macOS system capture, second media capture,
 WebM decoder, or ffmpeg process is introduced.

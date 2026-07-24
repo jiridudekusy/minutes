@@ -148,6 +148,54 @@ describe('VideoRecordingFileWriter', () => {
     assert.strictEqual((await stat(result.filePath)).size, 1);
   });
 
+  it('streams mixed PCM into a finalized sidecar referenced by metadata', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const startedAt = Date.UTC(2026, 6, 24, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Direct,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    const pcmWriter = writer as VideoRecordingFileWriter & {
+      appendPcm(
+        ownerId: number,
+        sessionId: string,
+        samples: Float32Array<ArrayBuffer>
+      ): Promise<void>;
+    };
+    assert.isFunction(pcmWriter.appendPcm);
+    await writer.append(7, session.sessionId, Uint8Array.from([1]));
+    await pcmWriter.appendPcm(
+      7,
+      session.sessionId,
+      Float32Array.from([0.25, -0.5])
+    );
+
+    const result = (await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 1_000,
+      recordedDurationMs: 1_000,
+      speakerActivityLog: createTestSpeakerActivityLog(startedAt, 1_000),
+    })) as Awaited<ReturnType<VideoRecordingFileWriter['finalize']>> & {
+      pcmPath: string;
+    };
+
+    const pcmData = await readFile(result.pcmPath);
+    const pcmSamples = new Float32Array(
+      pcmData.buffer.slice(
+        pcmData.byteOffset,
+        pcmData.byteOffset + pcmData.byteLength
+      )
+    );
+    assert.deepEqual([...pcmSamples], [0.25, -0.5]);
+    const metadata = JSON.parse(await readFile(result.metadataPath, 'utf8'));
+    assert.strictEqual(metadata.pcmFile, result.pcmPath.split('/').at(-1));
+  });
+
   it('rejects finalization without a valid speaker activity log', async () => {
     const writer = new VideoRecordingFileWriter({ recordingsDir });
     const session = await writer.create(7, {
@@ -230,7 +278,7 @@ describe('VideoRecordingFileWriter', () => {
     );
   });
 
-  it('publishes the speaker sidecar and metadata before the WebM', async () => {
+  it('publishes PCM, speaker sidecar, and metadata before the WebM', async () => {
     const published = new Array<string>();
     const writer = new VideoRecordingFileWriter({
       recordingsDir,
@@ -267,9 +315,10 @@ describe('VideoRecordingFileWriter', () => {
       },
     });
 
-    assert.match(published[0] ?? '', /\.speaker-activity\.json$/);
-    assert.match(published[1] ?? '', /\.json$/);
-    assert.match(published[2] ?? '', /\.webm$/);
+    assert.match(published[0] ?? '', /\.pcm\.f32$/);
+    assert.match(published[1] ?? '', /\.speaker-activity\.json$/);
+    assert.match(published[2] ?? '', /\.json$/);
+    assert.match(published[3] ?? '', /\.webm$/);
   });
 
   it('rolls metadata back when speaker sidecar publication fails', async () => {
