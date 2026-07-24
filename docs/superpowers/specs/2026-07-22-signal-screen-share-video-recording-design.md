@@ -136,8 +136,8 @@ Stop is idempotent. It requests the final MediaRecorder data, waits for all queu
 - Unsupported VP9 and VP8 WebM: fail before recording starts.
 - No active presentation: continue with black video and audio.
 - Presentation element disappears or changes: return to black until the registry supplies the authoritative Signal presentation.
-- Short audio underrun: insert silence and increment diagnostics.
-- Sustained audio overflow, MediaRecorder failure, or IPC backpressure beyond the bounded queue: stop and report an error rather than create an apparently successful damaged recording.
+- Audio underrun or overflow: preserve the RingRTC sample-offset gap as silence, log the lost local and remote sample counts, and continue recording.
+- MediaRecorder failure or IPC backpressure beyond the bounded queue: stop and report an error rather than create an apparently successful damaged recording.
 - Disk write failure: stop capture, close the writer, retain the `.webm.partial` file, and report its path when available.
 - Application crash: leave the `.webm.partial` file untouched. The first version neither deletes it nor lists it as a completed recording.
 

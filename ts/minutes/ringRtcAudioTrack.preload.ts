@@ -6,8 +6,8 @@
 import { RingRTC } from '@signalapp/ringrtc';
 
 import { createLogger } from '../logging/log.std.ts';
-import { createRingRtcAudioPackets } from './ringRtcAudioMixer.std.ts';
 import {
+  readRingRtcAudioTap,
   resolveRingRtcAudioTapApi,
   type RingRtcAudioTapApi,
 } from './ringRtcAudioTapApi.std.ts';
@@ -17,7 +17,6 @@ import { readRenderedPcmProgressEvent } from './ringRtcRenderedPcmProgress.std.t
 const log = createLogger('minutes/ringRtcAudioTrack');
 const POLL_INTERVAL_MS = 20;
 const MAX_SAMPLES_PER_POLL = 4_800;
-const MAX_CONSECUTIVE_OVERFLOW_POLLS = 3;
 
 export class RingRtcAudioTrack {
   readonly #api: RingRtcAudioTapApi;
@@ -30,7 +29,6 @@ export class RingRtcAudioTrack {
   #paused = false;
   #stopped = false;
   #fatalErrorReported = false;
-  #consecutiveOverflowPolls = 0;
   #latestWriterCursor = 0;
   #progressGeneration = 0;
 
@@ -171,25 +169,21 @@ export class RingRtcAudioTrack {
     }
 
     try {
-      const packets = createRingRtcAudioPackets(
-        this.#api.readAudioTap(MAX_SAMPLES_PER_POLL)
+      const packets = readRingRtcAudioTap(
+        this.#api,
+        MAX_SAMPLES_PER_POLL,
+        droppedSamples => {
+          log.warn(
+            'RingRTC audio tap dropped samples; recording the gap as silence',
+            droppedSamples
+          );
+        }
       );
       this.#latestWriterCursor = Math.max(
         packets.local.startSample + packets.local.samples.length,
         packets.remote.startSample + packets.remote.samples.length
       );
 
-      if (packets.droppedSamples > 0) {
-        this.#consecutiveOverflowPolls += 1;
-      } else {
-        this.#consecutiveOverflowPolls = 0;
-      }
-      if (this.#consecutiveOverflowPolls >= MAX_CONSECUTIVE_OVERFLOW_POLLS) {
-        this.#reportFatalError(
-          new Error('RingRTC audio tap overflowed repeatedly')
-        );
-        return;
-      }
       if (this.#paused) {
         return;
       }

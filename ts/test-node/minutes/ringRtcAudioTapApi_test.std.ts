@@ -3,7 +3,10 @@
 
 import { assert } from 'chai';
 
-import { resolveRingRtcAudioTapApi } from '../../minutes/ringRtcAudioTapApi.std.ts';
+import {
+  readRingRtcAudioTap,
+  resolveRingRtcAudioTapApi,
+} from '../../minutes/ringRtcAudioTapApi.std.ts';
 
 describe('resolveRingRtcAudioTapApi', () => {
   const validApi = {
@@ -43,5 +46,44 @@ describe('resolveRingRtcAudioTapApi', () => {
       }),
       undefined
     );
+  });
+
+  it('continues across repeated native overflows and reports each lost range', () => {
+    let readCount = 0;
+    const droppedSamples: Array<{
+      localInputSamples: number;
+      remotePlayoutSamples: number;
+    }> = [];
+    const overflowingApi = {
+      ...validApi,
+      readAudioTap: () => {
+        readCount += 1;
+        return {
+          sampleRate: 48_000,
+          channels: 1,
+          localInputStartSample: readCount * 480,
+          remotePlayoutStartSample: readCount * 480,
+          localInputPcm: Uint8Array.from([0, 64]),
+          remotePlayoutPcm: Uint8Array.from([0, 32]),
+          droppedLocalInputSamples: readCount,
+          droppedRemotePlayoutSamples: readCount * 2,
+        };
+      },
+    };
+
+    for (let index = 0; index < 3; index += 1) {
+      const packets = readRingRtcAudioTap(overflowingApi, 4_800, event =>
+        droppedSamples.push(event)
+      );
+      assert.lengthOf(packets.local.samples, 1);
+      assert.lengthOf(packets.remote.samples, 1);
+    }
+
+    assert.equal(readCount, 3);
+    assert.deepEqual(droppedSamples, [
+      { localInputSamples: 1, remotePlayoutSamples: 2 },
+      { localInputSamples: 2, remotePlayoutSamples: 4 },
+      { localInputSamples: 3, remotePlayoutSamples: 6 },
+    ]);
   });
 });

@@ -1,8 +1,12 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import type { RingRtcAudioTapChunk } from './ringRtcAudioMixer.std.ts';
-import { RING_RTC_AUDIO_TAP_VERSION } from './ringRtcAudioMixer.std.ts';
+import {
+  createRingRtcAudioPackets,
+  RING_RTC_AUDIO_TAP_VERSION,
+  type RingRtcAudioPackets,
+  type RingRtcAudioTapChunk,
+} from './ringRtcAudioMixer.std.ts';
 
 export type RingRtcAudioTapApi = Readonly<{
   isAudioTapSupported(): boolean;
@@ -11,6 +15,29 @@ export type RingRtcAudioTapApi = Readonly<{
   readAudioTap(maxSamplesPerSource: number): RingRtcAudioTapChunk;
   stopAudioTap(): void;
 }>;
+
+export type RingRtcAudioDropEvent = Readonly<{
+  localInputSamples: number;
+  remotePlayoutSamples: number;
+}>;
+
+export function readRingRtcAudioTap(
+  api: RingRtcAudioTapApi,
+  maxSamplesPerSource: number,
+  onDroppedSamples: (event: RingRtcAudioDropEvent) => void
+): RingRtcAudioPackets {
+  const chunk = api.readAudioTap(maxSamplesPerSource);
+  if (
+    chunk.droppedLocalInputSamples > 0 ||
+    chunk.droppedRemotePlayoutSamples > 0
+  ) {
+    onDroppedSamples({
+      localInputSamples: chunk.droppedLocalInputSamples,
+      remotePlayoutSamples: chunk.droppedRemotePlayoutSamples,
+    });
+  }
+  return createRingRtcAudioPackets(chunk);
+}
 
 function hasFunction(
   value: object,
