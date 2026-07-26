@@ -19,6 +19,15 @@
     margin: auto;
   }
 
+  &--record-video::before {
+    width: 18px;
+    height: 12px;
+    border: 2px solid #e53935;
+    border-radius: 2px;
+    background: transparent;
+    box-sizing: border-box;
+  }
+
   &--pause::before {
     content: '';
     display: block;

@@ -116,6 +116,7 @@ import type { PropsType as SmartCallingParticipantMenuProps } from '../state/sma
 import { Emoji } from '../axo/emoji.std.ts';
 import { CallingStatusIndicatorHandRaised } from './CallingStatusIndicatorHandRaised.dom.tsx';
 import { AxoSymbol } from '../axo/AxoSymbol.dom.tsx';
+import { usePresentationAuthority } from '../minutes/usePresentationAuthority.std.ts';
 
 const { isEqual, noop } = lodash;
 
@@ -416,6 +417,17 @@ export function CallScreen({
   const currentPresenter = remoteParticipants.find(
     participant => participant.presenting
   );
+
+  usePresentationAuthority({
+    callMode: activeCall.callMode,
+    conversationId: conversation.id,
+    isLocalPresenting: Boolean(presentingSource),
+    isRemotePresenting: currentPresenter?.presenting === true,
+    remotePresenterDemuxId:
+      currentPresenter && 'demuxId' in currentPresenter
+        ? currentPresenter.demuxId
+        : undefined,
+  });
 
   const hasRemoteVideo = remoteParticipants.some(
     remoteParticipant => remoteParticipant.hasRemoteVideo
@@ -973,6 +985,7 @@ export function CallScreen({
             handleSize={noop}
             i18n={i18n}
             isReconnecting={isReconnecting}
+            presenting={activeCall.remoteParticipants[0].presenting}
             setRendererCanvas={setRendererCanvas}
           />
         </>

@@ -5,7 +5,10 @@ import { ipcRenderer, type IpcRendererEvent } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
 import { drop } from '../util/drop.std.ts';
-import type { CallRecordingMetadata, CallRecordingOutput } from './types.std.ts';
+import type {
+  CallRecordingMetadata,
+  CallRecordingOutput,
+} from './types.std.ts';
 import { isCallSummaryExtensionActive } from './callSummaryExtensionService.preload.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
 import { isTranscriptionCancelledError } from './transcriptionCancel.std.ts';
@@ -19,6 +22,7 @@ import { clampProgressPercent } from './transcriptionProgress.std.ts';
 import { emitTranscriptionQueueSnapshot } from './transcriptionQueueEvents.std.ts';
 import type { CallRecordingCatalogEntry } from './recordingsCatalog.std.ts';
 import { getLocalSpeakerDisplayName } from './localSpeakerName.preload.ts';
+import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
 
 const log = createLogger('minutes/transcriptionQueue');
 
@@ -46,10 +50,7 @@ class TranscriptionQueueService {
   #panelOpen = false;
 
   constructor() {
-    ipcRenderer.on(
-      'minutes:call-transcription-progress',
-      this.#onProgress
-    );
+    ipcRenderer.on('minutes:call-transcription-progress', this.#onProgress);
   }
 
   isPanelOpen(): boolean {
@@ -60,7 +61,10 @@ class TranscriptionQueueService {
     this.#panelOpen = open;
   }
 
-  enqueue(metadata: CallRecordingMetadata, kind: TranscriptionJobKind = 'transcription'): void {
+  enqueue(
+    metadata: CallRecordingMetadata,
+    kind: TranscriptionJobKind = 'transcription'
+  ): void {
     if (kind === 'transcription' && !isCallSummaryExtensionActive()) {
       return;
     }
@@ -99,7 +103,7 @@ class TranscriptionQueueService {
       conversationTitle: entry.conversationTitle,
       startedAt: entry.startedAt,
       endedAt: entry.endedAt,
-      filePath: entry.mp3Path,
+      filePath: entry.recordingPath,
       durationMs: entry.durationMs,
     };
 
@@ -212,7 +216,7 @@ class TranscriptionQueueService {
     return this.#snapshot();
   }
 
-  #onProgress = (
+  readonly #onProgress = (
     _event: IpcRendererEvent,
     payload: {
       percent?: number;
@@ -314,7 +318,8 @@ class TranscriptionQueueService {
         job.output = {
           conversationId: metadata.conversationId,
           conversationTitle: metadata.conversationTitle,
-          transcriptPath: metadata.filePath.replace(/\.mp3$/i, '.transcript.md'),
+          transcriptPath: getRecordingArtifactPaths(metadata.filePath)
+            .transcriptPath,
           transcriptText: '',
           summaryPath,
           summaryText,
@@ -342,7 +347,9 @@ class TranscriptionQueueService {
       };
 
       const transcriptPath =
-        typeof result?.transcriptPath === 'string' ? result.transcriptPath : null;
+        typeof result?.transcriptPath === 'string'
+          ? result.transcriptPath
+          : null;
       const transcriptText =
         typeof result?.transcriptText === 'string'
           ? result.transcriptText.trim()
@@ -361,7 +368,9 @@ class TranscriptionQueueService {
         transcriptPath,
         transcriptText,
         summaryPath:
-          typeof result?.summaryPath === 'string' ? result.summaryPath : undefined,
+          typeof result?.summaryPath === 'string'
+            ? result.summaryPath
+            : undefined,
         summaryText:
           typeof result?.summaryText === 'string'
             ? result.summaryText.trim()

@@ -53,8 +53,8 @@ importers:
         specifier: workspace:*
         version: link:packages/mute-state-change
       '@signalapp/ringrtc':
-        specifier: 2.69.7
-        version: 2.69.7
+        specifier: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.2/minutes-ringrtc-2.69.7-minutes.2.tgz
+        version: '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.2/minutes-ringrtc-2.69.7-minutes.2.tgz'
       '@signalapp/sqlcipher':
         specifier: 3.3.9
         version: 3.3.9
@@ -2017,6 +2017,11 @@ packages:
   '@malept/flatpak-bundler@0.4.0':
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==, tarball: https://registry.npmjs.org/@malept/flatpak-bundler/-/flatpak-bundler-0.4.0.tgz}
     engines: {node: '>= 10.0.0'}
+
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.2/minutes-ringrtc-2.69.7-minutes.2.tgz':
+    resolution: {integrity: sha512-5c1MY/RM+c9QSOwyKWHO+8BYJKdIw+qJ6n/FtZ/D8KcQn3lfceIWekiRisIT2D8uO/O2xJoLGvN3azCHxC35cA==, tarball: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.2/minutes-ringrtc-2.69.7-minutes.2.tgz}
+    version: 2.69.7-minutes.2
+    hasBin: true
 
   '@napi-rs/canvas-android-arm64@0.1.61':
     resolution: {integrity: sha512-vnQobU4n2oTMXtDW0EHwdDIpUs4PqtAAK6vvYr9I9w984xrKe+NzFypmtGy/NkFrLoXn/i8WuCHAd1jLDGO3eA==, tarball: https://registry.npmjs.org/@napi-rs/canvas-android-arm64/-/canvas-android-arm64-0.1.61.tgz}
@@ -4572,10 +4577,6 @@ packages:
   '@signalapp/quill-cjs@2.1.2':
     resolution: {integrity: sha512-y2sgqdivlrG41J4Zvt/82xtH/PZjDlgItqlD2g/Cv3ZbjlR6cGhTNXbfNygCJB8nXj+C7I28pjt1Zm3k0pv2mg==, tarball: https://registry.npmjs.org/@signalapp/quill-cjs/-/quill-cjs-2.1.2.tgz}
     engines: {npm: '>=8.2.3'}
-
-  '@signalapp/ringrtc@2.69.7':
-    resolution: {integrity: sha512-tWtsA6i7MnAyqAz3/m1KEYiKOYYcUB1OrkRLm2DGMuP2IBOJWSPuZ9KFbgU1cNkTMm62ewmHWcVs5X6Zsq+MQA==, tarball: https://registry.npmjs.org/@signalapp/ringrtc/-/ringrtc-2.69.7.tgz}
-    hasBin: true
 
   '@signalapp/sqlcipher@3.3.9':
     resolution: {integrity: sha512-51NAV0CqIEreGx3r0hq85vjHC8NXZhGr9efywaqHRsjpbEdvdYARmFxObmMI55rjyqE5eLQ/QsPJzigBoQ6thw==, tarball: https://registry.npmjs.org/@signalapp/sqlcipher/-/sqlcipher-3.3.9.tgz}
@@ -12886,6 +12887,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.2/minutes-ringrtc-2.69.7-minutes.2.tgz':
+    dependencies:
+      https-proxy-agent: 7.0.6
+    transitivePeerDependencies:
+      - supports-color
+
   '@napi-rs/canvas-android-arm64@0.1.61':
     optional: true
 
@@ -15489,13 +15496,6 @@ snapshots:
       eventemitter3: 5.0.4
       lodash: 4.18.1
       quill-delta: 5.1.0
-
-  '@signalapp/ringrtc@2.69.7':
-    dependencies:
-      https-proxy-agent: 7.0.6
-      tar: 7.5.15
-    transitivePeerDependencies:
-      - supports-color
 
   '@signalapp/sqlcipher@3.3.9':
     dependencies:

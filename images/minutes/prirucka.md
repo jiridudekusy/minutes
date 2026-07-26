@@ -28,9 +28,9 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 
 ### 3. Nahrajte a přepište hovor
 
-1. Během hovoru stiskněte **Record** (vedle mute)
+1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. Po skončení se nahrávka uloží automaticky
-3. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+3. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 4. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ---
@@ -116,11 +116,14 @@ Export proběhne vždy — uloží se přepis zpráv. Lišta upozorní, že AI s
 
 ### Nahrávání během hovoru
 
-V obrazovce hovoru (vedle mute):
+V obrazovce hovoru (vedle mute) jsou dvě samostatné akce:
 
-- **Record** — začne nahrávání (funguje i bez Whisperu — uloží se MP3)
-- **Pause / Resume** — pozastaví / obnoví nahrávku i log řečníků
-- **Stop** — ukončí a uloží
+- **Nahrávání zvuku** — stávající audio nahrávka do MP3 (funguje i bez Whisperu)
+- **Nahrávání sdíleného videa** — WebM obsahující pouze obraz, který někdo sdílí přes Signal, a zvuk hovoru přímo z RingRTC; vaše vlastní sdílení se zapisuje z odchozího RingRTC video streamu, nikoli novým snímáním obrazovky
+- **Pause / Resume** — pozastaví / obnoví aktivní nahrávku
+- **Stop** — ukončí a uloží aktivní nahrávku
+
+Obě nahrávání jsou vzájemně výlučná. Video lze spustit i bez aktivního sdílení; do té doby obsahuje černý obraz se zvukem. Kamery účastníků ani okno Signalu se do videa nenahrávají. Video se nepřepisuje přes Whisper.
 
 Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
 
@@ -143,22 +146,22 @@ Stejné nastavení jako u chatů (**Nastavení AI**). Shrnutí vznikne nad hotov
 
 ### Kam se ukládá
 
-`%APPDATA%\Minutes\minutes\recordings\`
+`Dokumenty/Minutes`
 
-Soubory: `.mp3`, `.json` (metadata), `.transcript.md`, volitelně `.summary.md`.
+Soubory: audio `.mp3`, sdílené video `.webm`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
 
 ### Právní upozornění
 
 Zákony o nahrávání se liší. **Informujte účastníky** a získejte souhlas tam, kde je to potřeba.
 
-### Nahrávání na macOS
+### Zvuk nahrávky a oprávnění
 
-Nahrávání systémového zvuku (co slyšíte od ostatních) vyžaduje na macOS dvě oprávnění:
+Audio i video nahrávka používají zvuk přímo z RingRTC: vzdálený playout a lokální vstup, který Signal posílá do hovoru. Recorder neotevírá vlastní mikrofon ani systémový loopback.
 
-1. **Screen Recording** — v **System Settings → Privacy & Security → Screen Recording** povolte Minutes. Systémový dialog se poprvé zobrazí až při prvním pokusu o nahrávání.
-2. **Microphone** — stejné místo, sekce **Microphone**.
+1. **Microphone** je potřeba pro samotný Signal hovor. Když je mikrofon v Signalu ztlumený, lokální větev nahrávky obsahuje ticho.
+2. **Screen Recording** je potřeba pouze tehdy, když přes Signal sdílíte obrazovku. Nahrávání žádné druhé snímání obrazovky nespouští.
 
-> **Po povolení Screen Recording je nutné aplikaci restartovat** — do restartu se nahrává **jen mikrofon** (bez zvuku ostatních účastníků).
+Příchozí zvuk se bere před operačním systémovým výstupem, takže není závislý na hlasitosti reproduktorů ani na vybraném fyzickém výstupu.
 
 ---
 
@@ -184,7 +187,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 | Nastavení Přepisů (Minutes) | Stažení Whisper modelu |
 | Příručka | Tato nápověda |
 | O Minutes | Úvodní obrazovka s přehledem funkcí |
-| Otevřít nahrávky hovorů | Složka s MP3 |
+| Otevřít nahrávky hovorů | Složka s MP3 a WebM |
 | Otevřít sumarizace chatů | Složka s exporty chatů |
 | Zobrazit log | Diagnostika (jen z menu) |
 
@@ -204,7 +207,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Typ | Cesta |
 |-----|--------|
-| Nahrávky hovorů | `%APPDATA%\Minutes\minutes\recordings\` |
+| Nahrávky hovorů | `Dokumenty/Minutes` |
 | Sumáře chatů | `%APPDATA%\Minutes\minutes\summaries\` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |

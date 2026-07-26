@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { join } from 'node:path';
@@ -8,10 +8,14 @@ import { app, desktopCapturer, ipcMain, shell } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import {
-  RECORDINGS_DIR_NAME,
+  LEGACY_RECORDINGS_DIR_NAME,
   SPEAKER_ACTIVITY_FILE_SUFFIX,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
+import {
+  migrateLegacyRecordingsDirectory,
+  resolveMinutesRecordingsDir,
+} from '../ts/minutes/recordingsDirectory.node.ts';
 import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
 import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 import {
@@ -20,7 +24,10 @@ import {
   assertAiSummaryReady,
   saveAiSettings,
 } from '../ts/minutes/aiSettings.main.ts';
-import type { AiSettingsSaveInput, AiProvider } from '../ts/minutes/aiSettings.std.ts';
+import type {
+  AiSettingsSaveInput,
+  AiProvider,
+} from '../ts/minutes/aiSettings.std.ts';
 import {
   addBookmark,
   listBookmarks,
@@ -41,7 +48,10 @@ import {
   getLocalLlmExtensionPublic,
   installLocalLlmExtension,
 } from '../ts/minutes/localLlmExtension.main.ts';
-import { listCallRecordings, loadCallRecordingOutput } from '../ts/minutes/recordingsCatalog.main.ts';
+import {
+  listCallRecordings,
+  loadCallRecordingOutput,
+} from '../ts/minutes/recordingsCatalog.main.ts';
 import { cancelTranscriptionJob } from '../ts/minutes/transcriptionCancel.main.ts';
 import {
   testAiConnectionForProvider,
@@ -59,6 +69,7 @@ import {
   installPendingAppUpdate,
   resolveStartupAppUpdateState,
 } from '../ts/minutes/appUpdate.main.ts';
+import { initializeMinutesVideoRecordingChannel } from './minutes_video_recording_channel.main.ts';
 
 const log = createLogger('minutes/main');
 
@@ -73,10 +84,6 @@ function formatTimestampForFilename(epochMs: number): string {
   return new Date(epochMs).toISOString().replace(/[:.]/g, '-');
 }
 
-function getRecordingsDir(): string {
-  return join(app.getPath('userData'), RECORDINGS_DIR_NAME);
-}
-
 function getSummariesDir(): string {
   return join(app.getPath('userData'), SUMMARIES_DIR_NAME);
 }
@@ -85,7 +92,28 @@ async function ensureDir(path: string): Promise<void> {
   await mkdir(path, { recursive: true });
 }
 
-export function initializeMinutesChannel(): void {
+export async function initializeMinutesChannel(): Promise<void> {
+  const recordingsDir = resolveMinutesRecordingsDir(app.getPath('documents'));
+  const migration = await migrateLegacyRecordingsDirectory({
+    legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
+    targetDir: recordingsDir,
+  });
+  if (migration.migratedFiles.length > 0) {
+    log.info(
+      `migrated ${migration.migratedFiles.length} recording artifacts to Documents`
+    );
+  }
+  if (migration.conflicts.length > 0) {
+    log.warn(
+      `left ${migration.conflicts.length} conflicting recording artifacts in legacy storage`
+    );
+  }
+
+  initializeMinutesVideoRecordingChannel({
+    ipcMain,
+    recordingsDir,
+  });
+
   ipcMain.handle('minutes:get-loopback-audio-source', async () => {
     const sources = await desktopCapturer.getSources({
       types: ['screen'],
@@ -115,12 +143,11 @@ export function initializeMinutesChannel(): void {
         eraId?: string;
         startedAt: number;
         endedAt: number;
-        data: Uint8Array;
-        pcm48?: Float32Array;
+        data: Uint8Array<ArrayBuffer>;
+        pcm48?: Float32Array<ArrayBuffer>;
         speakerActivityLog?: SpeakerActivityLog | null;
       }
     ) => {
-      const recordingsDir = getRecordingsDir();
       await ensureDir(recordingsDir);
 
       const baseName = [
@@ -133,7 +160,10 @@ export function initializeMinutesChannel(): void {
       await writeFile(filePath, Buffer.from(options.data));
 
       if (options.pcm48 && options.pcm48.length > 0) {
-        const pcmPath = join(recordingsDir, `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`);
+        const pcmPath = join(
+          recordingsDir,
+          `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`
+        );
         await writeFile(
           pcmPath,
           Buffer.from(
@@ -240,13 +270,11 @@ export function initializeMinutesChannel(): void {
   });
 
   ipcMain.handle('minutes:open-recordings-folder', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     await shell.openPath(recordingsDir);
   });
 
   ipcMain.handle('minutes:list-call-recordings', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     return listCallRecordings(recordingsDir);
   });
@@ -256,7 +284,7 @@ export function initializeMinutesChannel(): void {
     async (
       _event,
       entry: {
-        mp3Path: string;
+        recordingPath: string;
         conversationId: string;
         conversationTitle: string;
         hasTranscript: boolean;
@@ -487,7 +515,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -521,7 +549,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
@@ -555,7 +583,7 @@ export function initializeMinutesChannel(): void {
       const apiKey =
         settings.provider === 'local'
           ? ''
-          : (await getAiApiKey(settings.provider)) ?? undefined;
+          : ((await getAiApiKey(settings.provider)) ?? undefined);
       if (settings.provider !== 'local' && !apiKey) {
         throw new Error('API klíč není nastaven');
       }
