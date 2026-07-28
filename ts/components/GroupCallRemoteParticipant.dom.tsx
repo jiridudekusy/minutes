@@ -8,6 +8,7 @@ import {
   useMemo,
   useCallback,
   useEffect,
+  useLayoutEffect,
   memo,
   type JSX,
 } from 'react';
@@ -37,6 +38,10 @@ import { AxoIconButton } from '../axo/AxoIconButton.dom.tsx';
 import { tw } from '../axo/tw.dom.tsx';
 import { CallingStatusIndicatorHandRaised } from './CallingStatusIndicatorHandRaised.dom.tsx';
 import { AxoConfirmDialog } from '../axo/AxoConfirmDialog.dom.tsx';
+import {
+  groupPresentationIdentity,
+  presentationSourceController,
+} from '../minutes/presentationSourceControllerGlobal.std.ts';
 
 const { debounce, noop } = lodash;
 
@@ -160,6 +165,17 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
     const remoteVideoRef = useRef<HTMLCanvasElement | null>(null);
     const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
     const imageDataRef = useRef<ImageData | null>(null);
+
+    useLayoutEffect(() => {
+      const canvas = remoteVideoRef.current;
+      if (!sharingScreen || !hasRemoteVideo || !callConversationId || !canvas) {
+        return;
+      }
+      return presentationSourceController.register(
+        groupPresentationIdentity(callConversationId, demuxId),
+        canvas
+      );
+    }, [callConversationId, demuxId, hasRemoteVideo, sharingScreen]);
 
     const [intersectionRef, intersectionObserverEntry] =
       useIntersectionObserver();
@@ -285,6 +301,9 @@ export const GroupCallRemoteParticipant: FC<PropsType> = memo(
       canvasEl.width = frameWidth;
       canvasEl.height = frameHeight;
       canvasContext.putImageData(imageData, 0, 0);
+      if (sharingScreen) {
+        presentationSourceController.markRendered(canvasEl);
+      }
       lastReceivedVideoAt.current = Date.now();
 
       setHasReceivedVideoRecently(true);

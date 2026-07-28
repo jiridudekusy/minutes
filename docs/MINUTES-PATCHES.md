@@ -80,7 +80,14 @@
 | `ts/minutes/components/MinutesSettingsModal.dom.tsx` | dialog AI nastavení |
 | `ts/minutes/components/MinutesSummaryStyleFields.dom.tsx` | styl shrnutí (Stručný / Detailní / Smart / Vlastní) + náhled promptu |
 | `ts/minutes/appUpdate.*` | kontrola GitHub Releases, stažení, pending update; platform-aware asset (Windows `.exe` / macOS `Minutes-mac-arm64.dmg`, na macOS instalace = otevření dmg + quit) |
-| `ts/minutes/callRecordingService.preload.ts` | větev podle platformy — macOS loopback přes `macLoopbackAudio.preload.ts`, jinak Windows `desktopCapturer` |
+| `ts/minutes/callRecordingService.preload.ts`, `callRecordingServiceCore.std.ts` | MP3 lifecycle nad jediným RingRTC audio trackem; žádný samostatný mikrofon ani systémový loopback |
+| `ts/minutes/captureCoordinator.std.ts` | vzájemné vyloučení audio/video nahrávání a společná finalizace |
+| `ts/minutes/presentationSource*.ts`, `presentationAuthority.std.ts`, `usePresentationAuthority.std.ts` | bezpečný výběr pouze Signal prezentace; lokální autorita používá výhradně RingRTC tap canvas |
+| `ts/minutes/screenShareCompositor.dom.ts` | černý 1920×1080/15 fps compositor s aspect-fit prezentací |
+| `ts/minutes/ringRtcAudio*.ts`, `ringRtcRenderedPcmProgress.std.ts` | čtení lokálního/remote RingRTC PCM, timeline, mix a AudioWorklet track |
+| `ts/minutes/ringRtcVideoTapApi.std.ts`, `ringRtcOutgoingVideoSource.preload.ts`, `ringRtcScreenShareCompositor.preload.ts` | validace API a čtení odchozího RingRTC screen-share videa |
+| `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný IPC writer, stav UI a speaker-activity logger |
+| `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` writer + atomická finalizace videa, metadat a `.speaker-activity.json` |
 | `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |

@@ -6,6 +6,7 @@ import type { VideoFrameSender, VideoFrameSource } from '@signalapp/ringrtc';
 import type { RefObject } from 'react';
 import { createLogger } from '../logging/log.std.ts';
 import { toLogFormat } from '../types/errors.std.ts';
+import { presentationSourceController } from '../minutes/presentationSourceControllerGlobal.std.ts';
 
 const log = createLogger('VideoSupport');
 
@@ -581,6 +582,7 @@ export class CanvasVideoRenderer {
     }
     this.imageData.data.set(this.buffer.subarray(0, width * height * 4));
     context.putImageData(this.imageData, 0, 0);
+    presentationSourceController.markRendered(canvas);
 
     if (sizeChanged) {
       this.sizeCallback?.({ width, height });
