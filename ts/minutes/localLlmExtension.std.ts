@@ -3,6 +3,11 @@
 
 import { AI_LOCAL_MODEL_NOT_READY_MESSAGE_CS } from './aiUserMessages.std.ts';
 import {
+  DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  type LocalLlmContextSize,
+} from './localLlmContextSize.std.ts';
+import { DEFAULT_LOCAL_LLM_REASONING_ENABLED } from './localLlmReasoning.std.ts';
+import {
   DEFAULT_LOCAL_LLM_MODEL,
   getLocalLlmModelDownloadUrl,
   getLocalLlmModelMinBytes,
@@ -28,6 +33,8 @@ export type LocalLlmExtensionPublic = Readonly<{
   modelFileName: string | null;
   modelSizeBytes: number | null;
   installedAt: number | null;
+  contextSize: LocalLlmContextSize;
+  reasoningEnabled: boolean;
   recommendedModelFileName: string;
   availableModels: ReadonlyArray<LocalLlmModelPublic>;
 }>;
@@ -51,6 +58,8 @@ export const DEFAULT_LOCAL_LLM_EXTENSION: LocalLlmExtensionPublic = {
   modelFileName: null,
   modelSizeBytes: null,
   installedAt: null,
+  contextSize: DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  reasoningEnabled: DEFAULT_LOCAL_LLM_REASONING_ENABLED,
   recommendedModelFileName: DEFAULT_LOCAL_LLM_MODEL.fileName,
   availableModels: [],
 };

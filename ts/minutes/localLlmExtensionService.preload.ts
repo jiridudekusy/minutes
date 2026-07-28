@@ -12,6 +12,7 @@ import {
 } from './localLlmExtension.std.ts';
 import { localLlmExtensionEvents } from './localLlmExtensionEvents.std.ts';
 import { summaryUi } from './summaryUiEvents.std.ts';
+import type { LocalLlmContextSize } from './localLlmContextSize.std.ts';
 
 const log = createLogger('minutes/localLlmExtensionService');
 
@@ -22,8 +23,7 @@ export function getLocalLlmExtensionState(): LocalLlmExtensionPublic {
 }
 
 export function isLocalLlmExtensionActive(modelFileName?: string): boolean {
-  const active =
-    cached.activated && cached.modelReady && cached.runtimeReady;
+  const active = cached.activated && cached.modelReady && cached.runtimeReady;
   if (!active) {
     return false;
   }
@@ -68,6 +68,30 @@ export async function installLocalLlmExtension(
   return cached;
 }
 
+export async function saveLocalLlmContextSize(
+  contextSize: LocalLlmContextSize
+): Promise<LocalLlmExtensionPublic> {
+  const next = await ipcRenderer.invoke(
+    'minutes:save-local-llm-context-size',
+    contextSize
+  );
+  cached = next as LocalLlmExtensionPublic;
+  localLlmExtensionEvents.emit(cached);
+  return cached;
+}
+
+export async function saveLocalLlmReasoningEnabled(
+  reasoningEnabled: boolean
+): Promise<LocalLlmExtensionPublic> {
+  const next = await ipcRenderer.invoke(
+    'minutes:save-local-llm-reasoning-enabled',
+    reasoningEnabled
+  );
+  cached = next as LocalLlmExtensionPublic;
+  localLlmExtensionEvents.emit(cached);
+  return cached;
+}
+
 export async function cancelLocalLlmDownload(): Promise<void> {
   await ipcRenderer.invoke('minutes:cancel-local-llm-download');
 }
@@ -83,9 +107,6 @@ export function subscribeLocalLlmExtensionProgress(
   };
   ipcRenderer.on('minutes:local-llm-extension-progress', handler);
   return () => {
-    ipcRenderer.removeListener(
-      'minutes:local-llm-extension-progress',
-      handler
-    );
+    ipcRenderer.removeListener('minutes:local-llm-extension-progress', handler);
   };
 }

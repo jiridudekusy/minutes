@@ -3,11 +3,24 @@
 
 import { createLogger } from '../logging/log.std.ts';
 import { loadNodeLlamaCpp } from './loadNodeLlamaCpp.main.ts';
+import {
+  canReuseLocalLlmContext,
+  DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  resolveLocalLlmRuntimeContextSize,
+  type LocalLlmContextSize,
+} from './localLlmContextSize.std.ts';
+import {
+  DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+  getLocalLlmChatWrapperOptions,
+  requireNonEmptyLocalLlmOutput,
+} from './localLlmReasoning.std.ts';
 
 const log = createLogger('minutes/localLlmInference');
 
 type LoadedLocalModel = Readonly<{
   modelFileName: string;
+  contextSize: LocalLlmContextSize;
+  reasoningEnabled: boolean;
   dispose: () => Promise<void>;
   prompt: (options: {
     systemPrompt: string;
@@ -42,21 +55,33 @@ export async function disposeLocalLlmModel(): Promise<void> {
   await disposeLoadedModel();
 }
 
-async function loadLocalModel(modelPath: string, modelFileName: string): Promise<LoadedLocalModel> {
+async function loadLocalModel(
+  modelPath: string,
+  modelFileName: string,
+  contextSize: LocalLlmContextSize,
+  reasoningEnabled: boolean
+): Promise<LoadedLocalModel> {
   const { getLlama, LlamaChatSession, resolveChatWrapper } =
     await loadNodeLlamaCpp();
   const llama = await getLlama();
   const model = await llama.loadModel({ modelPath });
-  const chatWrapper = resolveChatWrapper(model);
-  const context = await model.createContext({ contextSize: 8192 });
+  const chatWrapper = resolveChatWrapper(
+    model,
+    getLocalLlmChatWrapperOptions(reasoningEnabled)
+  );
+  const context = await model.createContext({
+    contextSize: resolveLocalLlmRuntimeContextSize(contextSize),
+  });
   const contextSequence = context.getSequence();
 
   log.info(
-    `local LLM model ready ${modelFileName} (chat wrapper: ${chatWrapper.wrapperName})`
+    `local LLM model ready ${modelFileName} (context: ${context.contextSize}, reasoning: ${reasoningEnabled}, chat wrapper: ${chatWrapper.wrapperName})`
   );
 
   return {
     modelFileName,
+    contextSize,
+    reasoningEnabled,
     dispose: async () => {
       contextSequence.dispose();
       await context.dispose();
@@ -86,23 +111,47 @@ async function loadLocalModel(modelPath: string, modelFileName: string): Promise
 
 async function getLoadedModel(
   modelPath: string,
-  modelFileName: string
+  modelFileName: string,
+  contextSize: LocalLlmContextSize,
+  reasoningEnabled: boolean
 ): Promise<LoadedLocalModel> {
-  if (loadedModel?.modelFileName === modelFileName) {
+  if (
+    loadedModel &&
+    canReuseLocalLlmContext(
+      loadedModel,
+      modelFileName,
+      contextSize,
+      reasoningEnabled
+    )
+  ) {
     return loadedModel;
   }
 
   if (loadPromise) {
     const pending = await loadPromise;
-    if (pending.modelFileName === modelFileName) {
+    if (
+      canReuseLocalLlmContext(
+        pending,
+        modelFileName,
+        contextSize,
+        reasoningEnabled
+      )
+    ) {
       return pending;
     }
   }
 
   loadPromise = (async () => {
     await disposeLoadedModel();
-    log.info(`loading local LLM model ${modelFileName}`);
-    const next = await loadLocalModel(modelPath, modelFileName);
+    log.info(
+      `loading local LLM model ${modelFileName} (context setting: ${contextSize}, reasoning: ${reasoningEnabled})`
+    );
+    const next = await loadLocalModel(
+      modelPath,
+      modelFileName,
+      contextSize,
+      reasoningEnabled
+    );
     loadedModel = next;
     return next;
   })();
@@ -117,12 +166,19 @@ async function getLoadedModel(
 export async function generateLocalLlmText(options: {
   modelPath: string;
   modelFileName: string;
+  contextSize?: LocalLlmContextSize;
+  reasoningEnabled?: boolean;
   systemPrompt: string;
   userPrompt: string;
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
-  const model = await getLoadedModel(options.modelPath, options.modelFileName);
+  const model = await getLoadedModel(
+    options.modelPath,
+    options.modelFileName,
+    options.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+    options.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED
+  );
 
   const runPrompt = async (): Promise<string> => {
     const text = await model.prompt({
@@ -131,7 +187,7 @@ export async function generateLocalLlmText(options: {
       maxTokens: options.maxTokens ?? 2000,
       temperature: options.temperature ?? 0.2,
     });
-    return text.trim();
+    return requireNonEmptyLocalLlmOutput(text);
   };
 
   const result = promptChain.then(runPrompt, runPrompt);
@@ -145,10 +201,14 @@ export async function generateLocalLlmText(options: {
 export async function testLocalLlmText(options: {
   modelPath: string;
   modelFileName: string;
+  contextSize?: LocalLlmContextSize;
+  reasoningEnabled?: boolean;
 }): Promise<string> {
   const text = await generateLocalLlmText({
     modelPath: options.modelPath,
     modelFileName: options.modelFileName,
+    contextSize: options.contextSize,
+    reasoningEnabled: options.reasoningEnabled,
     systemPrompt: 'Odpovídej stručně.',
     userPrompt: 'Odpověz jedním slovem: OK',
     maxTokens: 16,

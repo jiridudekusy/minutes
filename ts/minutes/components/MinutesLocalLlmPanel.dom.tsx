@@ -10,9 +10,16 @@ import {
   getLocalLlmExtensionState,
   installLocalLlmExtension,
   refreshLocalLlmExtension,
+  saveLocalLlmContextSize,
+  saveLocalLlmReasoningEnabled,
   subscribeLocalLlmExtensionProgress,
 } from '../localLlmExtensionService.preload.ts';
 import { localLlmExtensionEvents } from '../localLlmExtensionEvents.std.ts';
+import {
+  LOCAL_LLM_CONTEXT_SIZE_OPTIONS,
+  normalizeLocalLlmContextSize,
+  type LocalLlmContextSize,
+} from '../localLlmContextSize.std.ts';
 import type {
   LocalLlmExtensionProgress,
   LocalLlmExtensionPublic,
@@ -134,11 +141,47 @@ export function MinutesLocalLlmPanel({
     drop(cancelLocalLlmDownload());
   }, []);
 
+  const handleContextSizeChange = useCallback(
+    (contextSize: LocalLlmContextSize) => {
+      setIsBusy(true);
+      setErrorMessage(null);
+      drop(
+        (async () => {
+          try {
+            const next = await saveLocalLlmContextSize(contextSize);
+            setState(next);
+          } catch (error) {
+            setErrorMessage(formatInstallError(error));
+          } finally {
+            setIsBusy(false);
+          }
+        })()
+      );
+    },
+    []
+  );
+
+  const handleReasoningChange = useCallback((reasoningEnabled: boolean) => {
+    setIsBusy(true);
+    setErrorMessage(null);
+    drop(
+      (async () => {
+        try {
+          const next = await saveLocalLlmReasoningEnabled(reasoningEnabled);
+          setState(next);
+        } catch (error) {
+          setErrorMessage(formatInstallError(error));
+        } finally {
+          setIsBusy(false);
+        }
+      })()
+    );
+  }, []);
+
   const isDownloading =
     isBusy &&
     (progress?.phase === 'downloading' || progress?.phase === 'checking');
-  const isActive =
-    state.activated && state.modelReady && state.runtimeReady;
+  const isActive = state.activated && state.modelReady && state.runtimeReady;
   const activeModelFileName = state.modelFileName;
   const selectedModel =
     state.availableModels.find(
@@ -162,7 +205,7 @@ export function MinutesLocalLlmPanel({
         </p>
       )}
 
-      <div className={tw('flex flex-col gap-1 text-label-small')}>
+      <div className={tw('text-label-small flex flex-col gap-1')}>
         <span>
           Runtime:{' '}
           <strong>{state.runtimeReady ? 'OK' : 'Chybí node-llama-cpp'}</strong>
@@ -196,6 +239,50 @@ export function MinutesLocalLlmPanel({
         </select>
       </label>
 
+      <label className={tw('flex flex-col gap-1')}>
+        <span>Velikost kontextu</span>
+        <select
+          className={tw(
+            'rounded-md border border-solid px-3 py-2',
+            'border-label-disabled bg-background-primary'
+          )}
+          value={String(state.contextSize)}
+          disabled={isBusy}
+          onChange={event => {
+            const raw = event.target.value;
+            handleContextSizeChange(
+              normalizeLocalLlmContextSize(raw === 'auto' ? raw : Number(raw))
+            );
+          }}
+        >
+          {LOCAL_LLM_CONTEXT_SIZE_OPTIONS.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <span className={tw('text-label-small opacity-70')}>
+          Vyšší hodnota umožní zpracovat delší přepis najednou, ale spotřebuje
+          více paměti. Změna nevyžaduje nové stažení modelu.
+        </span>
+      </label>
+
+      <label className={tw('flex items-start gap-2')}>
+        <input
+          type="checkbox"
+          checked={state.reasoningEnabled}
+          disabled={isBusy}
+          onChange={event => handleReasoningChange(event.target.checked)}
+        />
+        <span className={tw('flex flex-col gap-1')}>
+          <span>Reasoning</span>
+          <span className={tw('text-label-small opacity-70')}>
+            Umožní modelu interně promýšlet složité úlohy. Generování bude
+            pomalejší a část výstupního limitu se spotřebuje na uvažování.
+          </span>
+        </span>
+      </label>
+
       {selectedModel && (
         <p className={tw('text-label-small opacity-70')}>
           {selectedModel.description}
@@ -212,8 +299,9 @@ export function MinutesLocalLlmPanel({
       {progress && (
         <div
           className={tw(
-            'rounded-md px-3 py-2 text-label-small',
-            progress.phase === 'error' && 'bg-fill-secondary text-label-primary',
+            'text-label-small rounded-md px-3 py-2',
+            progress.phase === 'error' &&
+              'bg-fill-secondary text-label-primary',
             progress.phase === 'cancelled' && 'opacity-80',
             progress.phase === 'complete' && 'opacity-80'
           )}
@@ -236,7 +324,9 @@ export function MinutesLocalLlmPanel({
       )}
 
       {errorMessage && (
-        <p className={tw('text-label-small text-label-primary')}>{errorMessage}</p>
+        <p className={tw('text-label-small text-label-primary')}>
+          {errorMessage}
+        </p>
       )}
 
       <div className={tw('flex flex-wrap gap-2')}>
@@ -244,7 +334,7 @@ export function MinutesLocalLlmPanel({
           <button
             type="button"
             className={tw(
-              'rounded-md border border-solid px-3 py-1.5 text-label-small',
+              'text-label-small rounded-md border border-solid px-3 py-1.5',
               'border-label-disabled'
             )}
             onClick={handleCancelDownload}
@@ -256,7 +346,7 @@ export function MinutesLocalLlmPanel({
           <button
             type="button"
             className={tw(
-              'rounded-md border border-solid px-3 py-1.5 text-label-small',
+              'text-label-small rounded-md border border-solid px-3 py-1.5',
               'border-label-disabled'
             )}
             disabled={isBusy}
@@ -274,7 +364,7 @@ export function MinutesLocalLlmPanel({
           <button
             type="button"
             className={tw(
-              'rounded-md px-3 py-1.5 text-label-small',
+              'text-label-small rounded-md px-3 py-1.5',
               'bg-label-primary text-background-primary'
             )}
             disabled={isBusy}
@@ -292,9 +382,7 @@ export function MinutesLocalLlmPanel({
   );
 
   if (embedded) {
-    return (
-      <div className={tw('flex flex-col gap-3')}>{content}</div>
-    );
+    return <div className={tw('flex flex-col gap-3')}>{content}</div>;
   }
 
   return (
@@ -304,7 +392,7 @@ export function MinutesLocalLlmPanel({
         'border-label-disabled'
       )}
     >
-      <legend className={tw('px-1 text-label-medium font-medium')}>
+      <legend className={tw('text-label-medium px-1 font-medium')}>
         Lokální model (Gemma)
       </legend>
       {content}

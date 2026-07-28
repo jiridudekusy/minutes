@@ -7,6 +7,14 @@ import { join } from 'node:path';
 import { app, type WebContents } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
+import {
+  DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  normalizeLocalLlmContextSize,
+} from './localLlmContextSize.std.ts';
+import {
+  DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+  normalizeLocalLlmReasoningEnabled,
+} from './localLlmReasoning.std.ts';
 import { AI_SETTINGS_DIR_NAME } from './constants.std.ts';
 import {
   DownloadCancelledError,
@@ -26,6 +34,10 @@ import {
   type LocalLlmModelPublic,
 } from './localLlmExtension.std.ts';
 import {
+  parseStoredLocalLlmExtension,
+  type StoredLocalLlmExtension,
+} from './localLlmExtensionSettings.std.ts';
+import {
   DEFAULT_LOCAL_LLM_MODEL,
   getLocalLlmModelLabel,
   LOCAL_LLM_MODELS_DIR,
@@ -40,12 +52,6 @@ import {
 const log = createLogger('minutes/localLlmExtension');
 
 const EXTENSION_FILE_NAME = 'local-llm-extension.json';
-
-type StoredExtension = {
-  activated: boolean;
-  modelFileName: string;
-  installedAt?: number;
-};
 
 type ProgressSender = (progress: LocalLlmExtensionProgress) => void;
 
@@ -67,24 +73,25 @@ function getExtensionSettingsPath(): string {
   );
 }
 
-async function readStoredExtension(): Promise<StoredExtension | null> {
+async function readStoredExtension(): Promise<StoredLocalLlmExtension | null> {
   try {
     const raw = await readFile(getExtensionSettingsPath(), 'utf8');
-    const parsed = JSON.parse(raw) as Partial<StoredExtension>;
-    if (!parsed.modelFileName) {
+    const parsed = parseStoredLocalLlmExtension(JSON.parse(raw));
+    if (!parsed) {
       return null;
     }
     return {
-      activated: Boolean(parsed.activated),
+      ...parsed,
       modelFileName: normalizeLocalLlmModelFileName(parsed.modelFileName),
-      installedAt: parsed.installedAt,
     };
   } catch {
     return null;
   }
 }
 
-async function writeStoredExtension(stored: StoredExtension): Promise<void> {
+async function writeStoredExtension(
+  stored: StoredLocalLlmExtension
+): Promise<void> {
   const path = getExtensionSettingsPath();
   await mkdir(join(app.getPath('userData'), AI_SETTINGS_DIR_NAME), {
     recursive: true,
@@ -158,6 +165,8 @@ export async function getLocalLlmExtensionPublic(): Promise<LocalLlmExtensionPub
     modelFileName: stored.modelFileName,
     modelSizeBytes: modelStatus.sizeBytes,
     installedAt: stored.installedAt ?? null,
+    contextSize: stored.contextSize,
+    reasoningEnabled: stored.reasoningEnabled,
     recommendedModelFileName: DEFAULT_LOCAL_LLM_MODEL.fileName,
     availableModels,
   };
@@ -274,10 +283,15 @@ export async function installLocalLlmExtension(
       throw new Error(message);
     }
 
+    const previousStored = await readStoredExtension();
     await writeStoredExtension({
       activated: true,
       modelFileName,
       installedAt: Date.now(),
+      contextSize:
+        previousStored?.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+      reasoningEnabled:
+        previousStored?.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED,
     });
 
     await disposeLocalLlmModel();
@@ -330,8 +344,13 @@ export async function generateLocalLlmSummary(options: {
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
-  const active = await isLocalLlmExtensionActive(options.modelFileName);
-  if (!active) {
+  const state = await getLocalLlmExtensionPublic();
+  if (
+    !state.activated ||
+    !state.modelReady ||
+    !state.runtimeReady ||
+    state.modelFileName !== options.modelFileName
+  ) {
     throw new Error(
       'Lokální LLM není aktivní nebo neodpovídá zvolenému modelu. Stáhněte model v Nastavení AI.'
     );
@@ -341,6 +360,8 @@ export async function generateLocalLlmSummary(options: {
   return generateLocalLlmText({
     modelPath,
     modelFileName: options.modelFileName,
+    contextSize: state.contextSize,
+    reasoningEnabled: state.reasoningEnabled,
     systemPrompt: options.systemPrompt,
     userPrompt: options.userPrompt,
     maxTokens: options.maxTokens,
@@ -351,12 +372,62 @@ export async function generateLocalLlmSummary(options: {
 export async function testLocalLlmConnection(options: {
   modelFileName: string;
 }): Promise<string> {
+  const state = await getLocalLlmExtensionPublic();
   const modelPath = await resolveLocalLlmModelPath(options.modelFileName);
   const response = await testLocalLlmText({
     modelPath,
     modelFileName: options.modelFileName,
+    contextSize: state.contextSize,
+    reasoningEnabled: state.reasoningEnabled,
   });
   return `Lokální model odpověděl: ${response}`;
+}
+
+export async function saveLocalLlmContextSize(
+  value: unknown
+): Promise<LocalLlmExtensionPublic> {
+  const contextSize = normalizeLocalLlmContextSize(value);
+  const stored = await readStoredExtension();
+  const previousContextSize =
+    stored?.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE;
+
+  await writeStoredExtension({
+    activated: stored?.activated ?? false,
+    modelFileName: stored?.modelFileName ?? DEFAULT_LOCAL_LLM_MODEL.fileName,
+    installedAt: stored?.installedAt,
+    contextSize,
+    reasoningEnabled:
+      stored?.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+  });
+
+  if (contextSize !== previousContextSize) {
+    await disposeLocalLlmModel();
+  }
+
+  return getLocalLlmExtensionPublic();
+}
+
+export async function saveLocalLlmReasoningEnabled(
+  value: unknown
+): Promise<LocalLlmExtensionPublic> {
+  const reasoningEnabled = normalizeLocalLlmReasoningEnabled(value);
+  const stored = await readStoredExtension();
+  const previousReasoningEnabled =
+    stored?.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED;
+
+  await writeStoredExtension({
+    activated: stored?.activated ?? false,
+    modelFileName: stored?.modelFileName ?? DEFAULT_LOCAL_LLM_MODEL.fileName,
+    installedAt: stored?.installedAt,
+    contextSize: stored?.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+    reasoningEnabled,
+  });
+
+  if (reasoningEnabled !== previousReasoningEnabled) {
+    await disposeLocalLlmModel();
+  }
+
+  return getLocalLlmExtensionPublic();
 }
 
 export function createLocalLlmProgressSender(
