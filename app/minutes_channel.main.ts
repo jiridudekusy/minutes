@@ -8,10 +8,14 @@ import { app, desktopCapturer, ipcMain, shell } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import {
-  RECORDINGS_DIR_NAME,
+  LEGACY_RECORDINGS_DIR_NAME,
   SPEAKER_ACTIVITY_FILE_SUFFIX,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
+import {
+  migrateLegacyRecordingsDirectory,
+  resolveMinutesRecordingsDir,
+} from '../ts/minutes/recordingsDirectory.node.ts';
 import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
 import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 import {
@@ -81,10 +85,6 @@ function formatTimestampForFilename(epochMs: number): string {
   return new Date(epochMs).toISOString().replace(/[:.]/g, '-');
 }
 
-function getRecordingsDir(): string {
-  return join(app.getPath('userData'), RECORDINGS_DIR_NAME);
-}
-
 function getSummariesDir(): string {
   return join(app.getPath('userData'), SUMMARIES_DIR_NAME);
 }
@@ -93,10 +93,26 @@ async function ensureDir(path: string): Promise<void> {
   await mkdir(path, { recursive: true });
 }
 
-export function initializeMinutesChannel(): void {
+export async function initializeMinutesChannel(): Promise<void> {
+  const recordingsDir = resolveMinutesRecordingsDir(app.getPath('documents'));
+  const migration = await migrateLegacyRecordingsDirectory({
+    legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
+    targetDir: recordingsDir,
+  });
+  if (migration.migratedFiles.length > 0) {
+    log.info(
+      `migrated ${migration.migratedFiles.length} recording artifacts to Documents`
+    );
+  }
+  if (migration.conflicts.length > 0) {
+    log.warn(
+      `left ${migration.conflicts.length} conflicting recording artifacts in legacy storage`
+    );
+  }
+
   initializeMinutesVideoRecordingChannel({
     ipcMain,
-    recordingsDir: getRecordingsDir(),
+    recordingsDir,
   });
 
   ipcMain.handle('minutes:get-loopback-audio-source', async () => {
@@ -133,7 +149,6 @@ export function initializeMinutesChannel(): void {
         speakerActivityLog?: SpeakerActivityLog | null;
       }
     ) => {
-      const recordingsDir = getRecordingsDir();
       await ensureDir(recordingsDir);
 
       const baseName = [
@@ -256,13 +271,11 @@ export function initializeMinutesChannel(): void {
   });
 
   ipcMain.handle('minutes:open-recordings-folder', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     await shell.openPath(recordingsDir);
   });
 
   ipcMain.handle('minutes:list-call-recordings', async () => {
-    const recordingsDir = getRecordingsDir();
     await ensureDir(recordingsDir);
     return listCallRecordings(recordingsDir);
   });

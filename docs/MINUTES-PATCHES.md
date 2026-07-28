@@ -85,6 +85,7 @@
 | `ts/minutes/presentationSource*.ts`, `presentationAuthority.std.ts`, `usePresentationAuthority.std.ts` | bezpečný výběr pouze Signal prezentace; lokální autorita používá výhradně RingRTC tap canvas |
 | `ts/minutes/screenShareCompositor.dom.ts` | černý 1920×1080/15 fps compositor s aspect-fit prezentací |
 | `ts/minutes/ringRtcAudio*.ts`, `ringRtcRenderedPcmProgress.std.ts` | čtení lokálního/remote RingRTC PCM, timeline, mix a AudioWorklet track |
+| `ts/minutes/recordingsDirectory.node.ts` | centrální `~/Documents/Minutes` cesta a bezpečná migrace legacy nahrávek bez přepisování |
 | `ts/minutes/ringRtcVideoTapApi.std.ts`, `ringRtcOutgoingVideoSource.preload.ts`, `ringRtcScreenShareCompositor.preload.ts` | validace API a čtení odchozího RingRTC screen-share videa |
 | `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný IPC writer, stav UI a speaker-activity logger |
 | `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` writer + atomická finalizace videa, metadat a `.speaker-activity.json` |
