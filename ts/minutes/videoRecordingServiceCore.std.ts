@@ -4,6 +4,7 @@
 import type {
   AbortedVideoRecordingFile,
   AppendVideoRecordingChunkInput,
+  AppendVideoRecordingPcmInput,
   CreatedVideoRecordingFile,
   CreateVideoRecordingFileOptions,
   FinalizedVideoRecordingFile,
@@ -20,6 +21,7 @@ import type {
   MinutesCaptureLease,
 } from './captureCoordinator.std.ts';
 import type { SpeakerActivityLog } from './speakerActivity.std.ts';
+import type { CallRecordingMetadata } from './types.std.ts';
 
 export const VIDEO_RECORDING_FRAME_RATE = 15;
 export const VIDEO_RECORDING_CHUNK_INTERVAL_MS = 1_000;
@@ -66,6 +68,7 @@ type VideoRecordingWriter = Readonly<{
     options: CreateVideoRecordingFileOptions
   ): Promise<CreatedVideoRecordingFile>;
   append(input: AppendVideoRecordingChunkInput): Promise<void>;
+  appendPcm(input: AppendVideoRecordingPcmInput): Promise<void>;
   finalize(
     input: FinalizeVideoRecordingFileInput
   ): Promise<FinalizedVideoRecordingFile>;
@@ -108,7 +111,7 @@ export type VideoRecordingServiceDependencies = Readonly<{
   writer: VideoRecordingWriter;
   createAudioTrack(
     onFatalError: (error: Error) => void,
-    onPcm: (sampleCount: number) => void
+    onPcm: (samples: Float32Array<ArrayBuffer>) => void
   ): Promise<RingRtcAudioTrack>;
   createCompositor(
     options: VideoRecordingStartOptions,
@@ -124,6 +127,7 @@ export type VideoRecordingServiceDependencies = Readonly<{
     activityLog: SpeakerActivityLog | null,
     recordedDurationMs: number
   ): SpeakerActivityLog | null;
+  onFinalized(metadata: CallRecordingMetadata): void;
   emitState(state: VideoRecordingState): void;
   now(): number;
   maxQueuedBytes?: number;
@@ -147,8 +151,11 @@ export class VideoRecordingServiceCore {
   #recorderStopPromise: Promise<void> | undefined;
   #timeline: RecordingPauseTimeline | undefined;
   #chunkQueue = new Array<Blob>();
+  #pcmQueue = new Array<Float32Array<ArrayBuffer>>();
   #queuedChunkBytes = 0;
+  #queuedPcmBytes = 0;
   #chunkDrainPromise: Promise<void> | undefined;
+  #pcmDrainPromise: Promise<void> | undefined;
   #writeError: Error | undefined;
   #fatalError: Error | undefined;
   #terminationKind: TerminationKind | undefined;
@@ -213,8 +220,9 @@ export class VideoRecordingServiceCore {
         error => {
           this.#signalFatalError(error);
         },
-        sampleCount => {
-          this.#dependencies.speakerActivity.onRecordingPcm(sampleCount);
+        samples => {
+          this.#dependencies.speakerActivity.onRecordingPcm(samples.length);
+          this.#enqueuePcm(samples);
         }
       );
       this.#throwIfFatalError();
@@ -353,8 +361,11 @@ export class VideoRecordingServiceCore {
     this.#recorderStopPromise = undefined;
     this.#timeline = undefined;
     this.#chunkQueue = [];
+    this.#pcmQueue = [];
     this.#queuedChunkBytes = 0;
+    this.#queuedPcmBytes = 0;
     this.#chunkDrainPromise = undefined;
+    this.#pcmDrainPromise = undefined;
     this.#writeError = undefined;
     this.#fatalError = undefined;
     this.#terminationKind = undefined;
@@ -427,13 +438,71 @@ export class VideoRecordingServiceCore {
     await this.#writeQueuedChunks();
   }
 
-  async #waitForPendingWrites(): Promise<void> {
-    const pendingDrain = this.#chunkDrainPromise;
-    if (pendingDrain) {
-      await pendingDrain;
-      if (this.#chunkDrainPromise && this.#chunkDrainPromise !== pendingDrain) {
-        await this.#waitForPendingWrites();
+  #enqueuePcm(samples: Float32Array<ArrayBuffer>): void {
+    if (samples.length === 0 || !this.#writerSession) {
+      return;
+    }
+    if (this.#queuedPcmBytes + samples.byteLength > this.#maxQueuedBytes) {
+      this.#signalFatalError(
+        new Error('Video recording PCM queue exceeded its memory limit')
+      );
+      return;
+    }
+
+    this.#pcmQueue.push(samples);
+    this.#queuedPcmBytes += samples.byteLength;
+    this.#pcmDrainPromise ??= this.#drainPcm();
+  }
+
+  async #drainPcm(): Promise<void> {
+    try {
+      await this.#writeQueuedPcm();
+    } catch (error) {
+      this.#writeError = toError(error);
+      this.#pcmQueue = [];
+      this.#queuedPcmBytes = 0;
+      this.#signalFatalError(this.#writeError);
+    } finally {
+      this.#pcmDrainPromise = undefined;
+    }
+  }
+
+  async #writeQueuedPcm(): Promise<void> {
+    const samples = this.#pcmQueue.shift();
+    if (!samples) {
+      return;
+    }
+
+    try {
+      const writerSession = this.#writerSession;
+      if (!writerSession) {
+        throw new Error('Video writer session disappeared');
       }
+      await this.#dependencies.writer.appendPcm({
+        sessionId: writerSession.sessionId,
+        samples,
+      });
+    } finally {
+      this.#queuedPcmBytes -= samples.byteLength;
+    }
+
+    await this.#writeQueuedPcm();
+  }
+
+  async #waitForPendingWrites(): Promise<void> {
+    const pendingChunkDrain = this.#chunkDrainPromise;
+    const pendingPcmDrain = this.#pcmDrainPromise;
+    await Promise.all(
+      [pendingChunkDrain, pendingPcmDrain].filter(
+        (promise): promise is Promise<void> => promise !== undefined
+      )
+    );
+    if (
+      (this.#chunkDrainPromise &&
+        this.#chunkDrainPromise !== pendingChunkDrain) ||
+      (this.#pcmDrainPromise && this.#pcmDrainPromise !== pendingPcmDrain)
+    ) {
+      await this.#waitForPendingWrites();
     }
     if (this.#writeError) {
       throw this.#writeError;
@@ -479,8 +548,13 @@ export class VideoRecordingServiceCore {
   async #terminate(
     initialKind: TerminationKind
   ): Promise<FinalizedVideoRecordingFile | null> {
+    const activeRecording =
+      this.#state.status === 'recording' || this.#state.status === 'paused'
+        ? this.#state
+        : undefined;
     this.#setState({ status: 'finalizing' });
     let result: FinalizedVideoRecordingFile | null = null;
+    let completedMetadata: CallRecordingMetadata | undefined;
     let partialPath = this.#writerSession?.partialPath;
 
     try {
@@ -488,6 +562,7 @@ export class VideoRecordingServiceCore {
         this.#dependencies.speakerActivity.pause();
       }
       await this.#stopRecorder(initialKind === 'finalize');
+      await this.#stopAudioTrack();
       try {
         await this.#waitForPendingWrites();
       } catch (error) {
@@ -518,6 +593,17 @@ export class VideoRecordingServiceCore {
           recordedDurationMs,
           speakerActivityLog,
         });
+        if (activeRecording) {
+          completedMetadata = {
+            conversationId: activeRecording.conversationId,
+            conversationTitle: activeRecording.conversationTitle,
+            eraId: activeRecording.eraId,
+            startedAt: activeRecording.startedAt,
+            endedAt,
+            filePath: result.filePath,
+            durationMs: recordedDurationMs,
+          };
+        }
         partialPath = undefined;
       } else {
         partialPath = await this.#abortWriter(partialPath);
@@ -538,7 +624,7 @@ export class VideoRecordingServiceCore {
         this.#fatalError ??= toError(error);
       }
       try {
-        await this.#audioTrack?.stop();
+        await this.#stopAudioTrack();
       } catch (error) {
         this.#fatalError ??= toError(error);
       }
@@ -551,6 +637,9 @@ export class VideoRecordingServiceCore {
       }
     }
 
+    if (result && completedMetadata && !this.#fatalError) {
+      this.#dependencies.onFinalized(completedMetadata);
+    }
     return result;
   }
 
@@ -625,7 +714,7 @@ export class VideoRecordingServiceCore {
       // Continue unwinding the remaining resources.
     }
     try {
-      await this.#audioTrack?.stop();
+      await this.#stopAudioTrack();
     } catch {
       // Continue to retain the partial file.
     }
@@ -656,6 +745,12 @@ export class VideoRecordingServiceCore {
     const activityLog = this.#dependencies.speakerActivity.stop();
     this.#speakerActivityStarted = false;
     return activityLog;
+  }
+
+  async #stopAudioTrack(): Promise<void> {
+    const audioTrack = this.#audioTrack;
+    this.#audioTrack = undefined;
+    await audioTrack?.stop();
   }
 
   #setError(error: unknown, partialPath?: string): void {

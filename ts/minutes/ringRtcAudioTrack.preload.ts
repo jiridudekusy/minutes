@@ -13,7 +13,7 @@ import {
 } from './ringRtcAudioTapApi.std.ts';
 import type { RingRtcAudioWorkletMessage } from './ringRtcAudioTimeline.std.ts';
 import {
-  readRenderedPcmProgressEvent,
+  readRenderedPcmEvent,
   readRingRtcAudioReadyEvent,
 } from './ringRtcRenderedPcmProgress.std.ts';
 
@@ -50,7 +50,7 @@ export class RingRtcAudioTrack {
   readonly #worklet: AudioWorkletNode;
   readonly #destination: MediaStreamAudioDestinationNode;
   readonly #onFatalError: (error: Error) => void;
-  readonly #onPcm: ((sampleCount: number) => void) | undefined;
+  readonly #onPcm: ((samples: Float32Array<ArrayBuffer>) => void) | undefined;
   readonly #pollTimer: ReturnType<typeof setInterval>;
   #paused = false;
   #stopped = false;
@@ -60,6 +60,7 @@ export class RingRtcAudioTrack {
   readonly #readyPromise: Promise<void>;
   #rejectReady: ((error: Error) => void) | undefined;
   #resolveReady: (() => void) | undefined;
+  #resolveWorkletStopped: (() => void) | undefined;
 
   private constructor(options: {
     api: RingRtcAudioTapApi;
@@ -67,7 +68,7 @@ export class RingRtcAudioTrack {
     worklet: AudioWorkletNode;
     destination: MediaStreamAudioDestinationNode;
     onFatalError: (error: Error) => void;
-    onPcm?: (sampleCount: number) => void;
+    onPcm?: (samples: Float32Array<ArrayBuffer>) => void;
   }) {
     this.#api = options.api;
     this.#context = options.context;
@@ -86,12 +87,20 @@ export class RingRtcAudioTrack {
         this.#rejectReady = undefined;
         return;
       }
-      const sampleCount = readRenderedPcmProgressEvent(
-        data,
-        this.#progressGeneration
-      );
-      if (sampleCount !== undefined) {
-        this.#onPcm?.(sampleCount);
+      const samples = readRenderedPcmEvent(data, this.#progressGeneration);
+      if (samples !== undefined && !this.#paused) {
+        this.#onPcm?.(samples);
+        return;
+      }
+      if (
+        typeof data === 'object' &&
+        data != null &&
+        'type' in data &&
+        data.type === 'stopped' &&
+        'generation' in data &&
+        data.generation === this.#progressGeneration
+      ) {
+        this.#resolveWorkletStopped?.();
       }
     };
     this.#pollTimer = setInterval(() => this.#poll(), POLL_INTERVAL_MS);
@@ -103,7 +112,7 @@ export class RingRtcAudioTrack {
 
   static async create(options: {
     onFatalError: (error: Error) => void;
-    onPcm?: (sampleCount: number) => void;
+    onPcm?: (samples: Float32Array<ArrayBuffer>) => void;
   }): Promise<RingRtcAudioTrack> {
     const api = resolveRingRtcAudioTapApi(RingRTC);
     if (!api) {
@@ -176,6 +185,9 @@ export class RingRtcAudioTrack {
 
   pause(): void {
     this.#paused = true;
+    this.#worklet.port.postMessage({
+      type: 'pause',
+    } satisfies RingRtcAudioWorkletMessage);
   }
 
   resume(): void {
@@ -195,9 +207,22 @@ export class RingRtcAudioTrack {
     try {
       this.#api.stopAudioTap();
     } finally {
+      const { promise, resolve } = Promise.withResolvers<void>();
+      this.#resolveWorkletStopped = resolve;
       this.#worklet.port.postMessage({
         type: 'stop',
       } satisfies RingRtcAudioWorkletMessage);
+      let timeout: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([
+        promise,
+        new Promise<void>(resolveTimeout => {
+          timeout = setTimeout(resolveTimeout, 250);
+        }),
+      ]);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+      this.#resolveWorkletStopped = undefined;
       this.#worklet.port.onmessage = null;
       this.#worklet.disconnect();
       for (const track of this.#destination.stream.getTracks()) {

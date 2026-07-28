@@ -6,10 +6,8 @@ import {
   RingRtcAudioTimeline,
   type RingRtcAudioWorkletMessage,
 } from './ringRtcAudioTimeline.std.ts';
-import {
-  RingRtcRenderedPcmProgress,
-  type RingRtcAudioWorkletEvent,
-} from './ringRtcRenderedPcmProgress.std.ts';
+import { type RingRtcAudioWorkletEvent } from './ringRtcRenderedPcmProgress.std.ts';
+import { RingRtcPcmChunker } from './ringRtcPcmChunker.std.ts';
 
 type AudioWorkletProcessor = Readonly<{ port: MessagePort }>;
 
@@ -38,9 +36,10 @@ class MinutesRingRtcAudioSource
   readonly #timeline = new RingRtcAudioTimeline(
     RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT
   );
-  readonly #renderedPcmProgress = new RingRtcRenderedPcmProgress();
+  readonly #pcmChunker = new RingRtcPcmChunker();
   #progressGeneration = 0;
   #readyReported = false;
+  #paused = false;
   #stopped = false;
 
   constructor() {
@@ -56,10 +55,22 @@ class MinutesRingRtcAudioSource
         }
       } else if (data.type === 'reset') {
         this.#timeline.reset(data.cursor);
-        this.#renderedPcmProgress.reset();
+        this.#pcmChunker.reset();
         this.#progressGeneration = data.generation;
+        this.#paused = false;
+      } else if (data.type === 'pause') {
+        this.#paused = true;
+        this.#pcmChunker.reset();
       } else {
+        const samples = this.#pcmChunker.flush();
+        if (samples) {
+          this.#postPcm(samples);
+        }
         this.#stopped = true;
+        this.port.postMessage({
+          type: 'stopped',
+          generation: this.#progressGeneration,
+        } satisfies RingRtcAudioWorkletEvent);
       }
     };
   }
@@ -77,21 +88,25 @@ class MinutesRingRtcAudioSource
       return true;
     }
     const cursorBeforeRender = this.#timeline.cursor;
-    output.set(this.#timeline.render(output.length));
-    if (this.#timeline.cursor === cursorBeforeRender) {
-      return true;
-    }
-    const renderedSamples = this.#renderedPcmProgress.addRenderedSamples(
-      output.length
-    );
-    if (renderedSamples > 0) {
-      this.port.postMessage({
-        type: 'rendered-samples',
-        generation: this.#progressGeneration,
-        sampleCount: renderedSamples,
-      } satisfies RingRtcAudioWorkletEvent);
+    const renderedPcm = this.#timeline.render(output.length);
+    output.set(renderedPcm);
+    if (!this.#paused && this.#timeline.cursor > cursorBeforeRender) {
+      for (const samples of this.#pcmChunker.add(renderedPcm)) {
+        this.#postPcm(samples);
+      }
     }
     return true;
+  }
+
+  #postPcm(samples: Float32Array<ArrayBuffer>): void {
+    this.port.postMessage(
+      {
+        type: 'rendered-pcm',
+        generation: this.#progressGeneration,
+        samples,
+      } satisfies RingRtcAudioWorkletEvent,
+      [samples.buffer]
+    );
   }
 }
 

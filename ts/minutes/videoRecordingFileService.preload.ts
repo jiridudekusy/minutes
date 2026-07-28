@@ -8,6 +8,7 @@ import {
   type AbortedVideoRecordingFile,
   type AbortVideoRecordingFileInput,
   type AppendVideoRecordingChunkInput,
+  type AppendVideoRecordingPcmInput,
   type CreatedVideoRecordingFile,
   type CreateVideoRecordingFileOptions,
   type FinalizedVideoRecordingFile,
@@ -26,6 +27,10 @@ export type VideoRecordingFileService = Readonly<{
   append(
     sessionId: string,
     data: AppendVideoRecordingChunkInput['data']
+  ): Promise<void>;
+  appendPcm(
+    sessionId: string,
+    samples: AppendVideoRecordingPcmInput['samples']
   ): Promise<void>;
   finalize(
     input: FinalizeVideoRecordingFileInput
@@ -89,6 +94,13 @@ export function createVideoRecordingFileService(
       } satisfies AppendVideoRecordingChunkInput);
       unwrapVideoRecordingFileResult(result);
     },
+    async appendPcm(sessionId, samples) {
+      const result = await invoke(MINUTES_VIDEO_RECORDING_IPC.appendPcm, {
+        sessionId,
+        samples,
+      } satisfies AppendVideoRecordingPcmInput);
+      unwrapVideoRecordingFileResult(result);
+    },
     async finalize(input) {
       const result = await invoke(MINUTES_VIDEO_RECORDING_IPC.finalize, input);
       const value = unwrapVideoRecordingFileResult<unknown>(result);
@@ -97,6 +109,8 @@ export function createVideoRecordingFileService(
         value == null ||
         !('filePath' in value) ||
         typeof value.filePath !== 'string' ||
+        !('pcmPath' in value) ||
+        typeof value.pcmPath !== 'string' ||
         !('metadataPath' in value) ||
         typeof value.metadataPath !== 'string' ||
         !('speakerActivityPath' in value) ||
@@ -106,6 +120,7 @@ export function createVideoRecordingFileService(
       }
       return {
         filePath: value.filePath,
+        pcmPath: value.pcmPath,
         metadataPath: value.metadataPath,
         speakerActivityPath: value.speakerActivityPath,
       };

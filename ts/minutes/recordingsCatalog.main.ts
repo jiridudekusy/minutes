@@ -5,13 +5,16 @@ import { access, readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
 import { createLogger } from '../logging/log.std.ts';
-import { RECORDING_PCM_SIDECAR_SUFFIX } from './whisperSettings.std.ts';
 import type {
   CallRecordingCatalogEntry,
   StoredCallRecordingMetadata,
 } from './recordingsCatalog.std.ts';
 import type { CallRecordingOutput } from './types.std.ts';
 import { readCallTranscriptMetadata } from './transcriptMetadata.main.ts';
+import {
+  getRecordingArtifactPaths,
+  type RecordingMediaKind,
+} from './recordingArtifacts.std.ts';
 
 const log = createLogger('minutes/recordingsCatalog');
 
@@ -25,7 +28,9 @@ async function fileExists(path: string): Promise<boolean> {
 }
 
 function isMetadataJsonFile(fileName: string): boolean {
-  return fileName.endsWith('.json') && !fileName.endsWith('.speaker-activity.json');
+  return (
+    fileName.endsWith('.json') && !fileName.endsWith('.speaker-activity.json')
+  );
 }
 
 function parseLegacyTitleFromMp3(fileName: string): string {
@@ -39,18 +44,16 @@ function parseLegacyTitleFromMp3(fileName: string): string {
 
 async function buildCatalogEntry(
   metadata: StoredCallRecordingMetadata,
-  mp3Path: string
+  recordingPath: string,
+  mediaKind: RecordingMediaKind
 ): Promise<CallRecordingCatalogEntry | null> {
-  if (!(await fileExists(mp3Path))) {
+  if (!(await fileExists(recordingPath))) {
     return null;
   }
 
-  const basePath = mp3Path.replace(/\.mp3$/i, '');
-  const transcriptPath = `${basePath}.transcript.md`;
-  const summaryPath = `${basePath}.summary.md`;
-  const hasPcmSidecar = await fileExists(
-    `${basePath}${RECORDING_PCM_SIDECAR_SUFFIX}`
-  );
+  const { basePath, pcmPath, transcriptPath, summaryPath } =
+    getRecordingArtifactPaths(recordingPath);
+  const hasPcmSidecar = await fileExists(pcmPath);
   const hasTranscript = await fileExists(transcriptPath);
   const hasSummary = await fileExists(summaryPath);
   const transcriptMeta = hasTranscript
@@ -63,7 +66,8 @@ async function buildCatalogEntry(
     startedAt: metadata.startedAt,
     endedAt: metadata.endedAt,
     durationMs: metadata.durationMs,
-    mp3Path,
+    mediaKind,
+    recordingPath,
     hasPcmSidecar,
     hasTranscript,
     hasSummary,
@@ -94,20 +98,31 @@ export async function listCallRecordings(
     try {
       const raw = await readFile(jsonPath, 'utf8');
       const parsed = JSON.parse(raw) as StoredCallRecordingMetadata;
+      const audioFile =
+        typeof parsed.audioFile === 'string' ? parsed.audioFile : undefined;
+      const videoFile =
+        parsed.mediaKind === 'screen-share-video' &&
+        typeof parsed.videoFile === 'string'
+          ? parsed.videoFile
+          : undefined;
+      const recordingFile = videoFile ?? audioFile;
       if (
         typeof parsed.conversationId !== 'string' ||
         typeof parsed.conversationTitle !== 'string' ||
-        typeof parsed.audioFile !== 'string' ||
+        !recordingFile ||
         typeof parsed.startedAt !== 'number' ||
         typeof parsed.endedAt !== 'number'
       ) {
         continue;
       }
 
-      const mp3Path = join(recordingsDir, parsed.audioFile);
-      const entry = await buildCatalogEntry(parsed, mp3Path);
+      const mediaKind: RecordingMediaKind = videoFile
+        ? 'screen-share-video'
+        : 'audio';
+      const recordingPath = join(recordingsDir, recordingFile);
+      const entry = await buildCatalogEntry(parsed, recordingPath, mediaKind);
       if (entry) {
-        entries.set(entry.mp3Path, entry);
+        entries.set(entry.recordingPath, entry);
       }
     } catch (error) {
       log.warn(`listCallRecordings: skip ${fileName}`, error);
@@ -124,12 +139,9 @@ export async function listCallRecordings(
       continue;
     }
 
-    const basePath = mp3Path.replace(/\.mp3$/i, '');
-    const transcriptPath = `${basePath}.transcript.md`;
-    const summaryPath = `${basePath}.summary.md`;
-    const hasPcmSidecar = await fileExists(
-      `${basePath}${RECORDING_PCM_SIDECAR_SUFFIX}`
-    );
+    const { basePath, pcmPath, transcriptPath, summaryPath } =
+      getRecordingArtifactPaths(mp3Path);
+    const hasPcmSidecar = await fileExists(pcmPath);
     const hasTranscript = await fileExists(transcriptPath);
     const hasSummary = await fileExists(summaryPath);
     const transcriptMeta = hasTranscript
@@ -151,7 +163,8 @@ export async function listCallRecordings(
       startedAt,
       endedAt: startedAt,
       durationMs,
-      mp3Path,
+      mediaKind: 'audio',
+      recordingPath: mp3Path,
       hasPcmSidecar,
       hasTranscript,
       hasSummary,
@@ -178,7 +191,7 @@ function extractTranscriptBodyFromMarkdown(markdown: string): string {
 export async function loadCallRecordingOutput(
   entry: Pick<
     CallRecordingCatalogEntry,
-    | 'mp3Path'
+    | 'recordingPath'
     | 'conversationId'
     | 'conversationTitle'
     | 'hasTranscript'
@@ -187,10 +200,9 @@ export async function loadCallRecordingOutput(
     | 'summaryPath'
   >
 ): Promise<CallRecordingOutput | null> {
-  const basePath = entry.mp3Path.replace(/\.mp3$/i, '');
-  const transcriptPath =
-    entry.transcriptPath ?? `${basePath}.transcript.md`;
-  const summaryPath = entry.summaryPath ?? `${basePath}.summary.md`;
+  const artifacts = getRecordingArtifactPaths(entry.recordingPath);
+  const transcriptPath = entry.transcriptPath ?? artifacts.transcriptPath;
+  const summaryPath = entry.summaryPath ?? artifacts.summaryPath;
 
   let transcriptText = '';
   if (entry.hasTranscript) {

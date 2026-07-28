@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import {
   combinePresentationAndRingRtcStreams,
   createVideoMediaRecorder,
-} from '../../minutes/videoRecordingService.preload.ts';
+} from '../../minutes/videoRecordingBrowserAdapters.std.ts';
 
 describe('videoRecordingService browser adapters', () => {
   it('combines only the presentation video and RingRTC audio tracks', () => {
@@ -31,7 +31,9 @@ describe('videoRecordingService browser adapters', () => {
         getVideoTracks: () => [ignoredRingRtcVideo],
         getAudioTracks: () => [ringRtcAudio],
       } as unknown as MediaStream,
-      createFakeMediaStream as unknown as typeof MediaStream
+      createFakeMediaStream as unknown as new (
+        tracks?: ReadonlyArray<MediaStreamTrack>
+      ) => MediaStream
     );
 
     assert.deepEqual(
@@ -75,7 +77,10 @@ describe('videoRecordingService browser adapters', () => {
     const adapter = createVideoMediaRecorder(
       {} as MediaStream,
       'video/webm;codecs=vp9,opus',
-      FakeMediaRecorder as unknown as typeof MediaRecorder
+      FakeMediaRecorder as unknown as new (
+        stream: MediaStream,
+        options?: MediaRecorderOptions
+      ) => MediaRecorder
     );
     let received: Blob | undefined;
     adapter.ondataavailable = chunk => {

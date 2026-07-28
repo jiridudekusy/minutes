@@ -7,17 +7,20 @@ import { createLogger } from '../logging/log.std.ts';
 import { minutesCaptureCoordinator } from './captureCoordinator.std.ts';
 import { RingRtcAudioTrack } from './ringRtcAudioTrack.preload.ts';
 import { RingRtcScreenShareCompositor } from './ringRtcScreenShareCompositor.preload.ts';
-import type { VideoRecordingCodec } from './videoRecordingFile.std.ts';
 import { videoRecordingFileService } from './videoRecordingFileService.preload.ts';
 import {
   VideoRecordingServiceCore,
-  type VideoMediaRecorder,
   type VideoRecordingStartOptions,
   type VideoRecordingState,
 } from './videoRecordingServiceCore.std.ts';
 import { videoRecordingStateEvents } from './videoRecordingStateEvents.std.ts';
 import { speakerActivityLogger } from './speakerActivityLogger.preload.ts';
 import { clampSpeakerActivityLogToPcmDuration } from './speakerActivity.std.ts';
+import { enqueueRecordingTranscription } from './callTranscriptionService.preload.ts';
+import {
+  combinePresentationAndRingRtcStreams,
+  createVideoMediaRecorder,
+} from './videoRecordingBrowserAdapters.std.ts';
 
 const log = createLogger('minutes/videoRecording');
 
@@ -26,47 +29,6 @@ export type StartVideoRecordingOptions = Readonly<{
   callMode: CallMode.Direct | CallMode.Group;
   eraId?: string;
 }>;
-
-type MediaStreamConstructor = new (
-  tracks?: ReadonlyArray<MediaStreamTrack>
-) => MediaStream;
-
-export function combinePresentationAndRingRtcStreams(
-  presentationStream: MediaStream,
-  ringRtcStream: MediaStream,
-  MediaStreamClass: MediaStreamConstructor = MediaStream
-): MediaStream {
-  return new MediaStreamClass([
-    ...presentationStream.getVideoTracks(),
-    ...ringRtcStream.getAudioTracks(),
-  ]);
-}
-
-export type BrowserVideoMediaRecorder = VideoMediaRecorder &
-  Readonly<{ recorder: MediaRecorder }>;
-
-export function createVideoMediaRecorder(
-  stream: MediaStream,
-  codec: VideoRecordingCodec,
-  MediaRecorderClass: typeof MediaRecorder = MediaRecorder
-): BrowserVideoMediaRecorder {
-  const recorder = new MediaRecorderClass(stream, { mimeType: codec });
-  const adapter: BrowserVideoMediaRecorder = {
-    recorder,
-    ondataavailable: undefined,
-    onerror: undefined,
-    onstop: undefined,
-    start: timesliceMs => recorder.start(timesliceMs),
-    pause: () => recorder.pause(),
-    resume: () => recorder.resume(),
-    requestData: () => recorder.requestData(),
-    stop: () => recorder.stop(),
-  };
-  recorder.ondataavailable = event => adapter.ondataavailable?.(event.data);
-  recorder.onerror = event => adapter.onerror?.(event);
-  recorder.onstop = () => adapter.onstop?.();
-  return adapter;
-}
 
 const core = new VideoRecordingServiceCore({
   coordinator: minutesCaptureCoordinator,
@@ -77,11 +39,16 @@ const core = new VideoRecordingServiceCore({
     create: options => videoRecordingFileService.create(options),
     append: input =>
       videoRecordingFileService.append(input.sessionId, input.data),
+    appendPcm: input =>
+      videoRecordingFileService.appendPcm(input.sessionId, input.samples),
     finalize: input => videoRecordingFileService.finalize(input),
     abort: input => videoRecordingFileService.abort(input.sessionId),
   },
   createAudioTrack: (onFatalError, onPcm) =>
-    RingRtcAudioTrack.create({ onFatalError, onPcm }),
+    RingRtcAudioTrack.create({
+      onFatalError,
+      onPcm,
+    }),
   createCompositor: (options, onFatalError) =>
     RingRtcScreenShareCompositor.create({
       conversationId: options.conversationId,
@@ -90,10 +57,11 @@ const core = new VideoRecordingServiceCore({
   combineStreams: (videoStream, audioStream) =>
     combinePresentationAndRingRtcStreams(
       videoStream as MediaStream,
-      audioStream as MediaStream
+      audioStream as MediaStream,
+      MediaStream
     ),
   createMediaRecorder: (stream, codec) =>
-    createVideoMediaRecorder(stream as MediaStream, codec),
+    createVideoMediaRecorder(stream as MediaStream, codec, MediaRecorder),
   speakerActivity: {
     onRecordingPcm: sampleCount =>
       speakerActivityLogger.onRecordingPcm(sampleCount),
@@ -110,6 +78,7 @@ const core = new VideoRecordingServiceCore({
     activityLog
       ? clampSpeakerActivityLogToPcmDuration(activityLog, recordedDurationMs)
       : null,
+  onFinalized: enqueueRecordingTranscription,
   emitState: state => {
     videoRecordingStateEvents.emitState(state);
     if (state.status === 'error') {

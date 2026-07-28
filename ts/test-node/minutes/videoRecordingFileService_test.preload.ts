@@ -97,6 +97,24 @@ describe('videoRecordingFileService', () => {
     ]);
   });
 
+  it('streams PCM samples through the dedicated IPC channel', async () => {
+    const calls: Array<{ channel: string; input: unknown }> = [];
+    const service = createVideoRecordingFileService(async (channel, input) => {
+      calls.push({ channel, input });
+      return { ok: true };
+    });
+    const samples = Float32Array.from([0.25, -0.5]);
+
+    await service.appendPcm('session-id', samples);
+
+    assert.deepEqual(calls, [
+      {
+        channel: 'minutes:append-video-recording-pcm',
+        input: { sessionId: 'session-id', samples },
+      },
+    ]);
+  });
+
   it('unwraps the finalized WebM, metadata, and speaker paths', async () => {
     const calls: Array<{ channel: string; input: unknown }> = [];
     const service = createVideoRecordingFileService(async (channel, input) => {
@@ -105,6 +123,7 @@ describe('videoRecordingFileService', () => {
         ok: true,
         value: {
           filePath: '/recordings/call.webm',
+          pcmPath: '/recordings/call.pcm.f32',
           metadataPath: '/recordings/call.json',
           speakerActivityPath: '/recordings/call.speaker-activity.json',
         },
@@ -120,6 +139,7 @@ describe('videoRecordingFileService', () => {
 
     assert.deepEqual(finalized, {
       filePath: '/recordings/call.webm',
+      pcmPath: '/recordings/call.pcm.f32',
       metadataPath: '/recordings/call.json',
       speakerActivityPath: '/recordings/call.speaker-activity.json',
     });
@@ -141,6 +161,7 @@ describe('videoRecordingFileService', () => {
       ok: true,
       value: {
         filePath: '/recordings/call.webm',
+        pcmPath: '/recordings/call.pcm.f32',
         metadataPath: '/recordings/call.json',
         speakerActivityPath: '/recordings/call.speaker-activity.json',
       },
@@ -155,6 +176,7 @@ describe('videoRecordingFileService', () => {
 
     assert.deepEqual(finalized, {
       filePath: '/recordings/call.webm',
+      pcmPath: '/recordings/call.pcm.f32',
       metadataPath: '/recordings/call.json',
       speakerActivityPath: '/recordings/call.speaker-activity.json',
     });
