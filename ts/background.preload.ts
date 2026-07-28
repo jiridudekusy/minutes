@@ -219,6 +219,7 @@ import {
   isMinutesBuildExpirationDisabled,
   prepareMinutesBuildExpiration,
 } from './minutes/buildExpiration.preload.ts';
+import { handleActiveCallOnScreenLock } from './minutes/screenLockCallPolicy.std.ts';
 import { ReactionSource } from './reactions/ReactionSource.std.ts';
 import { singleProtoJobQueue } from './jobs/singleProtoJobQueue.preload.ts';
 import { SeenStatus } from './MessageSeenStatus.std.ts';
@@ -1358,7 +1359,15 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('powerMonitorLockScreen', () => {
-    window.reduxActions.calling.hangUpActiveCall('powerMonitorLockScreen');
+    const result = handleActiveCallOnScreenLock({
+      isMinutesBuild: window.minutes != null,
+      hangUpActiveCall: reason =>
+        window.reduxActions.calling.hangUpActiveCall(reason),
+    });
+
+    if (result === 'kept') {
+      log.info('powerMonitor: keeping active call on screen lock');
+    }
   });
 
   const reconnectToWebSocketQueue = new LatestQueue();
