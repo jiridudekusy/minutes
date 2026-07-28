@@ -78,6 +78,7 @@ const NODE_PACKAGES = new Set([
   '@indutny/range-finder',
   '@indutny/simple-windows-notifications',
   '@minutes/mac-audio-tap',
+  '@modelcontextprotocol/sdk',
   '@signalapp/libsignal-client',
   '@signalapp/mute-state-change',
   '@signalapp/ringrtc',

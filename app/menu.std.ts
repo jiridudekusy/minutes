@@ -16,6 +16,7 @@ import {
   MINUTES_MENU_BOOKMARKS,
   MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
   MINUTES_MENU_LABEL,
+  MINUTES_MENU_MCP_SETTINGS,
   MINUTES_MENU_OPEN_RECORDINGS,
   MINUTES_MENU_OPEN_SUMMARIES,
   MINUTES_MENU_README,
@@ -63,6 +64,7 @@ export const createTemplate = (
     minutesSummarizeChat,
     minutesSummarizeUnread,
     minutesOpenSettings,
+    minutesOpenAutomationSettings,
     minutesOpenLog,
     minutesOpenRecordings,
     minutesOpenSummaries,
@@ -131,6 +133,10 @@ export const createTemplate = (
         {
           label: MINUTES_MENU_AI_SETTINGS,
           click: minutesOpenSettings,
+        },
+        {
+          label: MINUTES_MENU_MCP_SETTINGS,
+          click: minutesOpenAutomationSettings,
         },
         {
           label: MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS,
@@ -361,7 +367,7 @@ function updateForMac(
   const { showAbout, showSettings, showWindow } = options;
 
   // Remove About item and separator from Help menu, since they're in the app menu
-  const aboutMenu = template[4];
+  const aboutMenu = template.find(item => item.role === 'help');
   strictAssert(aboutMenu, 'Missing aboutMenu');
   if (Array.isArray(aboutMenu.submenu)) {
     aboutMenu.submenu.pop();
@@ -372,7 +378,9 @@ function updateForMac(
 
   // Remove preferences, separator, and quit from the File menu, since they're
   // in the app menu
-  const fileMenu = template[0];
+  const fileMenu = template.find(
+    item => item.label === i18n('icu:mainMenuFile')
+  );
   strictAssert(fileMenu, 'Missing fileMenu');
   if (Array.isArray(fileMenu.submenu)) {
     fileMenu.submenu.pop();
@@ -441,7 +449,9 @@ function updateForMac(
     ],
   });
 
-  const editMenu = template[2];
+  const editMenu = template.find(
+    item => item.label === i18n('icu:mainMenuEdit')
+  );
   strictAssert(editMenu, 'Missing editMenu');
   if (Array.isArray(editMenu.submenu)) {
     editMenu.submenu.push(
@@ -466,7 +476,7 @@ function updateForMac(
     throw new Error('updateForMac: edit.submenu was not an array!');
   }
 
-  const windowMenu = template[4];
+  const windowMenu = template.find(item => item.role === 'window');
   strictAssert(windowMenu, 'Missing windowMenu');
   // Replace Window menu
 

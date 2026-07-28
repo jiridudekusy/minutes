@@ -1,4 +1,4 @@
-// Copyright 2026 Minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import {
@@ -9,14 +9,15 @@ import {
 
 export const MINUTES_MENU_LABEL = APP_DISPLAY_NAME;
 
-export const MINUTES_MENU_SUMMARIZE_CURRENT_CHAT =
-  'Sumarizovat aktuální chat';
+export const MINUTES_MENU_SUMMARIZE_CURRENT_CHAT = 'Sumarizovat aktuální chat';
 
 export const MINUTES_MENU_SUMMARIZE_UNREAD = 'Sumarizovat nepřečtené';
 
 export const MINUTES_MENU_BOOKMARKS = 'Záložky';
 
 export const MINUTES_MENU_AI_SETTINGS = 'Nastavení AI';
+
+export const MINUTES_MENU_MCP_SETTINGS = 'Nastavení MCP';
 
 export const MINUTES_MENU_CALL_TRANSCRIPTION_SETTINGS =
   formatMinutesScopedMenuLabel('Nastavení přepisů');
@@ -46,8 +47,9 @@ export const MINUTES_MENU_MARK_UNREAD_FROM_HERE =
 export const MINUTES_MENU_ADD_BOOKMARK =
   formatMenuActionLabel('Přidat do záložek');
 
-export const MINUTES_MENU_ASK_AI_OPINION =
-  formatMenuActionLabel('Zeptat se na názor AI');
+export const MINUTES_MENU_ASK_AI_OPINION = formatMenuActionLabel(
+  'Zeptat se na názor AI'
+);
 
 export const MINUTES_MENU_TRANSCRIPTION_QUEUE =
   formatMinutesScopedMenuLabel('Přepisy');

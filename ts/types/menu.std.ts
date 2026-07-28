@@ -36,6 +36,7 @@ export type MenuActionsType = Readonly<{
   minutesSummarizeChat: () => unknown;
   minutesSummarizeUnread: () => unknown;
   minutesOpenSettings: () => unknown;
+  minutesOpenAutomationSettings: () => unknown;
   minutesOpenLog: () => unknown;
   minutesOpenRecordings: () => unknown;
   minutesOpenSummaries: () => unknown;

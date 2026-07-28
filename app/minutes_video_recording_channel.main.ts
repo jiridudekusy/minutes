@@ -11,6 +11,7 @@ import {
   type AppendVideoRecordingChunkInput,
   type AppendVideoRecordingPcmInput,
   type CreateVideoRecordingFileOptions,
+  type FinalizedVideoRecordingFile,
   type FinalizeVideoRecordingFileInput,
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
@@ -423,10 +424,12 @@ export function initializeMinutesVideoRecordingChannel({
   ipcMain,
   recordingsDir,
   writer = new VideoRecordingFileWriter({ recordingsDir }),
+  onFinalized,
 }: {
   ipcMain: IpcMainLike;
   recordingsDir: string;
   writer?: VideoRecordingFileWriter;
+  onFinalized?: (value: FinalizedVideoRecordingFile) => void | Promise<void>;
 }): void {
   const registeredSenders = new WeakSet<IpcSenderLike>();
 
@@ -491,6 +494,7 @@ export function initializeMinutesVideoRecordingChannel({
     };
     try {
       const value = await writer.finalize(event.sender.id, sessionId, options);
+      await onFinalized?.(value);
       return { ok: true, value } as const;
     } catch (error) {
       if (!isVideoRecordingFileError(error)) {

@@ -181,6 +181,12 @@ export default defineConfig([
     input: {
       // Main
       main: 'app/main.main.ts',
+    },
+  },
+  {
+    ...defaults,
+
+    input: {
       config: 'app/config.main.js',
 
       // Preloads

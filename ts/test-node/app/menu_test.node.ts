@@ -13,6 +13,7 @@ import { load as loadLocale } from '../../../app/locale.node.ts';
 import type { MenuListType } from '../../types/menu.std.ts';
 import type { LoggerType } from '../../types/Logging.std.ts';
 import { HourCyclePreference } from '../../types/I18N.std.ts';
+import { MINUTES_BUILD_ID } from '../../minutes/constants.std.ts';
 
 const forceUpdate = stub();
 const openArtCreator = stub();
@@ -35,6 +36,7 @@ const zoomReset = stub();
 const minutesSummarizeChat = stub();
 const minutesSummarizeUnread = stub();
 const minutesOpenSettings = stub();
+const minutesOpenAutomationSettings = stub();
 const minutesOpenLog = stub();
 const minutesOpenRecordings = stub();
 const minutesOpenSummaries = stub();
@@ -115,6 +117,48 @@ const getExpectedHelpMenu = (
   ],
 });
 
+const EXPECTED_MINUTES_MENU: MenuItemConstructorOptions = {
+  label: 'Minutes',
+  submenu: [
+    { label: `Build ${MINUTES_BUILD_ID}`, enabled: false },
+    { type: 'separator' },
+    {
+      label: 'Sumarizovat aktuální chat',
+      accelerator: 'CommandOrControl+Shift+U',
+      click: minutesSummarizeChat,
+    },
+    {
+      label: 'Sumarizovat nepřečtené',
+      accelerator: 'CommandOrControl+Shift+N',
+      click: minutesSummarizeUnread,
+    },
+    {
+      label: 'Záložky',
+      accelerator: 'CommandOrControl+Shift+B',
+      click: minutesOpenBookmarks,
+    },
+    {
+      label: 'Přepisy (Minutes)',
+      accelerator: 'CommandOrControl+Shift+M',
+      click: minutesOpenTranscriptionQueue,
+    },
+    { type: 'separator' },
+    { label: 'Nastavení AI', click: minutesOpenSettings },
+    { label: 'Nastavení MCP', click: minutesOpenAutomationSettings },
+    {
+      label: 'Nastavení přepisů (Minutes)',
+      click: minutesOpenCallSummaryExtension,
+    },
+    { type: 'separator' },
+    { label: 'Příručka', click: minutesOpenReadme },
+    { label: 'O Minutes', click: minutesShowHome },
+    { type: 'separator' },
+    { label: 'Otevřít nahrávky hovorů', click: minutesOpenRecordings },
+    { label: 'Otevřít sumarizace chatů', click: minutesOpenSummaries },
+    { label: 'Zobrazit log', click: minutesOpenLog },
+  ],
+};
+
 const EXPECTED_MACOS: MenuListType = [
   {
     label: 'Signal Desktop',
@@ -144,6 +188,7 @@ const EXPECTED_MACOS: MenuListType = [
       { accelerator: 'CmdOrCtrl+W', label: 'Close Window', role: 'close' },
     ],
   },
+  EXPECTED_MINUTES_MENU,
   getExpectedEditMenu(true),
   getExpectedViewMenu(),
   {
@@ -174,6 +219,7 @@ const EXPECTED_WINDOWS: MenuListType = [
       { label: 'Quit Signal', role: 'quit' },
     ],
   },
+  EXPECTED_MINUTES_MENU,
   getExpectedEditMenu(false),
   getExpectedViewMenu(),
   {
@@ -257,6 +303,7 @@ describe('createTemplate', () => {
     minutesSummarizeChat,
     minutesSummarizeUnread,
     minutesOpenSettings,
+    minutesOpenAutomationSettings,
     minutesOpenLog,
     minutesOpenRecordings,
     minutesOpenSummaries,
@@ -266,6 +313,29 @@ describe('createTemplate', () => {
     minutesOpenReadme,
     minutesShowHome,
   };
+
+  it('includes a dedicated MCP settings item in the Minutes menu', () => {
+    const actual = createTemplate(
+      {
+        development: false,
+        devTools: true,
+        includeSetup: false,
+        isNightly: false,
+        isProduction: true,
+        platform: 'linux',
+        ...actions,
+      },
+      i18n
+    );
+    const minutesMenu = actual.find(item => item.label === 'Minutes');
+    assert.isArray(minutesMenu?.submenu);
+    const submenu = minutesMenu?.submenu;
+    if (!Array.isArray(submenu)) {
+      throw new Error('Expected Minutes submenu');
+    }
+    const mcpSettings = submenu.find(item => item.label === 'Nastavení MCP');
+    assert.strictEqual(mcpSettings?.click, minutesOpenAutomationSettings);
+  });
 
   PLATFORMS.forEach(({ label, platform, expectedDefault }) => {
     describe(label, () => {

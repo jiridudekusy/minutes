@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { ipcRenderer } from 'electron';
@@ -15,8 +15,10 @@ import { openMinutesLog } from './navigation.preload.ts';
 import { openReadmeModal } from './readmeService.preload.ts';
 import { initializeAppUpdate } from './appUpdateService.preload.ts';
 import { initializeMinutesKeyboardShortcuts } from './keyboardShortcuts.preload.ts';
+import { initializeAutomationRenderer } from './automation/automationRenderer.preload.ts';
 
 const log = createLogger('minutes');
+let minutesInitialized = false;
 
 export function registerMinutesEarly(): void {
   if (window.minutes != null) {
@@ -34,6 +36,11 @@ export function registerMinutesEarly(): void {
 registerMinutesEarly();
 
 export function initializeMinutes(): void {
+  if (minutesInitialized) {
+    return;
+  }
+  minutesInitialized = true;
+
   log.info(`initializing minutes extensions (build ${MINUTES_BUILD_ID})`);
   initializeMinutesLogBuffer();
 
@@ -44,13 +51,17 @@ export function initializeMinutes(): void {
   drop(refreshLocalLlmExtension());
   initializeAppUpdate();
   initializeMinutesKeyboardShortcuts();
+  initializeAutomationRenderer();
 
   ipcRenderer.on('minutes:show-home', () => {
     showMinutesHome();
   });
 }
 
-export { callRecordingService, RECORDING_STATE_CHANGED } from './callRecordingService.preload.ts';
+export {
+  callRecordingService,
+  RECORDING_STATE_CHANGED,
+} from './callRecordingService.preload.ts';
 export {
   summarizeConversation,
   summarizeFromMessage,
@@ -62,6 +73,7 @@ export {
 export { summarizeUnreadConversations } from './unreadSummaryService.preload.ts';
 export { MinutesCallRecordingControls } from './components/MinutesCallRecordingControls.dom.tsx';
 export { MinutesSettingsHost } from './components/MinutesSettingsModal.dom.tsx';
+export { MinutesAutomationSettingsHost } from './components/MinutesAutomationSettingsModal.dom.tsx';
 export { MinutesCallSummaryExtensionHost } from './components/MinutesCallSummaryExtensionModal.dom.tsx';
 export { MinutesBookmarksHost } from './components/MinutesBookmarksModal.dom.tsx';
 export { openBookmarksModal } from './bookmarksService.preload.ts';
@@ -73,7 +85,10 @@ export {
   transcriptionQueue,
 } from './transcriptionQueueService.preload.ts';
 export { markUnreadFromMessage } from './markUnreadFromMessage.preload.ts';
-export { sendSummaryToChat, sendSummaryToSelf } from './sendSummaryToChat.preload.ts';
+export {
+  sendSummaryToChat,
+  sendSummaryToSelf,
+} from './sendSummaryToChat.preload.ts';
 export {
   MinutesDropdownMenuItems,
   MinutesContextMenuItems,

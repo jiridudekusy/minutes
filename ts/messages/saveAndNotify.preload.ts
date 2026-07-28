@@ -17,6 +17,7 @@ import { drop } from '../util/drop.std.ts';
 import type { ConversationModel } from '../models/conversations.preload.ts';
 import type { MessageModel } from '../models/messages.preload.ts';
 import { maybeNotify } from './maybeNotify.preload.ts';
+import { emitAutomationMessageEvent } from '../minutes/automation/automationEvents.preload.ts';
 
 const log = createLogger('saveAndNotify');
 
@@ -48,6 +49,7 @@ export async function saveAndNotify(
       return;
     }
 
+    emitAutomationMessageEvent(message);
     drop(conversation.onNewMessage(message));
 
     drop(

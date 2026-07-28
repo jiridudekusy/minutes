@@ -141,6 +141,7 @@
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
     "@minutes/mac-audio-tap": "workspace:*",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "@signalapp/libsignal-client": "0.96.4",
     "@signalapp/mute-state-change": "workspace:*",
     "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz",

@@ -1440,6 +1440,13 @@ function minutesOpenSettings(): void {
   mainWindow.webContents.send('minutes:open-settings');
 }
 
+function minutesOpenAutomationSettings(): void {
+  if (!mainWindow?.webContents) {
+    return;
+  }
+  mainWindow.webContents.send('minutes:open-automation-settings');
+}
+
 function minutesOpenLog(): void {
   if (!mainWindow?.webContents) {
     return;
@@ -2456,7 +2463,7 @@ app.on('ready', async () => {
     sql,
     configDir: userDataPath,
   });
-  await initializeMinutesChannel();
+  await initializeMinutesChannel({ getMainWindow });
   sqlChannels.initialize(sql);
   PowerChannel.initialize({
     send(event) {
@@ -2562,6 +2569,7 @@ function setupMenu(options?: Partial<CreateTemplateOptionsType>) {
     minutesSummarizeChat,
     minutesSummarizeUnread,
     minutesOpenSettings,
+    minutesOpenAutomationSettings,
     minutesOpenLog,
     minutesOpenRecordings,
     minutesOpenSummaries,

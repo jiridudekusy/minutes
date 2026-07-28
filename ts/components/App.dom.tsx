@@ -13,6 +13,7 @@ import { ThemeType } from '../types/Util.std.ts';
 import type { ViewStoryActionCreatorType } from '../state/ducks/stories.preload.ts';
 import type { AppStateType } from '../state/ducks/app.preload.ts';
 import { MinutesSettingsHost } from '../minutes/components/MinutesSettingsModal.dom.tsx';
+import { MinutesAutomationSettingsHost } from '../minutes/components/MinutesAutomationSettingsModal.dom.tsx';
 import { MinutesCallSummaryExtensionHost } from '../minutes/components/MinutesCallSummaryExtensionModal.dom.tsx';
 import { MinutesSummaryToastHost } from '../minutes/components/MinutesSummaryToastHost.dom.tsx';
 import { MinutesLogHost } from '../minutes/components/MinutesLogModal.dom.tsx';
@@ -122,6 +123,7 @@ export function App({
       {renderGlobalModalContainer()}
       {renderCallManager()}
       <MinutesSettingsHost />
+      <MinutesAutomationSettingsHost />
       <MinutesCallSummaryExtensionHost />
       <MinutesSummaryToastHost />
       <MinutesLogHost />
