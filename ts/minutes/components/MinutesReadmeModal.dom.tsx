@@ -12,6 +12,7 @@ import {
   getReadmeContent,
   subscribeReadmeOpen,
 } from '../readmeService.preload.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 import { MinutesMarkdown } from './MinutesMarkdown.dom.tsx';
 
 type Props = Readonly<{
@@ -60,10 +61,10 @@ export function MinutesReadmeModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="readme">
           <AxoDialog.Title>{MINUTES_README_LABEL}</AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
 
         <AxoDialog.Body>
           {isLoading && (

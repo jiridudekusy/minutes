@@ -27,6 +27,7 @@ import {
   type WhisperDecodeMode,
   type WhisperTranscribeSettingsPublic,
 } from '../whisperTranscribeSettings.std.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
@@ -225,12 +226,12 @@ export function MinutesCallSummaryExtensionModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="md" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="transcription-settings">
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení přepisů')}
           </AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
 
         <AxoDialog.Body>
           <AxoDialog.Description>

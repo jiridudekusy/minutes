@@ -31,6 +31,7 @@ import {
 import type { CallRecordingOutput } from '../types.std.ts';
 import type { CallRecordingCatalogEntry } from '../recordingsCatalog.std.ts';
 import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
+import { useMinutesDraggableSurface } from './MinutesDraggableSurface.dom.tsx';
 
 type SendAction =
   | 'transcript-chat'
@@ -519,6 +520,9 @@ function TranscriptionQueuePanel({
   onClose: () => void;
   activeWhisperModelLabel: string;
 }>): JSX.Element | null {
+  const { setSurfaceElement, dragHandleProps } = useMinutesDraggableSurface(
+    'transcription-queue'
+  );
   const activeCount = useMemo(
     () =>
       snapshot.jobs.filter(
@@ -568,8 +572,11 @@ function TranscriptionQueuePanel({
   }
 
   return (
-    <div className="MinutesTranscriptionQueue">
-      <div className="MinutesTranscriptionQueue__header">
+    <div ref={setSurfaceElement} className="MinutesTranscriptionQueue">
+      <div
+        className="MinutesTranscriptionQueue__header MinutesDraggableSurface__handle"
+        {...dragHandleProps}
+      >
         <span className="MinutesTranscriptionQueue__title">
           Přepisy ({APP_DISPLAY_NAME})
         </span>

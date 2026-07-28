@@ -13,6 +13,7 @@ import {
   navigateToBookmark,
   removeBookmarkById,
 } from '../bookmarksService.preload.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
@@ -86,10 +87,10 @@ export function MinutesBookmarksModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="md" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="bookmarks">
           <AxoDialog.Title>Záložky</AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
 
         <AxoDialog.Body>
           <AxoDialog.Description>

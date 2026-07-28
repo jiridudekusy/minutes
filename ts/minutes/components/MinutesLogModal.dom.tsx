@@ -12,6 +12,7 @@ import {
   clearMinutesLogBuffer,
   getMinutesLogText,
 } from '../logBuffer.preload.ts';
+import { MinutesDraggableDialogHeader } from './MinutesDraggableSurface.dom.tsx';
 
 type Props = Readonly<{
   open: boolean;
@@ -71,10 +72,10 @@ export function MinutesLogModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <AxoDialog.Header>
+        <MinutesDraggableDialogHeader positionKey="log">
           <AxoDialog.Title>{formatAppDialogTitle('log')}</AxoDialog.Title>
           <AxoDialog.Close />
-        </AxoDialog.Header>
+        </MinutesDraggableDialogHeader>
         <AxoDialog.Body>
           <AxoDialog.Description>
             <p className={tw('mb-3 text-label-medium')}>

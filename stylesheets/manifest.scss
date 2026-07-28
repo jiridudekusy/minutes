@@ -44,6 +44,7 @@ $is-storybook: false !default;
 @use 'components/CallingStatusIndicator.scss';
 @use 'components/CallingButton.scss';
 @use 'components/MinutesBookmarks.scss';
+@use 'components/MinutesDraggableSurface.scss';
 @use 'components/MinutesReadme.scss';
 @use 'components/MinutesWelcomeSplash.scss';
 @use 'components/MinutesStartupSplash.scss';
