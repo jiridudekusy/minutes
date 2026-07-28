@@ -1,7 +1,12 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-export const RING_RTC_AUDIO_PROGRESS_SAMPLE_COUNT = 12_000;
+import { RING_RTC_AUDIO_PROGRESS_SAMPLE_COUNT } from './ringRtcPcmChunker.std.ts';
+
+export {
+  RING_RTC_AUDIO_PROGRESS_SAMPLE_COUNT,
+  RingRtcPcmChunker,
+} from './ringRtcPcmChunker.std.ts';
 
 export type RingRtcAudioWorkletEvent =
   | Readonly<{
@@ -11,6 +16,15 @@ export type RingRtcAudioWorkletEvent =
       type: 'rendered-samples';
       generation: number;
       sampleCount: number;
+    }>
+  | Readonly<{
+      type: 'rendered-pcm';
+      generation: number;
+      samples: Float32Array<ArrayBuffer>;
+    }>
+  | Readonly<{
+      type: 'stopped';
+      generation: number;
     }>;
 
 export function readRingRtcAudioReadyEvent(event: unknown): boolean {
@@ -42,6 +56,26 @@ export function readRenderedPcmProgressEvent(
     return undefined;
   }
   return event.sampleCount;
+}
+
+export function readRenderedPcmEvent(
+  event: unknown,
+  generation: number
+): Float32Array<ArrayBuffer> | undefined {
+  if (
+    typeof event !== 'object' ||
+    event == null ||
+    !('type' in event) ||
+    event.type !== 'rendered-pcm' ||
+    !('generation' in event) ||
+    event.generation !== generation ||
+    !('samples' in event) ||
+    !(event.samples instanceof Float32Array) ||
+    event.samples.length === 0
+  ) {
+    return undefined;
+  }
+  return event.samples as Float32Array<ArrayBuffer>;
 }
 
 export class RingRtcRenderedPcmProgress {

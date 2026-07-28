@@ -6,6 +6,7 @@ import type { SpeakerActivityLog } from './speakerActivity.std.ts';
 export const MINUTES_VIDEO_RECORDING_IPC = {
   create: 'minutes:create-video-recording-file',
   append: 'minutes:append-video-recording-chunk',
+  appendPcm: 'minutes:append-video-recording-pcm',
   finalize: 'minutes:finalize-video-recording-file',
   abort: 'minutes:abort-video-recording-file',
 } as const;
@@ -36,6 +37,11 @@ export type AppendVideoRecordingChunkInput = Readonly<{
   data: Uint8Array<ArrayBuffer>;
 }>;
 
+export type AppendVideoRecordingPcmInput = Readonly<{
+  sessionId: string;
+  samples: Float32Array<ArrayBuffer>;
+}>;
+
 export type FinalizeVideoRecordingFileInput = Readonly<{
   sessionId: string;
   endedAt: number;
@@ -45,6 +51,7 @@ export type FinalizeVideoRecordingFileInput = Readonly<{
 
 export type FinalizedVideoRecordingFile = Readonly<{
   filePath: string;
+  pcmPath: string;
   metadataPath: string;
   speakerActivityPath: string;
 }>;

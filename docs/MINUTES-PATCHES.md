@@ -84,11 +84,12 @@
 | `ts/minutes/captureCoordinator.std.ts` | vzájemné vyloučení audio/video nahrávání a společná finalizace |
 | `ts/minutes/presentationSource*.ts`, `presentationAuthority.std.ts`, `usePresentationAuthority.std.ts` | bezpečný výběr pouze Signal prezentace; lokální autorita používá výhradně RingRTC tap canvas |
 | `ts/minutes/screenShareCompositor.dom.ts` | černý 1920×1080/15 fps compositor s aspect-fit prezentací |
-| `ts/minutes/ringRtcAudio*.ts`, `ringRtcRenderedPcmProgress.std.ts` | čtení lokálního/remote RingRTC PCM, timeline, mix a AudioWorklet track |
+| `ts/minutes/ringRtcAudio*.ts`, `ringRtcPcmChunker.std.ts`, `ringRtcRenderedPcmProgress.std.ts` | čtení lokálního/remote RingRTC PCM, timeline, mix, AudioWorklet track a streamované PCM bloky pro speaker activity i přepis videa |
 | `ts/minutes/recordingsDirectory.node.ts` | centrální `~/Documents/Minutes` cesta a bezpečná migrace legacy nahrávek bez přepisování |
 | `ts/minutes/ringRtcVideoTapApi.std.ts`, `ringRtcOutgoingVideoSource.preload.ts`, `ringRtcScreenShareCompositor.preload.ts` | validace API a čtení odchozího RingRTC screen-share videa |
-| `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný IPC writer, stav UI a speaker-activity logger |
-| `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` writer + atomická finalizace videa, metadat a `.speaker-activity.json` |
+| `ts/minutes/videoRecording*.ts` | video lifecycle, MediaRecorder, streamovaný WebM/PCM IPC writer, automatický přepis, stav UI a speaker-activity logger |
+| `app/minutes_video_recording_channel.main.ts` | sekvenční `.webm.partial` + `.pcm.f32.partial` writer a atomická finalizace videa, PCM, metadat a `.speaker-activity.json` |
+| `ts/minutes/recordingArtifacts.std.ts` | společné odvozování PCM, přepisu a shrnutí pro MP3 i WebM |
 | `ts/minutes/macCallVoiceProcessing.preload.ts` | macOS: zapne RingRTC VoiceProcessingIO, aby šly během hovoru měnit Mic Modes |
 | `ts/minutes/unreadSummaryService.preload.ts` | přehled nepřečtených chatů → Poznámky |
 | `ts/minutes/markUnreadFromMessage.preload.ts` | Nepřečteno odsud v kontextovém menu zprávy |

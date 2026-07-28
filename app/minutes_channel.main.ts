@@ -285,7 +285,7 @@ export async function initializeMinutesChannel(): Promise<void> {
     async (
       _event,
       entry: {
-        mp3Path: string;
+        recordingPath: string;
         conversationId: string;
         conversationTitle: string;
         hasTranscript: boolean;

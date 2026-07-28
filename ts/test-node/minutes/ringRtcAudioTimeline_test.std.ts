@@ -98,6 +98,65 @@ describe('RingRtc rendered PCM progress', () => {
     assert.isFalse(readReadyEvent({ type: 'ready', unexpected: true }));
     assert.isFalse(readReadyEvent(null));
   });
+
+  it('emits the exact rendered PCM in bounded chunks', () => {
+    const RingRtcPcmChunker = (
+      renderedPcmProgress as typeof renderedPcmProgress & {
+        RingRtcPcmChunker?: new (chunkSize: number) => {
+          add(samples: Float32Array): Array<Float32Array>;
+          flush(): Float32Array | undefined;
+          reset(): void;
+        };
+      }
+    ).RingRtcPcmChunker;
+    assert.isFunction(RingRtcPcmChunker);
+    if (!RingRtcPcmChunker) {
+      return;
+    }
+
+    const chunker = new RingRtcPcmChunker(4);
+    assert.deepEqual(chunker.add(Float32Array.from([1, 2])), []);
+    assert.deepEqual(
+      chunker.add(Float32Array.from([3, 4, 5])).map(chunk => [...chunk]),
+      [[1, 2, 3, 4]]
+    );
+    assert.deepEqual(
+      chunker.add(Float32Array.from([6, 7, 8])).map(chunk => [...chunk]),
+      [[5, 6, 7, 8]]
+    );
+
+    chunker.add(Float32Array.from([9, 10]));
+    chunker.reset();
+    assert.deepEqual(chunker.add(Float32Array.from([11, 12, 13, 14])), [
+      Float32Array.from([11, 12, 13, 14]),
+    ]);
+  });
+
+  it('flushes a final partial PCM chunk when recording stops', () => {
+    const RingRtcPcmChunker = (
+      renderedPcmProgress as typeof renderedPcmProgress & {
+        RingRtcPcmChunker?: new (chunkSize: number) => {
+          add(samples: Float32Array): Array<Float32Array>;
+          flush(): Float32Array | undefined;
+        };
+      }
+    ).RingRtcPcmChunker;
+    assert.isFunction(RingRtcPcmChunker);
+    if (!RingRtcPcmChunker) {
+      return;
+    }
+
+    const chunker = new RingRtcPcmChunker(4);
+    chunker.add(Float32Array.from([0.1, 0.2]));
+    assert.isFunction(chunker.flush);
+
+    assert.deepEqual(
+      [...(chunker.flush() ?? [])],
+      [0.10000000149011612, 0.20000000298023224]
+    );
+    assert.isUndefined(chunker.flush());
+  });
+
   it('reports rendered samples in bounded 250 ms increments', () => {
     const progress = new RingRtcRenderedPcmProgress();
 
@@ -143,6 +202,32 @@ describe('RingRtc rendered PCM progress', () => {
         4
       ),
       12_000
+    );
+  });
+
+  it('accepts PCM only from the active resume generation', () => {
+    const readEvent = (
+      renderedPcmProgress as typeof renderedPcmProgress & {
+        readRenderedPcmEvent?: (
+          event: unknown,
+          generation: number
+        ) => Float32Array | undefined;
+      }
+    ).readRenderedPcmEvent;
+    assert.isFunction(readEvent);
+    if (!readEvent) {
+      return;
+    }
+
+    const delayed = Float32Array.from([0.1, 0.2]);
+    assert.isUndefined(
+      readEvent({ type: 'rendered-pcm', generation: 3, samples: delayed }, 4)
+    );
+
+    const current = Float32Array.from([0.3, 0.4]);
+    assert.strictEqual(
+      readEvent({ type: 'rendered-pcm', generation: 4, samples: current }, 4),
+      current
     );
   });
 });

@@ -32,7 +32,7 @@ Výsledek najdete ve složce sumarizací (menu **Otevřít sumarizace chatů**).
 1. Během hovoru zvolte **nahrávání zvuku** nebo **nahrávání sdíleného videa** (vedle mute)
 2. V potvrzení **Nahrávání se chystá spustit** klikněte **Spustit nahrávání** (nebo **Zrušit**, pokud nahrávat nechcete)
 3. Po skončení se nahrávka uloží automaticky
-4. V **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
+4. Pro přepis audio i video nahrávky v **Nastavení Přepisů (Minutes)** jednorázově stáhněte Whisper model **Large v3 Turbo** (doporučeno)
 5. Přepis a shrnutí najdete v **Přepisy (Minutes)**
 
 ### Zvonění ve velké skupině
@@ -147,7 +147,7 @@ V obrazovce hovoru (vedle mute) jsou dvě samostatné akce:
 - **Pause / Resume** — pozastaví / obnoví aktivní nahrávku i log řečníků; při obnovení se potvrzení nezobrazuje
 - **Stop** — ukončí a uloží aktivní nahrávku
 
-Obě nahrávání jsou vzájemně výlučná. Video lze spustit i bez aktivního sdílení; do té doby obsahuje černý obraz se zvukem. Kamery účastníků ani okno Signalu se do videa nenahrávají. Video se nepřepisuje přes Whisper.
+Obě nahrávání jsou vzájemně výlučná. Video lze spustit i bez aktivního sdílení; do té doby obsahuje černý obraz se zvukem. Kamery účastníků ani okno Signalu se do videa nenahrávají. Audio i video nahrávky se po uložení automaticky přepíšou přes Whisper.
 
 Po **skončení hovoru** se aktivní nahrávka uloží automaticky.
 
@@ -171,9 +171,9 @@ Stejné nastavení jako u chatů (**Nastavení AI** včetně **stylu shrnutí**)
 
 ### Kam se ukládá
 
-`%APPDATA%\Minutes\minutes\recordings\`
+`Dokumenty/Minutes`
 
-Soubory: audio `.mp3`, sdílené video `.webm`, `.json` metadata, `.transcript.md` a volitelně `.summary.md` pro audio přepisy.
+Soubory: audio `.mp3`, sdílené video `.webm`, PCM a `.json` metadata, `.transcript.md` a volitelně `.summary.md`. Nové audio i video nahrávky používají stejný automatický přepis a shrnutí.
 
 ### Právní upozornění
 
@@ -242,7 +242,7 @@ Uloží odkaz na důležitou zprávu pro rychlý návrat.
 
 | Typ | Cesta |
 |-----|--------|
-| Nahrávky hovorů | `%APPDATA%\Minutes\minutes\recordings\` |
+| Nahrávky hovorů | `Dokumenty/Minutes` |
 | Sumáře chatů | `%APPDATA%\Minutes\minutes\summaries\` |
 | AI nastavení | `%APPDATA%\Minutes\minutes\ai-settings.json` |
 | Modely Whisper | `%APPDATA%\Minutes\minutes\models\` |

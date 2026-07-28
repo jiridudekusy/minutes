@@ -9,11 +9,13 @@ import { basename, join } from 'node:path';
 import {
   MINUTES_VIDEO_RECORDING_IPC,
   type AppendVideoRecordingChunkInput,
+  type AppendVideoRecordingPcmInput,
   type CreateVideoRecordingFileOptions,
   type FinalizeVideoRecordingFileInput,
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
 import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
+import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
 
 type FinalizeOptions = Omit<FinalizeVideoRecordingFileInput, 'sessionId'>;
 
@@ -68,7 +70,10 @@ async function ignoreFailure(operation: () => Promise<unknown>): Promise<void> {
 type Session = Readonly<{
   ownerId: number;
   handle: VideoFileHandle;
+  pcmHandle: VideoFileHandle;
   partialPath: string;
+  pcmPartialPath: string;
+  pcmPath: string;
   filePath: string;
   options: CreateVideoRecordingFileOptions;
 }> & {
@@ -132,11 +137,26 @@ export class VideoRecordingFileWriter {
     ].join('_');
     const filePath = join(this.#recordingsDir, `${baseName}.webm`);
     const partialPath = `${filePath}.partial`;
+    const pcmPath = join(
+      this.#recordingsDir,
+      `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`
+    );
+    const pcmPartialPath = `${pcmPath}.partial`;
     const handle = await this.#openFile(partialPath);
+    let pcmHandle: VideoFileHandle;
+    try {
+      pcmHandle = await this.#openFile(pcmPartialPath);
+    } catch (error) {
+      await ignoreFailure(() => handle.close());
+      throw error;
+    }
     this.#sessions.set(sessionId, {
       ownerId,
       handle,
+      pcmHandle,
       partialPath,
+      pcmPartialPath,
+      pcmPath,
       filePath,
       options,
       queuedBytes: 0,
@@ -159,19 +179,52 @@ export class VideoRecordingFileWriter {
     }
     const chunk = Buffer.from(data);
     session.queuedBytes += chunk.byteLength;
-    session.writes = this.#writeAfterPending(sessionId, session, chunk);
+    session.writes = this.#writeAfterPending(
+      sessionId,
+      session,
+      session.handle,
+      chunk
+    );
+    await session.writes;
+  }
+
+  async appendPcm(
+    ownerId: number,
+    sessionId: string,
+    samples: Float32Array<ArrayBuffer>
+  ): Promise<void> {
+    const session = this.#getOwnedSession(ownerId, sessionId);
+    if (session.queuedBytes + samples.byteLength > this.#maxQueuedBytes) {
+      throw createVideoRecordingFileError(
+        'Video recording write queue is full',
+        session.partialPath
+      );
+    }
+    const chunk = Buffer.from(
+      samples.buffer,
+      samples.byteOffset,
+      samples.byteLength
+    );
+    session.queuedBytes += chunk.byteLength;
+    session.writes = this.#writeAfterPending(
+      sessionId,
+      session,
+      session.pcmHandle,
+      chunk
+    );
     await session.writes;
   }
 
   async #writeAfterPending(
     sessionId: string,
     session: Session,
+    handle: VideoFileHandle,
     chunk: Uint8Array<ArrayBuffer>
   ): Promise<void> {
     const previousWrites = session.writes;
     try {
       await previousWrites;
-      await session.handle.writeFile(chunk);
+      await handle.writeFile(chunk);
     } catch (error) {
       if (isVideoRecordingFileError(error)) {
         throw error;
@@ -194,6 +247,7 @@ export class VideoRecordingFileWriter {
     options: FinalizeOptions
   ): Promise<{
     filePath: string;
+    pcmPath: string;
     metadataPath: string;
     speakerActivityPath: string;
   }> {
@@ -212,11 +266,13 @@ export class VideoRecordingFileWriter {
     );
     const speakerActivityPartialPath = `${speakerActivityPath}.partial`;
     let mediaRenamed = false;
+    let pcmRenamed = false;
     let metadataRenamed = false;
     let speakerActivityRenamed = false;
     try {
       await session.writes;
       await session.handle.sync();
+      await session.pcmHandle.sync();
       await writeFile(
         metadataPartialPath,
         JSON.stringify(
@@ -234,6 +290,7 @@ export class VideoRecordingFileWriter {
             frameRate: session.options.frameRate,
             codec: session.options.codec,
             videoFile: basename(session.filePath),
+            pcmFile: basename(session.pcmPath),
             speakerActivityFile: basename(speakerActivityPath),
           },
           null,
@@ -247,6 +304,9 @@ export class VideoRecordingFileWriter {
         { encoding: 'utf8', flag: 'wx' }
       );
       await session.handle.close();
+      await session.pcmHandle.close();
+      await this.#renameFile(session.pcmPartialPath, session.pcmPath);
+      pcmRenamed = true;
       await this.#renameFile(speakerActivityPartialPath, speakerActivityPath);
       speakerActivityRenamed = true;
       await this.#renameFile(metadataPartialPath, metadataPath);
@@ -255,9 +315,15 @@ export class VideoRecordingFileWriter {
       mediaRenamed = true;
     } catch (error) {
       await ignoreFailure(() => session.handle.close());
+      await ignoreFailure(() => session.pcmHandle.close());
       if (mediaRenamed) {
         await ignoreFailure(() =>
           this.#renameFile(session.filePath, session.partialPath)
+        );
+      }
+      if (pcmRenamed) {
+        await ignoreFailure(() =>
+          this.#renameFile(session.pcmPath, session.pcmPartialPath)
         );
       }
       if (metadataRenamed) {
@@ -281,6 +347,7 @@ export class VideoRecordingFileWriter {
     this.#sessions.delete(sessionId);
     return {
       filePath: session.filePath,
+      pcmPath: session.pcmPath,
       metadataPath,
       speakerActivityPath,
     };
@@ -311,6 +378,7 @@ export class VideoRecordingFileWriter {
       // The producer already received the write error. Preserve what was written.
     }
     await session.handle.close();
+    await session.pcmHandle.close();
     return { partialPath: session.partialPath };
   }
 
@@ -396,6 +464,27 @@ export function initializeMinutesVideoRecordingChannel({
       } as const;
     }
   });
+
+  ipcMain.handle(
+    MINUTES_VIDEO_RECORDING_IPC.appendPcm,
+    async (event, input) => {
+      const { sessionId, samples } = input as AppendVideoRecordingPcmInput;
+      try {
+        await writer.appendPcm(event.sender.id, sessionId, samples);
+        return { ok: true, value: undefined };
+      } catch (error) {
+        const partialPath = isVideoRecordingFileError(error)
+          ? error.partialPath
+          : '';
+        await ignoreFailure(() => writer.abort(event.sender.id, sessionId));
+        return {
+          ok: false,
+          error: error instanceof Error ? error.message : String(error),
+          partialPath,
+        };
+      }
+    }
+  );
   ipcMain.handle(MINUTES_VIDEO_RECORDING_IPC.finalize, async (event, input) => {
     const { sessionId, ...options } = input as FinalizeOptions & {
       sessionId: string;

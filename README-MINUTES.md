@@ -148,7 +148,7 @@ Instalátor je vhodný pro interní/ad-hoc distribuci. Pro veřejné šíření 
 
 | Type                                  | Windows                                      | macOS                                                            |
 | ------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| Call recordings (MP3 + JSON metadata) | `%APPDATA%\Minutes\minutes\recordings\`      | `~/Library/Application Support/Minutes/minutes/recordings/`      |
+| Call recordings (MP3/WebM + sidecars) | `%USERPROFILE%\\Documents\\Minutes`         | `~/Documents/Minutes`                                            |
 | Chat summaries (MD + JSON metadata)   | `%APPDATA%\Minutes\minutes\summaries\`       | `~/Library/Application Support/Minutes/minutes/summaries/`       |
 | AI settings (encrypted API key)       | `%APPDATA%\Minutes\minutes\ai-settings.json` | `~/Library/Application Support/Minutes/minutes/ai-settings.json` |
 | Whisper models                        | `%APPDATA%\Minutes\minutes\whisper-models\`  | `~/Library/Application Support/Minutes/minutes/whisper-models/`  |
