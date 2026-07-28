@@ -77,6 +77,7 @@ allowBuilds:
   #   ex: 'package@0.0.0': true
   '@indutny/mac-screen-share@1.0.13': true
   '@indutny/simple-windows-notifications@2.0.16': true
+  '@minutes/ringrtc@2.69.7-minutes.3': true
   '@parcel/watcher@2.5.6': true
   '@signalapp/libsignal-client@0.92.2': true # duplicate package
   '@signalapp/libsignal-client@0.96.4': true
@@ -102,7 +103,8 @@ allowBuilds:
   '@signalapp/ringrtc': true
   'node-llama-cpp@3.19.0': true
   'whisper-cpp-node@0.2.12': true
-  'electron@43.0.0': true
+  'electron@43.1.1': true
+  electron: set this to true or false
 
 dedupePeers: true
 dedupePeerDependents: true

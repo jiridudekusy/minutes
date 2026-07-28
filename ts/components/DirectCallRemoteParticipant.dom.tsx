@@ -1,7 +1,7 @@
 // Copyright 2020 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { useRef, useEffect, type JSX } from 'react';
+import { useRef, useEffect, useLayoutEffect, type JSX } from 'react';
 import classNames from 'classnames';
 import type { SetRendererCanvasType } from '../state/ducks/calling.preload.ts';
 import type { ConversationType } from '../state/ducks/conversations.preload.ts';
@@ -10,12 +10,17 @@ import { AvatarColors } from '../types/Colors.std.ts';
 import { Avatar, AvatarSize } from './Avatar.dom.tsx';
 import { CallBackgroundBlur } from './CallBackgroundBlur.dom.tsx';
 import type { SizeCallbackType } from '../calling/VideoSupport.preload.ts';
+import {
+  directPresentationIdentity,
+  presentationSourceController,
+} from '../minutes/presentationSourceControllerGlobal.std.ts';
 
 type PropsType = {
   conversation: ConversationType;
   hasRemoteVideo: boolean;
   i18n: LocalizerType;
   isReconnecting: boolean;
+  presenting: boolean;
   handleSize: SizeCallbackType;
   setRendererCanvas: (_: SetRendererCanvasType) => void;
 };
@@ -25,6 +30,7 @@ export function DirectCallRemoteParticipant({
   hasRemoteVideo,
   i18n,
   isReconnecting,
+  presenting,
   setRendererCanvas,
   handleSize,
 }: PropsType): JSX.Element {
@@ -36,6 +42,17 @@ export function DirectCallRemoteParticipant({
       setRendererCanvas({ element: undefined, sizeCallback: undefined });
     };
   }, [handleSize, setRendererCanvas]);
+
+  useLayoutEffect(() => {
+    const canvas = remoteVideoRef.current;
+    if (!presenting || !hasRemoteVideo || !canvas) {
+      return;
+    }
+    return presentationSourceController.register(
+      directPresentationIdentity(conversation.id),
+      canvas
+    );
+  }, [conversation.id, hasRemoteVideo, presenting]);
 
   return hasRemoteVideo ? (
     // FIXME

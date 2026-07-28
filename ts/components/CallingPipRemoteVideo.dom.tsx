@@ -38,6 +38,7 @@ import {
   PIP_MINIMUM_HEIGHT_MULTIPLIER,
   PIP_WIDTH_NORMAL,
 } from './CallingPip.dom.tsx';
+import { usePresentationAuthority } from '../minutes/usePresentationAuthority.std.ts';
 
 const { clamp, isNumber, maxBy } = lodash;
 
@@ -132,6 +133,17 @@ export function CallingPipRemoteVideo({
         participant.presenting ? Infinity : participant.speakerTime || -Infinity
       );
     }, [activeCall]);
+
+  usePresentationAuthority({
+    callMode: activeCall.callMode,
+    conversationId: conversation.id,
+    isLocalPresenting: Boolean(activeCall.presentingSource),
+    isRemotePresenting:
+      activeCall.callMode === CallMode.Direct
+        ? activeCall.remoteParticipants[0].presenting
+        : activeGroupCallSpeaker?.presenting === true,
+    remotePresenterDemuxId: activeGroupCallSpeaker?.demuxId,
+  });
 
   useEffect(() => {
     if (!isGroupOrAdhocActiveCall(activeCall)) {
@@ -250,6 +262,7 @@ export function CallingPipRemoteVideo({
             handleSize={handleDirectSize}
             i18n={i18n}
             isReconnecting={isReconnecting(activeCall)}
+            presenting={activeCall.remoteParticipants[0].presenting}
             setRendererCanvas={setRendererCanvas}
           />
         </div>
