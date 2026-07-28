@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { readFile, writeFile, access } from 'node:fs/promises';
@@ -8,7 +8,7 @@ import { app } from 'electron';
 import type { BrowserWindow as BrowserWindowType } from 'electron';
 
 import { createLogger } from '../logging/log.std.ts';
-import { RECORDINGS_DIR_NAME } from './constants.std.ts';
+import { resolveMinutesRecordingsDir } from './recordingsDirectory.node.ts';
 import { transcribeCallRecording } from './callSummaryExtension.main.ts';
 import { getAiApiKey, getAiSettingsPublic } from './aiSettings.main.ts';
 import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
@@ -146,7 +146,7 @@ export async function runCallPipelineTest(options: {
     process.env.MINUTES_TEST_RECORDING ??
     DEFAULT_TEST_RECORDING_BASE;
 
-  const recordingsDir = join(app.getPath('userData'), RECORDINGS_DIR_NAME);
+  const recordingsDir = resolveMinutesRecordingsDir(app.getPath('documents'));
   const recordingPath = join(recordingsDir, `${recordingBase}.mp3`);
   const basePath = join(recordingsDir, recordingBase);
 
@@ -166,9 +166,14 @@ export async function runCallPipelineTest(options: {
   }
 
   const metadata = await loadRecordingMetadata(basePath);
-  const pcmf32 = await loadPcmForRecording(recordingPath, options.BrowserWindow);
+  const pcmf32 = await loadPcmForRecording(
+    recordingPath,
+    options.BrowserWindow
+  );
 
-  log.info(`PCM samples: ${pcmf32.length} (${(pcmf32.length / 16_000).toFixed(1)} s)`);
+  log.info(
+    `PCM samples: ${pcmf32.length} (${(pcmf32.length / 16_000).toFixed(1)} s)`
+  );
 
   const rawTranscriptPath = `${basePath}.transcript.raw.md`;
 
@@ -206,7 +211,9 @@ export async function runCallPipelineTest(options: {
     const settings = await getAiSettingsPublic();
     const apiKey = await getAiApiKey(settings.provider);
     if (!settings.aiEnabled) {
-      log.warn('summary not generated: AI sumarizace je vypnuta v Nastaveni AI');
+      log.warn(
+        'summary not generated: AI sumarizace je vypnuta v Nastaveni AI'
+      );
     } else if (!apiKey) {
       log.warn(
         'summary not generated: nelze nacist API klic (set MINUTES_AI_API_KEY nebo spustte Minutes aulohu jednou)'

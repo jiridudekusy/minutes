@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { app, BrowserWindow } from 'electron';
@@ -12,7 +12,7 @@ const log = createLogger('minutes/testPipeline');
 export async function runTestPipelineFromMain(): Promise<void> {
   log.info('call pipeline test started (MINUTES_TEST_PIPELINE=1)');
 
-  initializeMinutesChannel();
+  await initializeMinutesChannel();
 
   const code = await runCallPipelineTest({ BrowserWindow });
 
