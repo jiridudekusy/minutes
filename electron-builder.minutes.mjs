@@ -6,6 +6,10 @@ const isBeta = process.env.MINUTES_RELEASE_CHANNEL === 'beta';
 /** @type {import('electron-builder').Configuration} */
 export default {
   ...pkg.build,
+  // Both Minutes macOS workspace addons resolve node-addon-api through the
+  // same pnpm store path. Parallel electron-rebuild processes race while
+  // generating makefiles there, so rebuild them sequentially for installers.
+  nativeRebuilder: 'sequential',
   productName: isBeta ? 'Minutes Beta' : 'Minutes',
   appId: isBeta ? 'org.minutes.desktop.beta' : 'org.minutes.desktop',
   directories: {
