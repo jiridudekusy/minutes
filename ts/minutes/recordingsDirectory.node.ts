@@ -30,6 +30,12 @@ export type RecordingsMigrationResult = Readonly<{
   conflicts: ReadonlyArray<string>;
 }>;
 
+export type RecordingsDirectoryInitializationResult = Readonly<{
+  recordingsDir: string;
+  migration: RecordingsMigrationResult;
+  migrationError?: unknown;
+}>;
+
 function errorCode(error: unknown): string | undefined {
   return error instanceof Error ? (error as NodeError).code : undefined;
 }
@@ -50,6 +56,29 @@ export function resolveMinutesRecordingsDir(documentsDir: string): string {
   return join(documentsDir, RECORDINGS_DOCUMENTS_DIR_NAME);
 }
 
+export async function initializeMinutesRecordingsDirectory({
+  legacyDir,
+  targetDir,
+  migrate = migrateLegacyRecordingsDirectory,
+}: {
+  legacyDir: string;
+  targetDir: string;
+  migrate?: typeof migrateLegacyRecordingsDirectory;
+}): Promise<RecordingsDirectoryInitializationResult> {
+  try {
+    return {
+      recordingsDir: targetDir,
+      migration: await migrate({ legacyDir, targetDir }),
+    };
+  } catch (migrationError) {
+    return {
+      recordingsDir: legacyDir,
+      migration: { migratedFiles: [], conflicts: [] },
+      migrationError,
+    };
+  }
+}
+
 export async function migrateLegacyRecordingsDirectory({
   legacyDir,
   targetDir,
@@ -66,7 +95,6 @@ export async function migrateLegacyRecordingsDirectory({
     if (errorCode(error) !== 'ENOENT') {
       throw error;
     }
-    await mkdir(targetDir, { recursive: true });
     return { migratedFiles: [], conflicts: [] };
   }
 
