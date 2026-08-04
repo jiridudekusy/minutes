@@ -35,6 +35,7 @@ import { MeetingAutomationService } from './meetingAutomationService.node.ts';
 import { registerMeetingMcpCapabilities } from './meetingMcpCapabilities.node.ts';
 import { MinutesMcpHttpServer } from './mcpHttpServer.node.ts';
 import { RendererAutomationService } from './rendererAutomationService.std.ts';
+import { SerializedAsyncRunner } from './serializedAsyncRunner.std.ts';
 import {
   WebhookDispatcher,
   type AutomationWebhookEndpoint,
@@ -162,6 +163,7 @@ class MinutesAutomationRuntime {
   #rendererReady = false;
   #status: AutomationRuntimeStatus = { state: 'stopped' };
   #flushTimer: ReturnType<typeof setInterval> | undefined;
+  readonly #reconcileRunner = new SerializedAsyncRunner();
 
   private constructor(options: {
     recordingsDir: string;
@@ -271,7 +273,11 @@ class MinutesAutomationRuntime {
     await this.#events.emit(event);
   }
 
-  async reconcile(): Promise<void> {
+  reconcile(): Promise<void> {
+    return this.#reconcileRunner.run(() => this.#reconcile());
+  }
+
+  async #reconcile(): Promise<void> {
     await this.#server?.stop();
     this.#server = undefined;
     this.#status = { state: 'stopped' };
@@ -320,10 +326,12 @@ class MinutesAutomationRuntime {
       clearInterval(this.#flushTimer);
       this.#flushTimer = undefined;
     }
-    await this.#server?.stop();
-    this.#server = undefined;
-    this.#bridge.rendererUnavailable();
-    this.#status = { state: 'stopped' };
+    await this.#reconcileRunner.close(async () => {
+      await this.#server?.stop();
+      this.#server = undefined;
+      this.#bridge.rendererUnavailable();
+      this.#status = { state: 'stopped' };
+    });
   }
 
   async testWebhook(endpointId: string): Promise<void> {
