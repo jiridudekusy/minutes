@@ -9,6 +9,7 @@ import {
   presentationSourceController,
 } from './presentationSourceControllerGlobal.std.ts';
 import {
+  readRingRtcVideoTapSequence,
   resolveRingRtcVideoTapApi,
   validateRingRtcVideoTapFrame,
   type RingRtcVideoPixelFormat,
@@ -182,6 +183,14 @@ export class RingRtcOutgoingVideoSource {
     try {
       const rawEvent = this.#api.readVideoTap(this.#lastSequence);
       if (rawEvent === undefined) {
+        this.#retryPresentationReadiness();
+        return;
+      }
+      const sequence = readRingRtcVideoTapSequence(rawEvent);
+      if (sequence !== undefined && sequence <= this.#lastSequence) {
+        if (sequence < this.#lastSequence) {
+          this.#lastSequence = 0;
+        }
         this.#retryPresentationReadiness();
         return;
       }

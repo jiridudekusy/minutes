@@ -276,6 +276,23 @@ describe('RingRtcOutgoingVideoSource', () => {
     assert.isEmpty(harness.unregisters);
   });
 
+  it('recovers when a replaced outgoing track resets its sequence', () => {
+    const harness = createHarness();
+    harness.events.push(activeFrame(100));
+    harness.source.start();
+
+    harness.events.push(activeFrame(1));
+    harness.scheduled[0]?.callback();
+    assert.isEmpty(harness.fatalErrors);
+    assert.lengthOf(harness.draws, 1);
+
+    harness.events.push(activeFrame(2));
+    harness.scheduled[0]?.callback();
+    assert.isEmpty(harness.fatalErrors);
+    assert.lengthOf(harness.draws, 2);
+    assert.deepEqual(harness.reads, [0, 100, 0]);
+  });
+
   it('retries readiness without requiring another native frame', () => {
     const harness = createHarness();
     harness.renderResults.push(false, true);
