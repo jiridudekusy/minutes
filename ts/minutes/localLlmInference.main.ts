@@ -17,7 +17,8 @@ import {
 
 const log = createLogger('minutes/localLlmInference');
 
-type LoadedLocalModel = Readonly<{
+export type LoadedLocalModel = Readonly<{
+  modelPath: string;
   modelFileName: string;
   contextSize: LocalLlmContextSize;
   reasoningEnabled: boolean;
@@ -30,29 +31,82 @@ type LoadedLocalModel = Readonly<{
   }) => Promise<string>;
 }>;
 
-let loadedModel: LoadedLocalModel | null = null;
-let loadPromise: Promise<LoadedLocalModel> | null = null;
-let promptChain: Promise<unknown> = Promise.resolve();
+export type LocalLlmModelRequest = Readonly<{
+  modelPath: string;
+  modelFileName: string;
+  contextSize: LocalLlmContextSize;
+  reasoningEnabled: boolean;
+}>;
 
-async function disposeLoadedModel(): Promise<void> {
-  if (!loadedModel) {
-    return;
+export class LocalLlmModelScheduler {
+  #loadedModel: LoadedLocalModel | null = null;
+  #operationChain: Promise<unknown> = Promise.resolve();
+
+  constructor(
+    private readonly loadModel: (
+      request: LocalLlmModelRequest
+    ) => Promise<LoadedLocalModel>
+  ) {}
+
+  generate<T>(
+    request: LocalLlmModelRequest,
+    run: (model: LoadedLocalModel) => Promise<T>
+  ): Promise<T> {
+    return this.#enqueue(async () => run(await this.#getLoadedModel(request)));
   }
-  try {
-    await loadedModel.dispose();
-  } catch (error) {
-    log.warn(
-      'disposeLoadedModel failed',
-      error instanceof Error ? error.message : error
+
+  dispose(): Promise<void> {
+    return this.#enqueue(() => this.#disposeLoadedModel());
+  }
+
+  #enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = this.#operationChain.then(operation, operation);
+    this.#operationChain = result.then(
+      () => undefined,
+      () => undefined
     );
+    return result;
   }
-  loadedModel = null;
-}
 
-export async function disposeLocalLlmModel(): Promise<void> {
-  loadPromise = null;
-  promptChain = Promise.resolve();
-  await disposeLoadedModel();
+  async #getLoadedModel(
+    request: LocalLlmModelRequest
+  ): Promise<LoadedLocalModel> {
+    if (
+      this.#loadedModel?.modelPath === request.modelPath &&
+      canReuseLocalLlmContext(
+        this.#loadedModel,
+        request.modelFileName,
+        request.contextSize,
+        request.reasoningEnabled
+      )
+    ) {
+      return this.#loadedModel;
+    }
+
+    await this.#disposeLoadedModel();
+    log.info(
+      `loading local LLM model ${request.modelFileName} (context setting: ${request.contextSize}, reasoning: ${request.reasoningEnabled})`
+    );
+    const next = await this.loadModel(request);
+    this.#loadedModel = next;
+    return next;
+  }
+
+  async #disposeLoadedModel(): Promise<void> {
+    const model = this.#loadedModel;
+    this.#loadedModel = null;
+    if (!model) {
+      return;
+    }
+    try {
+      await model.dispose();
+    } catch (error) {
+      log.warn(
+        'disposeLoadedModel failed',
+        error instanceof Error ? error.message : error
+      );
+    }
+  }
 }
 
 async function loadLocalModel(
@@ -79,6 +133,7 @@ async function loadLocalModel(
   );
 
   return {
+    modelPath,
     modelFileName,
     contextSize,
     reasoningEnabled,
@@ -109,58 +164,17 @@ async function loadLocalModel(
   };
 }
 
-async function getLoadedModel(
-  modelPath: string,
-  modelFileName: string,
-  contextSize: LocalLlmContextSize,
-  reasoningEnabled: boolean
-): Promise<LoadedLocalModel> {
-  if (
-    loadedModel &&
-    canReuseLocalLlmContext(
-      loadedModel,
-      modelFileName,
-      contextSize,
-      reasoningEnabled
-    )
-  ) {
-    return loadedModel;
-  }
+const modelScheduler = new LocalLlmModelScheduler(request =>
+  loadLocalModel(
+    request.modelPath,
+    request.modelFileName,
+    request.contextSize,
+    request.reasoningEnabled
+  )
+);
 
-  if (loadPromise) {
-    const pending = await loadPromise;
-    if (
-      canReuseLocalLlmContext(
-        pending,
-        modelFileName,
-        contextSize,
-        reasoningEnabled
-      )
-    ) {
-      return pending;
-    }
-  }
-
-  loadPromise = (async () => {
-    await disposeLoadedModel();
-    log.info(
-      `loading local LLM model ${modelFileName} (context setting: ${contextSize}, reasoning: ${reasoningEnabled})`
-    );
-    const next = await loadLocalModel(
-      modelPath,
-      modelFileName,
-      contextSize,
-      reasoningEnabled
-    );
-    loadedModel = next;
-    return next;
-  })();
-
-  try {
-    return await loadPromise;
-  } finally {
-    loadPromise = null;
-  }
+export function disposeLocalLlmModel(): Promise<void> {
+  return modelScheduler.dispose();
 }
 
 export async function generateLocalLlmText(options: {
@@ -173,29 +187,24 @@ export async function generateLocalLlmText(options: {
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
-  const model = await getLoadedModel(
-    options.modelPath,
-    options.modelFileName,
-    options.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
-    options.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED
+  return modelScheduler.generate(
+    {
+      modelPath: options.modelPath,
+      modelFileName: options.modelFileName,
+      contextSize: options.contextSize ?? DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+      reasoningEnabled:
+        options.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED,
+    },
+    async model => {
+      const text = await model.prompt({
+        systemPrompt: options.systemPrompt,
+        userPrompt: options.userPrompt,
+        maxTokens: options.maxTokens ?? 2000,
+        temperature: options.temperature ?? 0.2,
+      });
+      return requireNonEmptyLocalLlmOutput(text);
+    }
   );
-
-  const runPrompt = async (): Promise<string> => {
-    const text = await model.prompt({
-      systemPrompt: options.systemPrompt,
-      userPrompt: options.userPrompt,
-      maxTokens: options.maxTokens ?? 2000,
-      temperature: options.temperature ?? 0.2,
-    });
-    return requireNonEmptyLocalLlmOutput(text);
-  };
-
-  const result = promptChain.then(runPrompt, runPrompt);
-  promptChain = result.then(
-    () => undefined,
-    () => undefined
-  );
-  return result;
 }
 
 export async function testLocalLlmText(options: {
