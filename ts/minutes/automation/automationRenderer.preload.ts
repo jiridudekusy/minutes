@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { ipcRenderer } from 'electron';
-import { readFile, stat } from 'node:fs/promises';
+import { mkdir } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import type { MessageType } from '../../sql/Interface.std.ts';
 import { DataReader } from '../../sql/Client.preload.ts';
@@ -58,9 +59,11 @@ import {
 } from './groupAutomation.std.ts';
 import { planMessageReactionChange } from './messageReactionAutomation.std.ts';
 import { toAutomationMessage } from './automationMessage.std.ts';
+import { readConfinedGroupAvatar } from './groupAvatarFile.node.ts';
 
 const MAX_QUERY_ITEMS = 500;
 const MAX_GROUP_AVATAR_BYTES = 10 * 1024 * 1024;
+const GROUP_AVATAR_DIRECTORY_NAME = 'automation-group-avatars';
 let automationRendererInitialized = false;
 
 type ConversationModel = ReturnType<
@@ -347,30 +350,46 @@ function currentGroupSearchSources(): Array<{
 async function readValidatedGroupAvatar(
   path: string
 ): Promise<Uint8Array<ArrayBuffer>> {
-  let metadata;
+  const userDataPath: unknown = ipcRenderer.sendSync('get-user-data-path');
+  if (typeof userDataPath !== 'string' || userDataPath.length === 0) {
+    return automationError('INTERNAL', 'Signal user data path is unavailable');
+  }
+  const avatarDirectory = join(
+    userDataPath,
+    'minutes',
+    GROUP_AVATAR_DIRECTORY_NAME
+  );
+  await mkdir(avatarDirectory, { recursive: true, mode: 0o700 });
+
+  let buffer: Buffer;
   try {
-    metadata = await stat(path);
-  } catch {
-    return automationError('NOT_FOUND', `Avatar file not found: ${path}`);
-  }
-  if (!metadata.isFile()) {
-    return automationError('INVALID_ARGUMENT', 'Avatar path is not a file');
-  }
-  if (metadata.size > MAX_GROUP_AVATAR_BYTES) {
+    buffer = await readConfinedGroupAvatar(
+      path,
+      avatarDirectory,
+      MAX_GROUP_AVATAR_BYTES
+    );
+  } catch (error) {
+    if (
+      error != null &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'ENOENT'
+    ) {
+      return automationError('NOT_FOUND', `Avatar file not found: ${path}`);
+    }
     return automationError(
       'INVALID_ARGUMENT',
-      'Avatar file exceeds the 10 MiB limit'
+      error instanceof Error ? error.message : String(error)
     );
   }
-  const buffer = await readFile(path);
-  if (detectGroupAvatarFormat(buffer) == null) {
+  const bytes = new Uint8Array(buffer.byteLength);
+  bytes.set(buffer);
+  if (detectGroupAvatarFormat(bytes) == null) {
     return automationError(
       'INVALID_ARGUMENT',
       'Avatar must be a PNG, JPEG, or WebP image'
     );
   }
-  const bytes = new Uint8Array(buffer.byteLength);
-  bytes.set(buffer);
   return bytes;
 }
 

@@ -174,7 +174,13 @@ export function registerLiveMcpCapabilities(
         inputSchema: {
           title: z.string().min(1),
           memberIds: memberIdsSchema,
-          avatarPath: z.string().min(1).optional(),
+          avatarPath: z
+            .string()
+            .min(1)
+            .describe(
+              'Absolute path to a regular image file in the Signal user-data minutes/automation-group-avatars directory; symbolic links are rejected.'
+            )
+            .optional(),
           disappearingMessagesSeconds: z.number().int().min(0).optional(),
         },
         annotations: {
@@ -195,7 +201,12 @@ export function registerLiveMcpCapabilities(
           groupId: z.string().min(1),
           title: z.string().min(1).optional(),
           description: z.string().optional(),
-          avatarPath: z.union([z.string().min(1), z.null()]).optional(),
+          avatarPath: z
+            .union([z.string().min(1), z.null()])
+            .describe(
+              'Absolute path to a regular image file in the Signal user-data minutes/automation-group-avatars directory, or null to remove the avatar; symbolic links are rejected.'
+            )
+            .optional(),
         },
         annotations: {
           readOnlyHint: false,
