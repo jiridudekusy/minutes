@@ -6,6 +6,7 @@ import { ipcRenderer } from 'electron';
 import * as Bytes from '../Bytes.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 import type { RendererMessageType } from '../types/AudioRecorder.std.ts';
+import { configureRingRtcRecordingAudioContext } from './ringRtcAudioContext.std.ts';
 
 const log = createLogger('minutes/callRecorder');
 
@@ -34,6 +35,7 @@ let contextPromise: Promise<AudioContext> | undefined;
 
 async function initContext(): Promise<AudioContext> {
   const context = new AudioContext({ sampleRate: 48_000 });
+  await configureRingRtcRecordingAudioContext(context);
   await context.audioWorklet.addModule('bundles/workers/minutesMp3Encoder.js');
   return context;
 }
@@ -157,9 +159,7 @@ export class CallRecorder {
         resolve({
           mp3,
           pcm48:
-            pcm48.length > 0
-              ? (pcm48 as Float32Array<ArrayBuffer>)
-              : undefined,
+            pcm48.length > 0 ? (pcm48 as Float32Array<ArrayBuffer>) : undefined,
         });
       }
     };
@@ -220,7 +220,9 @@ export class CallRecorder {
     }
 
     this.#disconnectSources(this.#state);
-    this.#state.worklet.port.postMessage({ type: 'stop' } satisfies RendererMessageType);
+    this.#state.worklet.port.postMessage({
+      type: 'stop',
+    } satisfies RendererMessageType);
 
     for (const stream of this.#state.streams) {
       stream.getTracks().forEach(track => track.stop());

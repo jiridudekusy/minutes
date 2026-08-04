@@ -79,6 +79,54 @@ describe('RingRtcAudioTimeline', () => {
     timeline.enqueue('local', 2, Float32Array.from([0.5, 0.5]));
     assert.deepEqual([...timeline.render(2)], [0.625, 0.625]);
   });
+
+  it('continues a healthy source after a bounded one-sided stall', () => {
+    const TimelineWithStallTolerance = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+    const timeline = new TimelineWithStallTolerance(4, 4);
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+
+    timeline.enqueue('local', 4, new Float32Array(4).fill(0.25));
+    assert.deepEqual([...timeline.render(2)], [0, 0]);
+    assert.equal(timeline.cursor, 4);
+    assert.deepEqual([...timeline.render(2)], [0.25, 0.25]);
+    assert.equal(timeline.cursor, 8);
+
+    timeline.enqueue('local', 8, new Float32Array(2).fill(0.5));
+    assert.deepEqual([...timeline.render(2)], [0.5, 0.5]);
+    assert.equal(timeline.cursor, 10);
+  });
+
+  it('rebases a source when its native sample counter resets', () => {
+    const timeline = new RingRtcAudioTimeline();
+    timeline.enqueue('local', 0, new Float32Array(5_000).fill(0.25));
+    assert.deepEqual([...timeline.render(5_000)], Array(5_000).fill(0.25));
+
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.75));
+
+    assert.deepEqual([...timeline.render(2)], [0.75, 0.75]);
+    assert.equal(timeline.cursor, 5_002);
+  });
+
+  it('resumes at the live cursor without a second preroll delay', () => {
+    const timeline = new RingRtcAudioTimeline(4);
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+
+    const resetWithoutPreroll = timeline.reset.bind(timeline) as (
+      cursor: number,
+      requirePreroll: boolean
+    ) => void;
+    resetWithoutPreroll(100, false);
+
+    assert.deepEqual([...timeline.render(2)], [0, 0]);
+    assert.equal(timeline.cursor, 102);
+  });
 });
 
 describe('RingRtc rendered PCM progress', () => {

@@ -179,7 +179,7 @@ function createHarness(options?: {
       }
       return {
         stream: { kind: 'audio' },
-        resetPcmProgress: () => operations.push('audio:reset-progress'),
+        startPcmGeneration: () => operations.push('audio:start-generation'),
         pause: () => operations.push('audio:pause'),
         resume: () => operations.push('audio:resume'),
         stop: async () => {
@@ -344,7 +344,7 @@ describe('VideoRecordingServiceCore', () => {
 
     assert.isBelow(
       harness.operations.indexOf('speaker:start'),
-      harness.operations.indexOf('audio:reset-progress')
+      harness.operations.indexOf('audio:start-generation')
     );
   });
 

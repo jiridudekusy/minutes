@@ -53,8 +53,11 @@ class MinutesRingRtcAudioSource
             type: 'ready',
           } satisfies RingRtcAudioWorkletEvent);
         }
+      } else if (data.type === 'start-generation') {
+        this.#pcmChunker.reset();
+        this.#progressGeneration = data.generation;
       } else if (data.type === 'reset') {
-        this.#timeline.reset(data.cursor);
+        this.#timeline.reset(data.cursor, false);
         this.#pcmChunker.reset();
         this.#progressGeneration = data.generation;
         this.#paused = false;
@@ -87,10 +90,9 @@ class MinutesRingRtcAudioSource
     if (!output) {
       return true;
     }
-    const cursorBeforeRender = this.#timeline.cursor;
     const renderedPcm = this.#timeline.render(output.length);
     output.set(renderedPcm);
-    if (!this.#paused && this.#timeline.cursor > cursorBeforeRender) {
+    if (!this.#paused && this.#readyReported) {
       for (const samples of this.#pcmChunker.add(renderedPcm)) {
         this.#postPcm(samples);
       }
