@@ -179,4 +179,97 @@ describe('Minutes automation webhooks', () => {
 
     assert.deepEqual(outbox.list(), []);
   });
+
+  it('does not deliver the same outbox entry from overlapping flushes', async () => {
+    let releaseRequest: (() => void) | undefined;
+    const requestBlocked = new Promise<void>(resolve => {
+      releaseRequest = resolve;
+    });
+    let requestCount = 0;
+    const outbox = new WebhookOutbox({
+      initialEntries: [
+        {
+          id: 'delivery-1',
+          endpointId: 'endpoint-1',
+          eventType: 'call.started',
+          body: '{}',
+          createdAt: 1_000,
+          attempts: 0,
+          nextAttemptAt: 1_000,
+        },
+      ],
+      persist: async () => undefined,
+      maxEntries: 100,
+    });
+    const dispatcher = new WebhookDispatcher({
+      outbox,
+      now: () => 1_000,
+      getEndpoints: async () => [
+        {
+          id: 'endpoint-1',
+          enabled: true,
+          url: 'https://hooks.example.test/minutes',
+          secret: 'secret',
+          eventTypes: ['call.started'],
+        },
+      ],
+      fetch: async () => {
+        requestCount += 1;
+        await requestBlocked;
+        return new Response(null, { status: 204 });
+      },
+    });
+
+    const firstFlush = dispatcher.flushDue();
+    await Promise.resolve();
+    await Promise.resolve();
+    const secondFlush = dispatcher.flushDue();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    assert.strictEqual(requestCount, 1);
+    releaseRequest?.();
+    await Promise.all([firstFlush, secondFlush]);
+    assert.deepEqual(outbox.list(), []);
+  });
+
+  it('sets a timeout signal on webhook requests', async () => {
+    let requestSignal: AbortSignal | null | undefined;
+    const outbox = new WebhookOutbox({
+      initialEntries: [
+        {
+          id: 'delivery-1',
+          endpointId: 'endpoint-1',
+          eventType: 'call.started',
+          body: '{}',
+          createdAt: 1_000,
+          attempts: 0,
+          nextAttemptAt: 1_000,
+        },
+      ],
+      persist: async () => undefined,
+      maxEntries: 100,
+    });
+    const dispatcher = new WebhookDispatcher({
+      outbox,
+      now: () => 1_000,
+      getEndpoints: async () => [
+        {
+          id: 'endpoint-1',
+          enabled: true,
+          url: 'https://hooks.example.test/minutes',
+          secret: 'secret',
+          eventTypes: ['call.started'],
+        },
+      ],
+      fetch: async (_url, init) => {
+        requestSignal = init?.signal;
+        return new Response(null, { status: 204 });
+      },
+    });
+
+    await dispatcher.flushDue();
+
+    assert.instanceOf(requestSignal, AbortSignal);
+  });
 });

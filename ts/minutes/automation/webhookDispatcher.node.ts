@@ -41,6 +41,7 @@ export class WebhookDispatcher {
   readonly #fetch: typeof fetch;
   readonly #now: () => number;
   readonly #idFactory: () => string;
+  #flushPromise: Promise<void> | undefined;
 
   constructor(
     options: Readonly<{
@@ -79,7 +80,20 @@ export class WebhookDispatcher {
     }
   }
 
-  async flushDue(): Promise<void> {
+  flushDue(): Promise<void> {
+    if (this.#flushPromise != null) {
+      return this.#flushPromise;
+    }
+    const flushPromise = this.#flushDue().finally(() => {
+      if (this.#flushPromise === flushPromise) {
+        this.#flushPromise = undefined;
+      }
+    });
+    this.#flushPromise = flushPromise;
+    return flushPromise;
+  }
+
+  async #flushDue(): Promise<void> {
     const endpoints = new Map(
       (await this.#getEndpoints()).map(endpoint => [endpoint.id, endpoint])
     );
@@ -119,6 +133,7 @@ export class WebhookDispatcher {
           ),
         },
         body: delivery.body,
+        signal: AbortSignal.timeout(15_000),
       });
       if (response.status >= 200 && response.status < 300) {
         await this.#outbox.remove(delivery.id);
