@@ -4,6 +4,8 @@
 import { access, readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { app } from 'electron';
+
 import { createLogger } from '../logging/log.std.ts';
 import type {
   CallRecordingCatalogEntry,
@@ -15,6 +17,10 @@ import {
   getRecordingArtifactPaths,
   type RecordingMediaKind,
 } from './recordingArtifacts.std.ts';
+import {
+  getPrivateRecordingPcmPath,
+  resolveRecordingPcmPath,
+} from './recordingPcmStorage.node.ts';
 
 const log = createLogger('minutes/recordingsCatalog');
 
@@ -53,7 +59,14 @@ async function buildCatalogEntry(
 
   const { basePath, pcmPath, transcriptPath, summaryPath } =
     getRecordingArtifactPaths(recordingPath);
-  const hasPcmSidecar = await fileExists(pcmPath);
+  const hasPcmSidecar =
+    (await resolveRecordingPcmPath({
+      privatePath: getPrivateRecordingPcmPath(
+        app.getPath('userData'),
+        recordingPath
+      ),
+      legacyPath: pcmPath,
+    })) != null;
   const hasTranscript = await fileExists(transcriptPath);
   const hasSummary = await fileExists(summaryPath);
   const transcriptMeta = hasTranscript
@@ -141,7 +154,14 @@ export async function listCallRecordings(
 
     const { basePath, pcmPath, transcriptPath, summaryPath } =
       getRecordingArtifactPaths(mp3Path);
-    const hasPcmSidecar = await fileExists(pcmPath);
+    const hasPcmSidecar =
+      (await resolveRecordingPcmPath({
+        privatePath: getPrivateRecordingPcmPath(
+          app.getPath('userData'),
+          mp3Path
+        ),
+        legacyPath: pcmPath,
+      })) != null;
     const hasTranscript = await fileExists(transcriptPath);
     const hasSummary = await fileExists(summaryPath);
     const transcriptMeta = hasTranscript

@@ -149,7 +149,11 @@ describe('VideoRecordingFileWriter', () => {
   });
 
   it('streams mixed PCM into a finalized sidecar referenced by metadata', async () => {
-    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const pcmStorageDir = join(recordingsDir, 'private-pcm');
+    const writer = new VideoRecordingFileWriter({
+      recordingsDir,
+      pcmStorageDir,
+    });
     const startedAt = Date.UTC(2026, 6, 24, 10, 0, 0);
     const session = await writer.create(7, {
       conversationId: 'conversation-id',
@@ -192,6 +196,7 @@ describe('VideoRecordingFileWriter', () => {
       )
     );
     assert.deepEqual([...pcmSamples], [0.25, -0.5]);
+    assert.strictEqual(result.pcmPath.startsWith(`${pcmStorageDir}/`), true);
     const metadata = JSON.parse(await readFile(result.metadataPath, 'utf8'));
     assert.strictEqual(metadata.pcmFile, result.pcmPath.split('/').at(-1));
   });

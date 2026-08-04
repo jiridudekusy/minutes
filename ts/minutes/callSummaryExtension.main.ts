@@ -35,6 +35,10 @@ import {
 } from './whisperTranscribe.main.ts';
 import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
 import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
+import {
+  getPrivateRecordingPcmPath,
+  resolveRecordingPcmPath,
+} from './recordingPcmStorage.node.ts';
 import { isAiSummaryEnabled, getAiSettingsPublic, getAiApiKey, isTranscriptCorrectionEnabled } from './aiSettings.main.ts';
 import { formatAiModelDisplayLabel, formatAiSummaryProgressMessage } from './aiSettings.std.ts';
 import { generateAiSummaryForProvider } from './aiSummaryService.main.ts';
@@ -307,7 +311,17 @@ async function loadRecordingPcmSidecar(
 ): Promise<Float32Array> {
   const { pcmPath } = getRecordingArtifactPaths(recordingPath);
   try {
-    const raw = await readFile(pcmPath);
+    const resolvedPcmPath = await resolveRecordingPcmPath({
+      privatePath: getPrivateRecordingPcmPath(
+        app.getPath('userData'),
+        recordingPath
+      ),
+      legacyPath: pcmPath,
+    });
+    if (resolvedPcmPath == null) {
+      throw new Error('PCM sidecar missing');
+    }
+    const raw = await readFile(resolvedPcmPath);
     if (raw.byteLength < 4) {
       throw new Error('PCM sidecar is empty');
     }

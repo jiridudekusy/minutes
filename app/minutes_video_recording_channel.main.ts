@@ -16,7 +16,6 @@ import {
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
 import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
-import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
 
 type FinalizeOptions = Omit<FinalizeVideoRecordingFileInput, 'sessionId'>;
 
@@ -103,22 +102,26 @@ export class VideoRecordingFileWriter {
   >();
   readonly #maxQueuedBytes: number;
   readonly #openFile: (path: string) => Promise<VideoFileHandle>;
+  readonly #pcmStorageDir: string;
   readonly #recordingsDir: string;
   readonly #renameFile: (source: string, target: string) => Promise<void>;
   readonly #sessions = new Map<string, Session>();
 
   constructor({
     recordingsDir,
+    pcmStorageDir = recordingsDir,
     maxQueuedBytes = VideoRecordingFileWriter.DEFAULT_MAX_QUEUED_BYTES,
     openFile = async path => open(path, 'wx'),
     renameFile = rename,
   }: {
     recordingsDir: string;
+    pcmStorageDir?: string;
     maxQueuedBytes?: number;
     openFile?: (path: string) => Promise<VideoFileHandle>;
     renameFile?: (source: string, target: string) => Promise<void>;
   }) {
     this.#recordingsDir = recordingsDir;
+    this.#pcmStorageDir = pcmStorageDir;
     this.#maxQueuedBytes = maxQueuedBytes;
     this.#openFile = openFile;
     this.#renameFile = renameFile;
@@ -129,6 +132,7 @@ export class VideoRecordingFileWriter {
     options: CreateVideoRecordingFileOptions
   ): Promise<{ sessionId: string; partialPath: string }> {
     await mkdir(this.#recordingsDir, { recursive: true });
+    await mkdir(this.#pcmStorageDir, { recursive: true });
     const sessionId = randomUUID();
     const baseName = [
       formatTimestampForFilename(options.startedAt),
@@ -138,10 +142,7 @@ export class VideoRecordingFileWriter {
     ].join('_');
     const filePath = join(this.#recordingsDir, `${baseName}.webm`);
     const partialPath = `${filePath}.partial`;
-    const pcmPath = join(
-      this.#recordingsDir,
-      `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`
-    );
+    const pcmPath = join(this.#pcmStorageDir, `${baseName}.pcm.f32`);
     const pcmPartialPath = `${pcmPath}.partial`;
     const handle = await this.#openFile(partialPath);
     let pcmHandle: VideoFileHandle;
@@ -423,11 +424,13 @@ export class VideoRecordingFileWriter {
 export function initializeMinutesVideoRecordingChannel({
   ipcMain,
   recordingsDir,
-  writer = new VideoRecordingFileWriter({ recordingsDir }),
+  pcmStorageDir = recordingsDir,
+  writer = new VideoRecordingFileWriter({ recordingsDir, pcmStorageDir }),
   onFinalized,
 }: {
   ipcMain: IpcMainLike;
   recordingsDir: string;
+  pcmStorageDir?: string;
   writer?: VideoRecordingFileWriter;
   onFinalized?: (value: FinalizedVideoRecordingFile) => void | Promise<void>;
 }): void {
