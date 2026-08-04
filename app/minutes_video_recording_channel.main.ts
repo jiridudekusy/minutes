@@ -3,7 +3,15 @@
 /* eslint-disable signal-desktop/enforce-file-suffix -- Dedicated main-process IPC channel. */
 
 import { randomUUID } from 'node:crypto';
-import { mkdir, open, rename, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  open,
+  readdir,
+  rename,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
 import {
@@ -65,6 +73,52 @@ async function ignoreFailure(operation: () => Promise<unknown>): Promise<void> {
   } catch {
     // Best-effort cleanup must not hide the original recording error.
   }
+}
+
+const DEFAULT_PARTIAL_RETENTION_MS = 24 * 60 * 60_000;
+
+export async function reapStaleVideoRecordingPartials(
+  directory: string,
+  {
+    now = Date.now(),
+    maxAgeMs = DEFAULT_PARTIAL_RETENTION_MS,
+  }: Readonly<{ now?: number; maxAgeMs?: number }> = {}
+): Promise<Array<string>> {
+  let fileNames: ReadonlyArray<string>;
+  try {
+    fileNames = await readdir(directory);
+  } catch (error) {
+    if (
+      error != null &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'ENOENT'
+    ) {
+      return [];
+    }
+    throw error;
+  }
+
+  const removed = new Array<string>();
+  for (const fileName of [...fileNames].sort()) {
+    if (!fileName.endsWith('.partial')) {
+      continue;
+    }
+    const path = join(directory, fileName);
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      const metadata = await stat(path);
+      if (!metadata.isFile() || now - metadata.mtimeMs < maxAgeMs) {
+        continue;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await rm(path, { force: true });
+      removed.push(path);
+    } catch {
+      // A concurrent cleanup or inaccessible orphan must not block startup.
+    }
+  }
+  return removed;
 }
 
 type Session = Readonly<{
@@ -379,8 +433,10 @@ export class VideoRecordingFileWriter {
     } catch {
       // The producer already received the write error. Preserve what was written.
     }
-    await session.handle.close();
-    await session.pcmHandle.close();
+    await Promise.allSettled([
+      session.handle.close(),
+      session.pcmHandle.close(),
+    ]);
     return { partialPath: session.partialPath };
   }
 
@@ -434,6 +490,9 @@ export function initializeMinutesVideoRecordingChannel({
   writer?: VideoRecordingFileWriter;
   onFinalized?: (value: FinalizedVideoRecordingFile) => void | Promise<void>;
 }): void {
+  for (const directory of new Set([recordingsDir, pcmStorageDir])) {
+    void reapStaleVideoRecordingPartials(directory).catch(() => undefined);
+  }
   const registeredSenders = new WeakSet<IpcSenderLike>();
 
   function registerCleanup(sender: IpcSenderLike): void {
@@ -462,7 +521,7 @@ export function initializeMinutesVideoRecordingChannel({
       if (!isVideoRecordingFileError(error)) {
         throw error;
       }
-      await writer.abort(event.sender.id, sessionId);
+      await ignoreFailure(() => writer.abort(event.sender.id, sessionId));
       return {
         ok: false,
         error: error.message,
@@ -503,7 +562,7 @@ export function initializeMinutesVideoRecordingChannel({
       if (!isVideoRecordingFileError(error)) {
         throw error;
       }
-      await writer.abort(event.sender.id, sessionId);
+      await ignoreFailure(() => writer.abort(event.sender.id, sessionId));
       return {
         ok: false,
         error: error.message,
