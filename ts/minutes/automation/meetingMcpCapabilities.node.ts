@@ -155,84 +155,95 @@ export function registerMeetingMcpCapabilities(
     );
   }
 
-  server.registerResource(
-    'recording',
-    new ResourceTemplate('minutes://recordings/{id}', { list: undefined }),
-    {
-      title: 'Minutes recording metadata',
-      mimeType: 'application/json',
-    },
-    async (uri, variables) => {
-      const id = variableAsString(variables.id, 'id');
-      const recording = await meetings.getRecording(id);
-      return {
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: 'application/json',
-            text: JSON.stringify(recording),
-          },
-        ],
-      };
-    }
-  );
-
-  server.registerResource(
-    'recording-transcript',
-    new ResourceTemplate('minutes://recordings/{id}/transcript', {
-      list: undefined,
-    }),
-    {
-      title: 'Minutes recording transcript',
-      mimeType: 'text/markdown',
-    },
-    async (_uri, variables) => {
-      const resource = await meetings.readTranscript(
-        variableAsString(variables.id, 'id')
-      );
-      return { contents: [resource] };
-    }
-  );
-
-  server.registerResource(
-    'recording-summary',
-    new ResourceTemplate('minutes://recordings/{id}/summary', {
-      list: undefined,
-    }),
-    {
-      title: 'Minutes recording summary',
-      mimeType: 'text/markdown',
-    },
-    async (_uri, variables) => {
-      const resource = await meetings.readSummary(
-        variableAsString(variables.id, 'id')
-      );
-      return { contents: [resource] };
-    }
-  );
-
-  server.registerResource(
-    'automation-job',
-    new ResourceTemplate('minutes://jobs/{id}', { list: undefined }),
-    {
-      title: 'Minutes automation job',
-      mimeType: 'application/json',
-    },
-    async (uri, variables) => {
-      const id = variableAsString(variables.id, 'id');
-      const job = meetings.getJob(id);
-      if (job == null) {
-        throw new Error('Automation job not found');
+  if (enabledTools.has('get_recording')) {
+    server.registerResource(
+      'recording',
+      new ResourceTemplate('minutes://recordings/{id}', { list: undefined }),
+      {
+        title: 'Minutes recording metadata',
+        mimeType: 'application/json',
+      },
+      async (uri, variables) => {
+        const id = variableAsString(variables.id, 'id');
+        const recording = await meetings.getRecording(id);
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              mimeType: 'application/json',
+              text: JSON.stringify(recording),
+            },
+          ],
+        };
       }
-      return {
-        contents: [
-          {
-            uri: uri.href,
-            mimeType: 'application/json',
-            text: JSON.stringify(job),
-          },
-        ],
-      };
-    }
-  );
+    );
+  }
+
+  if (enabledTools.has('transcribe_recording')) {
+    server.registerResource(
+      'recording-transcript',
+      new ResourceTemplate('minutes://recordings/{id}/transcript', {
+        list: undefined,
+      }),
+      {
+        title: 'Minutes recording transcript',
+        mimeType: 'text/markdown',
+      },
+      async (_uri, variables) => {
+        const resource = await meetings.readTranscript(
+          variableAsString(variables.id, 'id')
+        );
+        return { contents: [resource] };
+      }
+    );
+  }
+
+  if (enabledTools.has('summarize_recording')) {
+    server.registerResource(
+      'recording-summary',
+      new ResourceTemplate('minutes://recordings/{id}/summary', {
+        list: undefined,
+      }),
+      {
+        title: 'Minutes recording summary',
+        mimeType: 'text/markdown',
+      },
+      async (_uri, variables) => {
+        const resource = await meetings.readSummary(
+          variableAsString(variables.id, 'id')
+        );
+        return { contents: [resource] };
+      }
+    );
+  }
+
+  if (
+    enabledTools.has('transcribe_recording') ||
+    enabledTools.has('summarize_recording')
+  ) {
+    server.registerResource(
+      'automation-job',
+      new ResourceTemplate('minutes://jobs/{id}', { list: undefined }),
+      {
+        title: 'Minutes automation job',
+        mimeType: 'application/json',
+      },
+      async (uri, variables) => {
+        const id = variableAsString(variables.id, 'id');
+        const job = meetings.getJob(id);
+        if (job == null) {
+          throw new Error('Automation job not found');
+        }
+        return {
+          contents: [
+            {
+              uri: uri.href,
+              mimeType: 'application/json',
+              text: JSON.stringify(job),
+            },
+          ],
+        };
+      }
+    );
+  }
 }

@@ -32,7 +32,7 @@ function selected(...names: ReadonlyArray<AutomationToolName>) {
 }
 
 describe('MCP tool registration controls', () => {
-  it('registers only selected meeting tools and preserves resources', () => {
+  it('registers only selected meeting tools and their corresponding resources', () => {
     const registry = createRegistry();
 
     registerMeetingMcpCapabilities(
@@ -42,15 +42,10 @@ describe('MCP tool registration controls', () => {
     );
 
     assert.deepEqual(registry.tools, ['get_recording']);
-    assert.sameMembers(registry.resources, [
-      'recording',
-      'recording-transcript',
-      'recording-summary',
-      'automation-job',
-    ]);
+    assert.deepEqual(registry.resources, ['recording']);
   });
 
-  it('registers only selected live tools and preserves resources', () => {
+  it('registers only selected live tools and their corresponding resources', () => {
     const registry = createRegistry();
 
     registerLiveMcpCapabilities(
@@ -70,6 +65,48 @@ describe('MCP tool registration controls', () => {
       'find_groups_by_member',
       'remove_group_members',
     ]);
-    assert.sameMembers(registry.resources, ['conversation', 'contact']);
+    assert.deepEqual(registry.resources, ['contact']);
+  });
+
+  it('does not expose resources after all corresponding tools are disabled', () => {
+    const registry = createRegistry();
+
+    registerMeetingMcpCapabilities(
+      registry.server,
+      {} as Parameters<typeof registerMeetingMcpCapabilities>[1],
+      selected()
+    );
+    registerLiveMcpCapabilities(
+      registry.server,
+      {} as RendererAutomationService,
+      selected()
+    );
+
+    assert.deepEqual(registry.tools, []);
+    assert.deepEqual(registry.resources, []);
+  });
+
+  it('exposes only the artifact and job resources needed by processing tools', () => {
+    const transcriptRegistry = createRegistry();
+    registerMeetingMcpCapabilities(
+      transcriptRegistry.server,
+      {} as Parameters<typeof registerMeetingMcpCapabilities>[1],
+      selected('transcribe_recording')
+    );
+    assert.deepEqual(transcriptRegistry.resources, [
+      'recording-transcript',
+      'automation-job',
+    ]);
+
+    const summaryRegistry = createRegistry();
+    registerMeetingMcpCapabilities(
+      summaryRegistry.server,
+      {} as Parameters<typeof registerMeetingMcpCapabilities>[1],
+      selected('summarize_recording')
+    );
+    assert.deepEqual(summaryRegistry.resources, [
+      'recording-summary',
+      'automation-job',
+    ]);
   });
 });

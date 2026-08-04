@@ -424,36 +424,42 @@ export function registerLiveMcpCapabilities(
     );
   }
 
-  server.registerResource(
-    'conversation',
-    new ResourceTemplate('minutes://conversations/{id}', { list: undefined }),
-    { mimeType: 'application/json' },
-    async (uri, variables) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: 'application/json',
-          text: JSON.stringify(
-            await live.getConversation(uriVariable(variables.id, 'id'))
-          ),
-        },
-      ],
-    })
-  );
-  server.registerResource(
-    'contact',
-    new ResourceTemplate('minutes://contacts/{id}', { list: undefined }),
-    { mimeType: 'application/json' },
-    async (uri, variables) => ({
-      contents: [
-        {
-          uri: uri.href,
-          mimeType: 'application/json',
-          text: JSON.stringify(
-            await live.getContact(uriVariable(variables.id, 'id'))
-          ),
-        },
-      ],
-    })
-  );
+  if (enabledTools.has('list_conversations')) {
+    server.registerResource(
+      'conversation',
+      new ResourceTemplate('minutes://conversations/{id}', {
+        list: undefined,
+      }),
+      { mimeType: 'application/json' },
+      async (uri, variables) => ({
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: 'application/json',
+            text: JSON.stringify(
+              await live.getConversation(uriVariable(variables.id, 'id'))
+            ),
+          },
+        ],
+      })
+    );
+  }
+  if (enabledTools.has('list_contacts')) {
+    server.registerResource(
+      'contact',
+      new ResourceTemplate('minutes://contacts/{id}', { list: undefined }),
+      { mimeType: 'application/json' },
+      async (uri, variables) => ({
+        contents: [
+          {
+            uri: uri.href,
+            mimeType: 'application/json',
+            text: JSON.stringify(
+              await live.getContact(uriVariable(variables.id, 'id'))
+            ),
+          },
+        ],
+      })
+    );
+  }
 }
