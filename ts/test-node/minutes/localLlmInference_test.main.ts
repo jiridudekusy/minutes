@@ -26,6 +26,7 @@ describe('LocalLlmModelScheduler', () => {
         modelPath: request.modelPath,
         modelFileName: request.modelFileName,
         contextSize: request.contextSize,
+        runtimeContextSize: 8192,
         reasoningEnabled: request.reasoningEnabled,
         dispose: async () => {
           events.push(`dispose:${request.modelFileName}`);

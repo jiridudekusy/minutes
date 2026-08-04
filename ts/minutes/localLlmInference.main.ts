@@ -6,6 +6,7 @@ import { loadNodeLlamaCpp } from './loadNodeLlamaCpp.main.ts';
 import {
   canReuseLocalLlmContext,
   DEFAULT_LOCAL_LLM_CONTEXT_SIZE,
+  fitLocalLlmPromptToContext,
   resolveLocalLlmRuntimeContextSize,
   type LocalLlmContextSize,
 } from './localLlmContextSize.std.ts';
@@ -22,6 +23,7 @@ export type LoadedLocalModel = Readonly<{
   modelFileName: string;
   contextSize: LocalLlmContextSize;
   reasoningEnabled: boolean;
+  runtimeContextSize: number;
   dispose: () => Promise<void>;
   prompt: (options: {
     systemPrompt: string;
@@ -137,6 +139,7 @@ async function loadLocalModel(
     modelFileName,
     contextSize,
     reasoningEnabled,
+    runtimeContextSize: context.contextSize,
     dispose: async () => {
       contextSequence.dispose();
       await context.dispose();
@@ -196,10 +199,22 @@ export async function generateLocalLlmText(options: {
         options.reasoningEnabled ?? DEFAULT_LOCAL_LLM_REASONING_ENABLED,
     },
     async model => {
-      const text = await model.prompt({
+      const maxTokens = options.maxTokens ?? 2000;
+      const fittedPrompt = fitLocalLlmPromptToContext({
         systemPrompt: options.systemPrompt,
         userPrompt: options.userPrompt,
-        maxTokens: options.maxTokens ?? 2000,
+        contextSize: model.runtimeContextSize,
+        maxTokens,
+      });
+      if (fittedPrompt.truncated) {
+        log.warn(
+          `local LLM prompt truncated to fit ${model.runtimeContextSize} token context`
+        );
+      }
+      const text = await model.prompt({
+        systemPrompt: options.systemPrompt,
+        userPrompt: fittedPrompt.userPrompt,
+        maxTokens,
         temperature: options.temperature ?? 0.2,
       });
       return requireNonEmptyLocalLlmOutput(text);

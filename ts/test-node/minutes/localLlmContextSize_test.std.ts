@@ -5,6 +5,7 @@ import { assert } from 'chai';
 
 import {
   canReuseLocalLlmContext,
+  fitLocalLlmPromptToContext,
   LOCAL_LLM_CONTEXT_SIZE_OPTIONS,
   normalizeLocalLlmContextSize,
   resolveLocalLlmRuntimeContextSize,
@@ -37,6 +38,27 @@ describe('local LLM context size', () => {
     });
     assert.strictEqual(resolveLocalLlmRuntimeContextSize(32_768), 32_768);
     assert.strictEqual(resolveLocalLlmRuntimeContextSize(131_072), 131_072);
+  });
+
+  it('truncates oversized prompts with an explicit marker before inference', () => {
+    const systemPrompt = 'system '.repeat(500);
+    const userPrompt = `START\n${'meeting '.repeat(20_000)}\nEND`;
+
+    const fitted = fitLocalLlmPromptToContext({
+      systemPrompt,
+      userPrompt,
+      contextSize: 8192,
+      maxTokens: 1100,
+    });
+
+    assert.strictEqual(fitted.truncated, true);
+    assert.include(fitted.userPrompt, 'START');
+    assert.include(fitted.userPrompt, 'END');
+    assert.include(fitted.userPrompt, '[… část přepisu vynechána');
+    assert.isAtMost(
+      Math.ceil((systemPrompt.length + fitted.userPrompt.length) / 3) + 1100,
+      8192 - 256
+    );
   });
 
   it('does not reuse a loaded context after its size changes', () => {
