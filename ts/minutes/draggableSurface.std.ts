@@ -109,3 +109,7 @@ export function shouldStartSurfaceDrag({
 }>): boolean {
   return button === 0 && isPrimary && !interactiveTarget;
 }
+
+export function hasPrimaryPointerButton(buttons: number): boolean {
+  return (buttons & 1) === 1;
+}

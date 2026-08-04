@@ -16,6 +16,7 @@ import { AxoDialog } from '../../axo/AxoDialog.dom.tsx';
 import {
   calculateConstrainedOffset,
   calculateDraggedOffset,
+  hasPrimaryPointerButton,
   shouldStartSurfaceDrag,
   type DraggableSurfaceOffset,
 } from '../draggableSurface.std.ts';
@@ -57,6 +58,7 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
     onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
     onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void;
     onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void;
+    onLostPointerCapture: (event: ReactPointerEvent<HTMLElement>) => void;
   }>;
 }> {
   const [surfaceElement, setSurfaceElement] = useState<HTMLElement | null>(
@@ -125,6 +127,12 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
     }
   }, []);
 
+  const clearDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+    if (dragRef.current?.pointerId === event.pointerId) {
+      dragRef.current = null;
+    }
+  }, []);
+
   const onPointerDown = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
       if (
@@ -165,6 +173,10 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
       if (!drag || drag.pointerId !== event.pointerId) {
         return;
       }
+      if (!hasPrimaryPointerButton(event.buttons)) {
+        dragRef.current = null;
+        return;
+      }
 
       updateOffset(
         calculateDraggedOffset({
@@ -192,6 +204,7 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
       onPointerMove,
       onPointerUp: finishDrag,
       onPointerCancel: finishDrag,
+      onLostPointerCapture: clearDrag,
     },
   };
 }

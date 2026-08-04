@@ -7,10 +7,17 @@ import {
   calculateConstrainedOffset,
   calculateDraggedOffset,
   constrainSurfacePosition,
+  hasPrimaryPointerButton,
   shouldStartSurfaceDrag,
 } from '../../minutes/draggableSurface.std.ts';
 
 describe('draggable Minutes surfaces', () => {
+  it('stops dragging when pointer movement has no primary button', () => {
+    assert.strictEqual(hasPrimaryPointerButton(0), false);
+    assert.strictEqual(hasPrimaryPointerButton(1), true);
+    assert.strictEqual(hasPrimaryPointerButton(2), false);
+  });
+
   it('keeps a normally sized surface fully inside the viewport', () => {
     assert.deepEqual(
       constrainSurfacePosition(
