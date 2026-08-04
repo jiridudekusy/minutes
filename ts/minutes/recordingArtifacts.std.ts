@@ -6,7 +6,7 @@ import { RECORDING_PCM_SIDECAR_SUFFIX } from './whisperSettings.std.ts';
 
 export type RecordingMediaKind = 'audio' | 'screen-share-video';
 
-export function getRecordingBasePath(recordingPath: string): string {
+function getRecordingBasePath(recordingPath: string): string {
   return recordingPath.replace(/\.(?:mp3|webm)$/i, '');
 }
 

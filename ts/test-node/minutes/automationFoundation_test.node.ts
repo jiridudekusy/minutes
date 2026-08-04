@@ -113,5 +113,24 @@ describe('Minutes automation foundation', () => {
         error: 'provider failed',
       });
     });
+
+    it('evicts the oldest completed jobs and their completion state', async () => {
+      let nextId = 0;
+      const registry = new AutomationJobRegistry({
+        maxConcurrent: 1,
+        maxRetainedJobs: 2,
+        idFactory: () => `job-${(nextId += 1)}`,
+      });
+      const first = registry.enqueue('summary', async () => 'first');
+      const second = registry.enqueue('summary', async () => 'second');
+      const third = registry.enqueue('summary', async () => 'third');
+
+      await registry.waitFor(third.id);
+
+      assert.isUndefined(registry.get(first.id));
+      assert.isDefined(registry.get(second.id));
+      assert.isDefined(registry.get(third.id));
+      await assert.isRejected(registry.waitFor(first.id), 'Unknown');
+    });
   });
 });

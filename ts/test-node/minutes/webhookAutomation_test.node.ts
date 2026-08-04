@@ -327,4 +327,43 @@ describe('Minutes automation webhooks', () => {
 
     assert.instanceOf(requestSignal, AbortSignal);
   });
+
+  it('persists one outbox snapshot for a flush with multiple deliveries', async () => {
+    let persistCount = 0;
+    const deliveries = ['delivery-1', 'delivery-2'].map(id => ({
+      id,
+      endpointId: 'endpoint-1',
+      eventType: 'call.started' as const,
+      body: '{}',
+      createdAt: 1_000,
+      attempts: 0,
+      nextAttemptAt: 1_000,
+    }));
+    const outbox = new WebhookOutbox({
+      initialEntries: deliveries,
+      persist: async () => {
+        persistCount += 1;
+      },
+      maxEntries: 100,
+    });
+    const dispatcher = new WebhookDispatcher({
+      outbox,
+      now: () => 1_000,
+      getEndpoints: async () => [
+        {
+          id: 'endpoint-1',
+          enabled: true,
+          url: 'https://hooks.example.test/minutes',
+          secret: 'secret',
+          eventTypes: ['call.started'],
+        },
+      ],
+      fetch: async () => new Response(null, { status: 204 }),
+    });
+
+    await dispatcher.flushDue();
+
+    assert.deepEqual(outbox.list(), []);
+    assert.strictEqual(persistCount, 1);
+  });
 });

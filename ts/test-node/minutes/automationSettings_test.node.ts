@@ -186,4 +186,29 @@ describe('AutomationSettingsStore', () => {
       eventTypes: ['call.started'],
     });
   });
+
+  it('persists webhook delivery success and error status', async () => {
+    const { store } = createStore();
+    await store.upsertWebhook({
+      enabled: true,
+      url: 'https://hooks.example.test/minutes',
+      eventTypes: ['call.started'],
+    });
+
+    await store.recordWebhookDeliveryResult('endpoint-1', {
+      successAt: 123,
+    });
+    assert.deepInclude((await store.getPublicSettings()).endpoints[0], {
+      lastSuccessAt: 123,
+      lastError: undefined,
+    });
+
+    await store.recordWebhookDeliveryResult('endpoint-1', {
+      error: 'HTTP 500',
+    });
+    assert.deepInclude((await store.getPublicSettings()).endpoints[0], {
+      lastSuccessAt: 123,
+      lastError: 'HTTP 500',
+    });
+  });
 });

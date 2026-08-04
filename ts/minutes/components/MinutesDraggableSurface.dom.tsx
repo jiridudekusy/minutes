@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type JSX,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefCallback,
@@ -59,6 +60,7 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
     onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void;
     onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void;
     onLostPointerCapture: (event: ReactPointerEvent<HTMLElement>) => void;
+    onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void;
   }>;
 }> {
   const [surfaceElement, setSurfaceElement] = useState<HTMLElement | null>(
@@ -197,6 +199,42 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
     [updateOffset]
   );
 
+  const onKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLElement>) => {
+      const delta =
+        event.key === 'ArrowLeft'
+          ? { x: -10, y: 0 }
+          : event.key === 'ArrowRight'
+            ? { x: 10, y: 0 }
+            : event.key === 'ArrowUp'
+              ? { x: 0, y: -10 }
+              : event.key === 'ArrowDown'
+                ? { x: 0, y: 10 }
+                : undefined;
+      if (!surfaceElement || delta == null) {
+        return;
+      }
+      const rect = surfaceElement.getBoundingClientRect();
+      updateOffset(
+        calculateConstrainedOffset({
+          currentOffset: {
+            x: offsetRef.current.x + delta.x,
+            y: offsetRef.current.y + delta.y,
+          },
+          currentRect: {
+            left: rect.left + delta.x,
+            top: rect.top + delta.y,
+            width: rect.width,
+            height: rect.height,
+          },
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+        })
+      );
+      event.preventDefault();
+    },
+    [surfaceElement, updateOffset]
+  );
+
   return {
     setSurfaceElement,
     dragHandleProps: {
@@ -205,6 +243,7 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
       onPointerUp: finishDrag,
       onPointerCancel: finishDrag,
       onLostPointerCapture: clearDrag,
+      onKeyDown,
     },
   };
 }
@@ -231,6 +270,9 @@ export function MinutesDraggableDialogHeader({
     <div
       ref={setHandleElement}
       className="MinutesDraggableSurface__handle"
+      role="toolbar"
+      aria-label="Přesunout okno"
+      tabIndex={0}
       {...dragHandleProps}
     >
       <AxoDialog.Header>{children}</AxoDialog.Header>

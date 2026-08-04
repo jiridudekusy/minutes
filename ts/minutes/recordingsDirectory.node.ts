@@ -15,7 +15,7 @@ import { dirname, join } from 'node:path';
 
 import pMap from 'p-map';
 
-export const RECORDINGS_DOCUMENTS_DIR_NAME = 'Minutes';
+const RECORDINGS_DOCUMENTS_DIR_NAME = 'Minutes';
 
 const OPERATING_SYSTEM_METADATA_FILES = new Set([
   '.DS_Store',

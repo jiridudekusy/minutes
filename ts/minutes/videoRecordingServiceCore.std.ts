@@ -23,8 +23,8 @@ import type {
 import type { SpeakerActivityLog } from './speakerActivity.std.ts';
 import type { CallRecordingMetadata } from './types.std.ts';
 
-export const VIDEO_RECORDING_FRAME_RATE = 15;
-export const VIDEO_RECORDING_CHUNK_INTERVAL_MS = 1_000;
+const VIDEO_RECORDING_FRAME_RATE = 15;
+const VIDEO_RECORDING_CHUNK_INTERVAL_MS = 1_000;
 const DEFAULT_MAX_QUEUED_CHUNK_BYTES = 8 * 1024 * 1024;
 
 export type VideoRecordingStartOptions = Readonly<{

@@ -5,7 +5,13 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
-import { app, ipcMain, safeStorage, type BrowserWindow } from 'electron';
+import {
+  app,
+  ipcMain,
+  safeStorage,
+  type BrowserWindow,
+  type WebContents,
+} from 'electron';
 
 import { createLogger } from '../../logging/log.std.ts';
 import {
@@ -50,6 +56,15 @@ const OUTBOX_LIMIT = 1_000;
 type MainWindowProvider = () => BrowserWindow | undefined;
 
 let runtime: MinutesAutomationRuntime | undefined;
+
+function assertMainWindowSender(
+  event: Readonly<{ sender: WebContents }>,
+  getMainWindow: MainWindowProvider
+): void {
+  if (event.sender !== getMainWindow()?.webContents) {
+    throw new Error('Automation IPC is available only to the main window');
+  }
+}
 
 function encrypt(value: string): string {
   if (!safeStorage.isEncryptionAvailable()) {
@@ -224,6 +239,8 @@ class MinutesAutomationRuntime {
       isEnabled: async () =>
         (await this.#settings.getPublicSettings()).webhooksEnabled,
       getEndpoints: () => this.#settings.getRuntimeEndpoints(),
+      onDeliveryResult: (endpointId, result) =>
+        this.#settings.recordWebhookDeliveryResult(endpointId, result),
     });
     this.#events.subscribe(event => this.#dispatcher.enqueue(event));
   }
@@ -404,44 +421,55 @@ export async function initializeMinutesAutomationRuntime(options: {
     }
   });
 
-  ipcMain.handle('minutes:get-automation-settings', () =>
-    runtime?.settings.getPublicSettings()
-  );
+  ipcMain.handle('minutes:get-automation-settings', event => {
+    assertMainWindowSender(event, options.getMainWindow);
+    return runtime?.settings.getPublicSettings();
+  });
   ipcMain.handle(
     'minutes:save-automation-server-settings',
     async (
-      _event,
+      event,
       input: {
         enabled: boolean;
         port: number;
         enabledTools: ReadonlyArray<string>;
       }
     ) => {
+      assertMainWindowSender(event, options.getMainWindow);
       const settings = await runtime?.settings.saveServerSettings(input);
       await runtime?.reconcile();
       return { settings, status: runtime?.status };
     }
   );
-  ipcMain.handle('minutes:regenerate-automation-token', async () => {
+  ipcMain.handle('minutes:regenerate-automation-token', async event => {
+    assertMainWindowSender(event, options.getMainWindow);
     const result = await runtime?.settings.regenerateToken();
     await runtime?.reconcile();
     return { ...result, status: runtime?.status };
   });
-  ipcMain.handle('minutes:upsert-automation-webhook', (_event, input) =>
-    runtime?.settings.upsertWebhook(input)
-  );
+  ipcMain.handle('minutes:upsert-automation-webhook', (event, input) => {
+    assertMainWindowSender(event, options.getMainWindow);
+    return runtime?.settings.upsertWebhook(input);
+  });
   ipcMain.handle(
     'minutes:save-automation-webhook-settings',
-    (_event, input: { enabled: boolean }) =>
-      runtime?.settings.saveWebhookSettings(input)
+    (event, input: { enabled: boolean }) => {
+      assertMainWindowSender(event, options.getMainWindow);
+      return runtime?.settings.saveWebhookSettings(input);
+    }
   );
-  ipcMain.handle('minutes:remove-automation-webhook', (_event, id: string) =>
-    runtime?.settings.removeWebhook(id)
-  );
-  ipcMain.handle('minutes:test-automation-webhook', (_event, id: string) =>
-    runtime?.testWebhook(id)
-  );
-  ipcMain.handle('minutes:get-automation-status', () => runtime?.status);
+  ipcMain.handle('minutes:remove-automation-webhook', (event, id: string) => {
+    assertMainWindowSender(event, options.getMainWindow);
+    return runtime?.settings.removeWebhook(id);
+  });
+  ipcMain.handle('minutes:test-automation-webhook', (event, id: string) => {
+    assertMainWindowSender(event, options.getMainWindow);
+    return runtime?.testWebhook(id);
+  });
+  ipcMain.handle('minutes:get-automation-status', event => {
+    assertMainWindowSender(event, options.getMainWindow);
+    return runtime?.status;
+  });
 
   app.once('before-quit', () => {
     void runtime?.stop();

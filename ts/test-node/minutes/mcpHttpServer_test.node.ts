@@ -38,8 +38,13 @@ describe('MinutesMcpHttpServer', () => {
     await server.stop();
   });
 
-  it('exposes a non-sensitive health endpoint', async () => {
-    const response = await fetch(`${baseUrl}/health`);
+  it('protects the health endpoint with the same bearer token', async () => {
+    const unauthorized = await fetch(`${baseUrl}/health`);
+    assert.strictEqual(unauthorized.status, 401);
+
+    const response = await fetch(`${baseUrl}/health`, {
+      headers: { authorization: `Bearer ${TOKEN}` },
+    });
 
     assert.strictEqual(response.status, 200);
     assert.deepEqual(await response.json(), {

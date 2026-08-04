@@ -228,6 +228,28 @@ export class AutomationSettingsStore {
     return toPublic(next);
   }
 
+  async recordWebhookDeliveryResult(
+    id: string,
+    result: Readonly<{ successAt?: number; error?: string }>
+  ): Promise<void> {
+    const current = normalizeStored(await this.#deps.read());
+    let changed = false;
+    const endpoints = (current.endpoints ?? []).map(endpoint => {
+      if (endpoint.id !== id) {
+        return endpoint;
+      }
+      changed = true;
+      return {
+        ...endpoint,
+        lastSuccessAt: result.successAt ?? endpoint.lastSuccessAt,
+        lastError: result.successAt == null ? result.error : undefined,
+      };
+    });
+    if (changed) {
+      await this.#deps.write({ ...current, endpoints });
+    }
+  }
+
   async getRuntimeEndpoints(): Promise<
     ReadonlyArray<AutomationWebhookEndpoint>
   > {

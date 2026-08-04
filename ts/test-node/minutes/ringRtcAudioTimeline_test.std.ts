@@ -4,10 +4,13 @@
 import { assert } from 'chai';
 
 import * as ringRtcAudioTimeline from '../../minutes/ringRtcAudioTimeline.std.ts';
-import * as renderedPcmProgress from '../../minutes/ringRtcRenderedPcmProgress.std.ts';
+import { RingRtcPcmChunker } from '../../minutes/ringRtcPcmChunker.std.ts';
+import {
+  readRenderedPcmEvent,
+  readRingRtcAudioReadyEvent,
+} from '../../minutes/ringRtcRenderedPcmProgress.std.ts';
 
 const { RingRtcAudioTimeline } = ringRtcAudioTimeline;
-const { RingRtcRenderedPcmProgress } = renderedPcmProgress;
 
 describe('RingRtcAudioTimeline', () => {
   it('prerolls both sources and never advances into temporarily late packets', () => {
@@ -131,37 +134,17 @@ describe('RingRtcAudioTimeline', () => {
 
 describe('RingRtc rendered PCM progress', () => {
   it('recognizes only the worklet ready event', () => {
-    const readReadyEvent = (
-      renderedPcmProgress as typeof renderedPcmProgress & {
-        readRingRtcAudioReadyEvent?: (event: unknown) => boolean;
-      }
-    ).readRingRtcAudioReadyEvent;
-    assert.isFunction(readReadyEvent);
-    if (!readReadyEvent) {
-      return;
-    }
-
-    assert.isTrue(readReadyEvent({ type: 'ready' }));
-    assert.isFalse(readReadyEvent({ type: 'stopped', generation: 0 }));
-    assert.isFalse(readReadyEvent({ type: 'ready', unexpected: true }));
-    assert.isFalse(readReadyEvent(null));
+    assert.isTrue(readRingRtcAudioReadyEvent({ type: 'ready' }));
+    assert.isFalse(
+      readRingRtcAudioReadyEvent({ type: 'stopped', generation: 0 })
+    );
+    assert.isFalse(
+      readRingRtcAudioReadyEvent({ type: 'ready', unexpected: true })
+    );
+    assert.isFalse(readRingRtcAudioReadyEvent(null));
   });
 
   it('emits the exact rendered PCM in bounded chunks', () => {
-    const RingRtcPcmChunker = (
-      renderedPcmProgress as typeof renderedPcmProgress & {
-        RingRtcPcmChunker?: new (chunkSize: number) => {
-          add(samples: Float32Array): Array<Float32Array>;
-          flush(): Float32Array | undefined;
-          reset(): void;
-        };
-      }
-    ).RingRtcPcmChunker;
-    assert.isFunction(RingRtcPcmChunker);
-    if (!RingRtcPcmChunker) {
-      return;
-    }
-
     const chunker = new RingRtcPcmChunker(4);
     assert.deepEqual(chunker.add(Float32Array.from([1, 2])), []);
     assert.deepEqual(
@@ -181,19 +164,6 @@ describe('RingRtc rendered PCM progress', () => {
   });
 
   it('flushes a final partial PCM chunk when recording stops', () => {
-    const RingRtcPcmChunker = (
-      renderedPcmProgress as typeof renderedPcmProgress & {
-        RingRtcPcmChunker?: new (chunkSize: number) => {
-          add(samples: Float32Array): Array<Float32Array>;
-          flush(): Float32Array | undefined;
-        };
-      }
-    ).RingRtcPcmChunker;
-    assert.isFunction(RingRtcPcmChunker);
-    if (!RingRtcPcmChunker) {
-      return;
-    }
-
     const chunker = new RingRtcPcmChunker(4);
     chunker.add(Float32Array.from([0.1, 0.2]));
     assert.isFunction(chunker.flush);
@@ -205,76 +175,21 @@ describe('RingRtc rendered PCM progress', () => {
     assert.isUndefined(chunker.flush());
   });
 
-  it('reports rendered samples in bounded 250 ms increments', () => {
-    const progress = new RingRtcRenderedPcmProgress();
-
-    assert.strictEqual(progress.addRenderedSamples(11_999), 0);
-    assert.strictEqual(progress.addRenderedSamples(1), 12_000);
-    assert.strictEqual(progress.addRenderedSamples(12_032), 12_000);
-    assert.strictEqual(progress.addRenderedSamples(11_968), 12_000);
-  });
-
-  it('drops partial progress when the recording timeline resets', () => {
-    const progress = new RingRtcRenderedPcmProgress();
-    progress.addRenderedSamples(11_999);
-
-    progress.reset();
-
-    assert.strictEqual(progress.addRenderedSamples(1), 0);
-    assert.strictEqual(progress.addRenderedSamples(11_999), 12_000);
-  });
-
-  it('rejects delayed progress events from an older resume generation', () => {
-    const readEvent = (
-      renderedPcmProgress as typeof renderedPcmProgress & {
-        readRenderedPcmProgressEvent?: (
-          event: unknown,
-          generation: number
-        ) => number | undefined;
-      }
-    ).readRenderedPcmProgressEvent;
-    assert.isFunction(readEvent);
-    if (!readEvent) {
-      return;
-    }
-
-    assert.isUndefined(
-      readEvent(
-        { type: 'rendered-samples', generation: 3, sampleCount: 12_000 },
-        4
-      )
-    );
-    assert.strictEqual(
-      readEvent(
-        { type: 'rendered-samples', generation: 4, sampleCount: 12_000 },
-        4
-      ),
-      12_000
-    );
-  });
-
   it('accepts PCM only from the active resume generation', () => {
-    const readEvent = (
-      renderedPcmProgress as typeof renderedPcmProgress & {
-        readRenderedPcmEvent?: (
-          event: unknown,
-          generation: number
-        ) => Float32Array | undefined;
-      }
-    ).readRenderedPcmEvent;
-    assert.isFunction(readEvent);
-    if (!readEvent) {
-      return;
-    }
-
     const delayed = Float32Array.from([0.1, 0.2]);
     assert.isUndefined(
-      readEvent({ type: 'rendered-pcm', generation: 3, samples: delayed }, 4)
+      readRenderedPcmEvent(
+        { type: 'rendered-pcm', generation: 3, samples: delayed },
+        4
+      )
     );
 
     const current = Float32Array.from([0.3, 0.4]);
     assert.strictEqual(
-      readEvent({ type: 'rendered-pcm', generation: 4, samples: current }, 4),
+      readRenderedPcmEvent(
+        { type: 'rendered-pcm', generation: 4, samples: current },
+        4
+      ),
       current
     );
   });

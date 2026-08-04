@@ -190,14 +190,7 @@ export class MinutesMcpHttpServer {
   ): Promise<void> {
     try {
       const pathname = new URL(request.url ?? '/', this.url).pathname;
-      if (pathname === '/health' && request.method === 'GET') {
-        sendJson(response, 200, {
-          service: 'minutes-mcp',
-          status: 'running',
-        });
-        return;
-      }
-      if (pathname !== '/mcp') {
+      if (pathname !== '/mcp' && pathname !== '/health') {
         sendJson(response, 404, { error: 'Not found' });
         return;
       }
@@ -212,6 +205,18 @@ export class MinutesMcpHttpServer {
       if (!this.#isAuthorized(request)) {
         response.setHeader('www-authenticate', 'Bearer realm="minutes-mcp"');
         sendMcpError(response, 401, 'Unauthorized');
+        return;
+      }
+      if (pathname === '/health') {
+        if (request.method === 'GET') {
+          sendJson(response, 200, {
+            service: 'minutes-mcp',
+            status: 'running',
+          });
+        } else {
+          response.setHeader('allow', 'GET');
+          sendJson(response, 405, { error: 'Method not allowed' });
+        }
         return;
       }
 

@@ -42,6 +42,12 @@ export class WebhookDispatcher {
   readonly #fetch: typeof fetch;
   readonly #now: () => number;
   readonly #idFactory: () => string;
+  readonly #onDeliveryResult:
+    | ((
+        endpointId: string,
+        result: Readonly<{ successAt?: number; error?: string }>
+      ) => Promise<void>)
+    | undefined;
   #flushPromise: Promise<void> | undefined;
 
   constructor(
@@ -52,6 +58,10 @@ export class WebhookDispatcher {
       fetch?: typeof fetch;
       now?: () => number;
       idFactory?: () => string;
+      onDeliveryResult?: (
+        endpointId: string,
+        result: Readonly<{ successAt?: number; error?: string }>
+      ) => Promise<void>;
     }>
   ) {
     this.#outbox = options.outbox;
@@ -60,6 +70,7 @@ export class WebhookDispatcher {
     this.#fetch = options.fetch ?? fetch;
     this.#now = options.now ?? Date.now;
     this.#idFactory = options.idFactory ?? randomUUID;
+    this.#onDeliveryResult = options.onDeliveryResult;
   }
 
   async enqueue(event: AutomationEvent): Promise<void> {
@@ -107,20 +118,22 @@ export class WebhookDispatcher {
       (await this.#getEndpoints()).map(endpoint => [endpoint.id, endpoint])
     );
     const now = this.#now();
-    for (const delivery of this.#outbox.due(now)) {
-      const endpoint = endpoints.get(delivery.endpointId);
-      if (
-        endpoint == null ||
-        !endpoint.enabled ||
-        !endpoint.eventTypes.includes(delivery.eventType)
-      ) {
+    await this.#outbox.batch(async () => {
+      for (const delivery of this.#outbox.due(now)) {
+        const endpoint = endpoints.get(delivery.endpointId);
+        if (
+          endpoint == null ||
+          !endpoint.enabled ||
+          !endpoint.eventTypes.includes(delivery.eventType)
+        ) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.#outbox.remove(delivery.id);
+          continue;
+        }
         // eslint-disable-next-line no-await-in-loop
-        await this.#outbox.remove(delivery.id);
-        continue;
+        await this.#deliver(delivery, endpoint, now);
       }
-      // eslint-disable-next-line no-await-in-loop
-      await this.#deliver(delivery, endpoint, now);
-    }
+    });
   }
 
   async #deliver(
@@ -146,6 +159,7 @@ export class WebhookDispatcher {
       });
       if (response.status >= 200 && response.status < 300) {
         await this.#outbox.remove(delivery.id);
+        await this.#reportDeliveryResult(endpoint.id, { successAt: now });
         return;
       }
       await this.#scheduleRetry(delivery, now, `HTTP ${response.status}`);
@@ -173,5 +187,19 @@ export class WebhookDispatcher {
       nextAttemptAt: now + delay,
       lastError,
     });
+    await this.#reportDeliveryResult(delivery.endpointId, {
+      error: lastError,
+    });
+  }
+
+  async #reportDeliveryResult(
+    endpointId: string,
+    result: Readonly<{ successAt?: number; error?: string }>
+  ): Promise<void> {
+    try {
+      await this.#onDeliveryResult?.(endpointId, result);
+    } catch {
+      // Endpoint status is diagnostic and must not change delivery semantics.
+    }
   }
 }

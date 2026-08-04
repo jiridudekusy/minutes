@@ -769,7 +769,7 @@ export function initializeAutomationRenderer(): void {
         forMutation: true,
       });
       requirePermission(
-        canAddNewMembers(group.attributes),
+        areWeAdmin(group.attributes),
         'The local account cannot remove group members'
       );
       const requestedMemberIds = requiredStringArray(params, 'memberIds');

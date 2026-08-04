@@ -582,7 +582,9 @@ export class CanvasVideoRenderer {
     }
     this.imageData.data.set(this.buffer.subarray(0, width * height * 4));
     context.putImageData(this.imageData, 0, 0);
-    presentationSourceController.markRendered(canvas);
+    if (presentationSourceController.getActiveSource()?.source === canvas) {
+      presentationSourceController.markRendered(canvas);
+    }
 
     if (sizeChanged) {
       this.sizeCallback?.({ width, height });

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 export const RING_RTC_AUDIO_TAP_VERSION = 1;
-export const RING_RTC_AUDIO_SAMPLE_RATE = 48_000;
-export const RING_RTC_AUDIO_CHANNELS = 1;
+const RING_RTC_AUDIO_SAMPLE_RATE = 48_000;
+const RING_RTC_AUDIO_CHANNELS = 1;
 
 export type RingRtcAudioTapChunk = Readonly<{
   sampleRate: number;

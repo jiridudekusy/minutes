@@ -40,6 +40,7 @@ type QueueEntry = Readonly<{
 
 export class AutomationJobRegistry {
   readonly #maxConcurrent: number;
+  readonly #maxRetainedJobs: number;
   readonly #idFactory: () => string;
   readonly #now: () => number;
   readonly #jobs = new Map<string, MutableAutomationJob>();
@@ -51,6 +52,7 @@ export class AutomationJobRegistry {
   constructor(
     options: Readonly<{
       maxConcurrent: number;
+      maxRetainedJobs?: number;
       idFactory?: () => string;
       now?: () => number;
     }>
@@ -62,6 +64,13 @@ export class AutomationJobRegistry {
       throw new Error('maxConcurrent must be a positive integer');
     }
     this.#maxConcurrent = options.maxConcurrent;
+    this.#maxRetainedJobs = options.maxRetainedJobs ?? 100;
+    if (
+      !Number.isSafeInteger(this.#maxRetainedJobs) ||
+      this.#maxRetainedJobs < 1
+    ) {
+      throw new Error('maxRetainedJobs must be a positive integer');
+    }
     this.#idFactory =
       options.idFactory ?? (() => globalThis.crypto.randomUUID());
     this.#now = options.now ?? Date.now;
@@ -139,6 +148,24 @@ export class AutomationJobRegistry {
       this.#resolveCompletion.get(activeJob.id)?.();
       this.#resolveCompletion.delete(activeJob.id);
       this.#drain();
+      this.#pruneCompletedJobs();
+    }
+  }
+
+  #pruneCompletedJobs(): void {
+    if (this.#jobs.size <= this.#maxRetainedJobs) {
+      return;
+    }
+    for (const [id, job] of this.#jobs) {
+      if (job.status === 'queued' || job.status === 'running') {
+        continue;
+      }
+      this.#jobs.delete(id);
+      this.#completion.delete(id);
+      this.#resolveCompletion.delete(id);
+      if (this.#jobs.size <= this.#maxRetainedJobs) {
+        return;
+      }
     }
   }
 }

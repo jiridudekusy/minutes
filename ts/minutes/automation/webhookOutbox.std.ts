@@ -22,6 +22,8 @@ export class WebhookOutbox {
   readonly #persist: PersistWebhookOutbox;
   readonly #maxEntries: number;
   #entries: Array<WebhookDelivery>;
+  #batchDepth = 0;
+  #dirty = false;
 
   constructor(
     options: Readonly<{
@@ -69,7 +71,24 @@ export class WebhookOutbox {
     await this.#save();
   }
 
+  async batch<T>(operation: () => Promise<T>): Promise<T> {
+    this.#batchDepth += 1;
+    try {
+      return await operation();
+    } finally {
+      this.#batchDepth -= 1;
+      if (this.#batchDepth === 0 && this.#dirty) {
+        this.#dirty = false;
+        await this.#persist(this.list());
+      }
+    }
+  }
+
   async #save(): Promise<void> {
+    if (this.#batchDepth > 0) {
+      this.#dirty = true;
+      return;
+    }
     await this.#persist(this.list());
   }
 }
