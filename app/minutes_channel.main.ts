@@ -7,7 +7,6 @@ import { mkdir, open, readFile, stat, writeFile } from 'node:fs/promises';
 
 import {
   app,
-  desktopCapturer,
   ipcMain,
   shell,
   type BrowserWindow,
@@ -172,24 +171,6 @@ export async function initializeMinutesChannel(automationOptions?: {
       getMainWindow: automationOptions.getMainWindow,
     });
   }
-
-  ipcMain.handle('minutes:get-loopback-audio-source', async () => {
-    const sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: 1, height: 1 },
-    });
-
-    const primary =
-      sources.find(source => /screen|display|entire/i.test(source.name)) ??
-      sources[0];
-
-    if (!primary) {
-      log.warn('no desktop capturer sources for loopback audio');
-      return '';
-    }
-
-    return primary.id;
-  });
 
   ipcMain.handle(
     'minutes:save-recording',

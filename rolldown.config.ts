@@ -15,7 +15,6 @@ const external = [
   '@signalapp/ringrtc',
   '@signalapp/sqlcipher',
   '@signalapp/mute-state-change',
-  '@minutes/mac-audio-tap',
   '@signalapp/windows-ucv',
   '@indutny/simple-windows-notifications',
   '@indutny/mac-screen-share',
