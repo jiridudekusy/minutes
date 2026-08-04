@@ -84,7 +84,7 @@ type VideoCompositor = Readonly<{
 
 type RingRtcAudioTrack = Readonly<{
   stream: unknown;
-  resetPcmProgress(): void;
+  startPcmGeneration(): void;
   pause(): void;
   resume(): void;
   stop(): Promise<void>;
@@ -249,7 +249,7 @@ export class VideoRecordingServiceCore {
         remoteDisplayName: options.conversationTitle,
         recordingStartedAt: startedAt,
       });
-      this.#audioTrack.resetPcmProgress();
+      this.#audioTrack.startPcmGeneration();
 
       this.#setState({
         status: 'recording',

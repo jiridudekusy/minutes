@@ -21,9 +21,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Fixed
 
 - Samostatné MP3 nahrávání nyní čte lokální odchozí i vzdálený zvuk přímo z RingRTC stejně jako WebM; neotevírá vlastní mikrofon ani macOS/Windows loopback a respektuje ztlumení mikrofonu v Signalu
-
-### Fixed
-- Nahrávání sdíleného videa a zpracovaného zvuku hovoru znovu používá Minutes RingRTC tapy kompatibilní se Signal Desktop 8.23 (`2.70.2-minutes.2`).
+- RingRTC audio zdroje se po dočasném výpadku znovu připojí k časové ose nahrávky
+- Nahrávání sdíleného videa a zpracovaného zvuku hovoru používá Minutes RingRTC tapy kompatibilní se Signal Desktop 8.23 (`2.70.2-minutes.2`).
 
 ## [8.23.0-m1.3.0] - 2026-08-17
 

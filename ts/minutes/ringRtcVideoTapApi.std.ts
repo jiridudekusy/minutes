@@ -86,6 +86,22 @@ export function validateRingRtcVideoTapFrame(
   }
 }
 
+export function readRingRtcVideoTapSequence(
+  value: unknown
+): number | undefined {
+  try {
+    if (typeof value !== 'object' || value == null) {
+      return undefined;
+    }
+    const sequence = Reflect.get(value, 'sequence');
+    return Number.isSafeInteger(sequence) && sequence >= 0
+      ? (sequence as number)
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 function validateRingRtcVideoTapFrameUnsafe(
   value: unknown,
   lastSequence: number

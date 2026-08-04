@@ -3,7 +3,7 @@
 
 import { assert } from 'chai';
 
-import { configureRingRtcRecordingAudioContext } from '../../minutes/ringRtcAudioTrack.preload.ts';
+import { configureRingRtcRecordingAudioContext } from '../../minutes/ringRtcAudioContext.std.ts';
 
 describe('RingRtc recording AudioContext', () => {
   it('uses a silent sink so output device changes do not stop its clock', async () => {
