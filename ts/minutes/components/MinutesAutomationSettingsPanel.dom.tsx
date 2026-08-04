@@ -28,6 +28,7 @@ import {
   regenerateAutomationToken,
   removeAutomationWebhook,
   saveAutomationServerSettings,
+  saveAutomationWebhookSettings,
   testAutomationWebhook,
   upsertAutomationWebhook,
 } from '../automation/automationSettingsService.preload.ts';
@@ -46,6 +47,7 @@ const ALL_EVENTS: ReadonlyArray<AutomationEventType> = [
 
 const EMPTY_SETTINGS: AutomationSettingsPublic = {
   enabled: false,
+  webhooksEnabled: false,
   port: DEFAULT_AUTOMATION_PORT,
   hasToken: false,
   enabledTools: ALL_AUTOMATION_TOOL_NAMES,
@@ -80,6 +82,7 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
   const [settings, setSettings] =
     useState<AutomationSettingsPublic>(EMPTY_SETTINGS);
   const [enabled, setEnabled] = useState(false);
+  const [webhooksEnabled, setWebhooksEnabled] = useState(false);
   const [port, setPort] = useState(DEFAULT_AUTOMATION_PORT);
   const [enabledTools, setEnabledTools] = useState<
     ReadonlySet<AutomationToolName>
@@ -89,6 +92,9 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
   });
   const [shownSecret, setShownSecret] = useState<string | null>(null);
   const [webhookUrl, setWebhookUrl] = useState('');
+  const [webhookEventTypes, setWebhookEventTypes] = useState<
+    ReadonlySet<AutomationEventType>
+  >(new Set(ALL_EVENTS));
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -99,6 +105,7 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
     ]);
     setSettings(nextSettings);
     setEnabled(nextSettings.enabled);
+    setWebhooksEnabled(nextSettings.webhooksEnabled);
     setPort(nextSettings.port);
     setEnabledTools(new Set(nextSettings.enabledTools));
     setRuntimeStatus(nextStatus);
@@ -311,6 +318,29 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
 
       <div className={tw('mt-2 flex flex-col gap-2')}>
         <span className={tw('font-medium')}>Webhooky</span>
+        <label className={tw('flex items-center justify-between gap-3')}>
+          <span>Povolit odesílání webhooků</span>
+          <AxoSwitch.Root
+            checked={webhooksEnabled}
+            onCheckedChange={setWebhooksEnabled}
+          />
+        </label>
+        <button
+          type="button"
+          disabled={busy}
+          className={tw('self-start rounded-md border border-solid px-3 py-2')}
+          onClick={() =>
+            run(async () => {
+              const nextSettings = await saveAutomationWebhookSettings({
+                enabled: webhooksEnabled,
+              });
+              setSettings(nextSettings);
+              setMessage('Nastavení webhooků uloženo.');
+            })
+          }
+        >
+          Uložit webhooky
+        </button>
         <input
           type="url"
           placeholder="https://example.com/minutes-webhook"
@@ -321,16 +351,52 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
           value={webhookUrl}
           onChange={event => setWebhookUrl(event.target.value)}
         />
+        <fieldset
+          className={tw(
+            'm-0 grid grid-cols-1 gap-2 rounded-md border border-solid p-3',
+            'border-label-disabled sm:grid-cols-2'
+          )}
+        >
+          <legend className={tw('text-label-small px-1 font-medium')}>
+            Odebírané události
+          </legend>
+          {ALL_EVENTS.map(eventType => (
+            <label key={eventType} className={tw('flex items-center gap-2')}>
+              <input
+                type="checkbox"
+                checked={webhookEventTypes.has(eventType)}
+                onChange={event => {
+                  setWebhookEventTypes(current => {
+                    const next = new Set(current);
+                    if (event.target.checked) {
+                      next.add(eventType);
+                    } else {
+                      next.delete(eventType);
+                    }
+                    return next;
+                  });
+                }}
+              />
+              <code className={tw('text-label-small')}>{eventType}</code>
+            </label>
+          ))}
+        </fieldset>
         <button
           type="button"
-          disabled={busy || webhookUrl.trim().length === 0}
+          disabled={
+            busy ||
+            webhookUrl.trim().length === 0 ||
+            webhookEventTypes.size === 0
+          }
           className={tw('self-start rounded-md border border-solid px-3 py-2')}
           onClick={() =>
             run(async () => {
               const result = await upsertAutomationWebhook({
                 enabled: true,
                 url: webhookUrl.trim(),
-                eventTypes: ALL_EVENTS,
+                eventTypes: ALL_EVENTS.filter(eventType =>
+                  webhookEventTypes.has(eventType)
+                ),
               });
               setShownSecret(result.secret ?? null);
               setWebhookUrl('');
@@ -341,7 +407,7 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
             })
           }
         >
-          Přidat webhook pro všechny události
+          Přidat webhook
         </button>
       </div>
 
@@ -360,6 +426,65 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
             {endpoint.enabled ? 'Aktivní' : 'Vypnutý'} ·{' '}
             {endpoint.eventTypes.join(', ')}
           </span>
+          <label className={tw('flex items-center justify-between gap-3')}>
+            <span>Endpoint aktivní</span>
+            <AxoSwitch.Root
+              checked={endpoint.enabled}
+              disabled={busy}
+              onCheckedChange={checked =>
+                run(async () => {
+                  await upsertAutomationWebhook({
+                    id: endpoint.id,
+                    enabled: checked,
+                    url: endpoint.url,
+                    eventTypes: endpoint.eventTypes,
+                  });
+                  await reload();
+                })
+              }
+            />
+          </label>
+          <fieldset
+            className={tw(
+              'm-0 grid grid-cols-1 gap-2 rounded-md border border-solid p-3',
+              'border-label-disabled sm:grid-cols-2'
+            )}
+          >
+            <legend className={tw('text-label-small px-1 font-medium')}>
+              Odebírané události
+            </legend>
+            {ALL_EVENTS.map(eventType => (
+              <label key={eventType} className={tw('flex items-center gap-2')}>
+                <input
+                  type="checkbox"
+                  disabled={busy}
+                  checked={endpoint.eventTypes.includes(eventType)}
+                  onChange={event =>
+                    run(async () => {
+                      const eventTypes = event.target.checked
+                        ? [...endpoint.eventTypes, eventType]
+                        : endpoint.eventTypes.filter(
+                            current => current !== eventType
+                          );
+                      if (eventTypes.length === 0) {
+                        throw new Error(
+                          'Webhook musí odebírat alespoň jednu událost.'
+                        );
+                      }
+                      await upsertAutomationWebhook({
+                        id: endpoint.id,
+                        enabled: endpoint.enabled,
+                        url: endpoint.url,
+                        eventTypes,
+                      });
+                      await reload();
+                    })
+                  }
+                />
+                <code className={tw('text-label-small')}>{eventType}</code>
+              </label>
+            ))}
+          </fieldset>
           {endpoint.lastError && (
             <span className={tw('text-label-small')}>{endpoint.lastError}</span>
           )}

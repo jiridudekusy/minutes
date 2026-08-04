@@ -38,6 +38,7 @@ export class WebhookDispatcher {
   readonly #getEndpoints: () => Promise<
     ReadonlyArray<AutomationWebhookEndpoint>
   >;
+  readonly #isEnabled: () => Promise<boolean>;
   readonly #fetch: typeof fetch;
   readonly #now: () => number;
   readonly #idFactory: () => string;
@@ -46,6 +47,7 @@ export class WebhookDispatcher {
   constructor(
     options: Readonly<{
       outbox: WebhookOutbox;
+      isEnabled?: () => Promise<boolean>;
       getEndpoints: () => Promise<ReadonlyArray<AutomationWebhookEndpoint>>;
       fetch?: typeof fetch;
       now?: () => number;
@@ -53,6 +55,7 @@ export class WebhookDispatcher {
     }>
   ) {
     this.#outbox = options.outbox;
+    this.#isEnabled = options.isEnabled ?? (async () => true);
     this.#getEndpoints = options.getEndpoints;
     this.#fetch = options.fetch ?? fetch;
     this.#now = options.now ?? Date.now;
@@ -60,6 +63,9 @@ export class WebhookDispatcher {
   }
 
   async enqueue(event: AutomationEvent): Promise<void> {
+    if (!(await this.#isEnabled())) {
+      return;
+    }
     const endpoints = await this.#getEndpoints();
     for (const endpoint of endpoints) {
       if (!endpoint.enabled || !endpoint.eventTypes.includes(event.type)) {
@@ -94,6 +100,9 @@ export class WebhookDispatcher {
   }
 
   async #flushDue(): Promise<void> {
+    if (!(await this.#isEnabled())) {
+      return;
+    }
     const endpoints = new Map(
       (await this.#getEndpoints()).map(endpoint => [endpoint.id, endpoint])
     );

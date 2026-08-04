@@ -180,6 +180,61 @@ describe('Minutes automation webhooks', () => {
     assert.deepEqual(outbox.list(), []);
   });
 
+  it('keeps queued deliveries untouched while webhooks are globally disabled', async () => {
+    let requestCount = 0;
+    const outbox = new WebhookOutbox({
+      initialEntries: [
+        {
+          id: 'delivery-1',
+          endpointId: 'endpoint-1',
+          eventType: 'message.received',
+          body: '{}',
+          createdAt: 1_000,
+          attempts: 0,
+          nextAttemptAt: 1_000,
+        },
+      ],
+      persist: async () => undefined,
+      maxEntries: 100,
+    });
+    const dispatcher = new WebhookDispatcher({
+      outbox,
+      isEnabled: async () => false,
+      getEndpoints: async () => [
+        {
+          id: 'endpoint-1',
+          enabled: true,
+          url: 'https://hooks.example.test/minutes',
+          secret: 'secret',
+          eventTypes: ['message.received'],
+        },
+      ],
+      fetch: async () => {
+        requestCount += 1;
+        return new Response(null, { status: 204 });
+      },
+    });
+
+    await dispatcher.enqueue({
+      id: 'event-2',
+      type: 'message.received',
+      occurredAt: '2026-07-25T10:00:00.000Z',
+      data: {
+        messageId: 'message-2',
+        conversationId: 'conversation-1',
+        text: 'Private text',
+        attachments: [],
+      },
+    });
+    await dispatcher.flushDue();
+
+    assert.strictEqual(requestCount, 0);
+    assert.deepEqual(
+      outbox.list().map(item => item.id),
+      ['delivery-1']
+    );
+  });
+
   it('does not deliver the same outbox entry from overlapping flushes', async () => {
     let releaseRequest: (() => void) | undefined;
     const requestBlocked = new Promise<void>(resolve => {

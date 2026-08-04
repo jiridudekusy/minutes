@@ -44,6 +44,7 @@ describe('AutomationSettingsStore', () => {
 
     assert.deepEqual(await store.getPublicSettings(), {
       enabled: false,
+      webhooksEnabled: false,
       port: 37221,
       hasToken: false,
       enabledTools: [
@@ -79,6 +80,16 @@ describe('AutomationSettingsStore', () => {
       ],
       endpoints: [],
     });
+  });
+
+  it('persists the webhook master switch independently of MCP', async () => {
+    const { saved, store } = createStore({ enabled: true });
+
+    const settings = await store.saveWebhookSettings({ enabled: true });
+
+    assert.strictEqual(settings.enabled, true);
+    assert.strictEqual(settings.webhooksEnabled, true);
+    assert.strictEqual(saved.at(-1)?.webhooksEnabled, true);
   });
 
   it('persists an explicit MCP tool selection with the server settings', async () => {

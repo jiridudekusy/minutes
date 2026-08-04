@@ -41,6 +41,7 @@ function normalizeStored(
 ): StoredAutomationSettings {
   return {
     enabled: value?.enabled === true,
+    webhooksEnabled: value?.webhooksEnabled === true,
     port: normalizePort(value?.port),
     encryptedTokenHash: value?.encryptedTokenHash,
     enabledTools: normalizeStoredAutomationToolNames(value?.enabledTools),
@@ -73,6 +74,7 @@ function validateWebhookUrl(value: string): string {
 function toPublic(stored: StoredAutomationSettings): AutomationSettingsPublic {
   return {
     enabled: stored.enabled === true,
+    webhooksEnabled: stored.webhooksEnabled === true,
     port: normalizePort(stored.port),
     hasToken: Boolean(stored.encryptedTokenHash),
     enabledTools: normalizeStoredAutomationToolNames(stored.enabledTools),
@@ -125,6 +127,15 @@ export class AutomationSettingsStore {
       port,
       enabledTools: validateAutomationToolNames(input.enabledTools),
     };
+    await this.#deps.write(next);
+    return toPublic(next);
+  }
+
+  async saveWebhookSettings(
+    input: Readonly<{ enabled: boolean }>
+  ): Promise<AutomationSettingsPublic> {
+    const current = normalizeStored(await this.#deps.read());
+    const next = { ...current, webhooksEnabled: input.enabled };
     await this.#deps.write(next);
     return toPublic(next);
   }

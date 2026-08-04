@@ -219,6 +219,8 @@ class MinutesAutomationRuntime {
     });
     this.#dispatcher = new WebhookDispatcher({
       outbox: options.outbox,
+      isEnabled: async () =>
+        (await this.#settings.getPublicSettings()).webhooksEnabled,
       getEndpoints: () => this.#settings.getRuntimeEndpoints(),
     });
     this.#events.subscribe(event => this.#dispatcher.enqueue(event));
@@ -419,6 +421,11 @@ export async function initializeMinutesAutomationRuntime(options: {
   });
   ipcMain.handle('minutes:upsert-automation-webhook', (_event, input) =>
     runtime?.settings.upsertWebhook(input)
+  );
+  ipcMain.handle(
+    'minutes:save-automation-webhook-settings',
+    (_event, input: { enabled: boolean }) =>
+      runtime?.settings.saveWebhookSettings(input)
   );
   ipcMain.handle('minutes:remove-automation-webhook', (_event, id: string) =>
     runtime?.settings.removeWebhook(id)

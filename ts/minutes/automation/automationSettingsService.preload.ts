@@ -50,6 +50,12 @@ export function upsertAutomationWebhook(input: {
   return ipcRenderer.invoke('minutes:upsert-automation-webhook', input);
 }
 
+export function saveAutomationWebhookSettings(input: {
+  enabled: boolean;
+}): Promise<AutomationSettingsPublic> {
+  return ipcRenderer.invoke('minutes:save-automation-webhook-settings', input);
+}
+
 export function removeAutomationWebhook(
   id: string
 ): Promise<AutomationSettingsPublic> {
