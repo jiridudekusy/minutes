@@ -9,6 +9,8 @@ import {
   rename,
   rm,
   stat,
+  utimes,
+  writeFile,
 } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -18,6 +20,7 @@ import { assert } from 'chai';
 
 import {
   initializeMinutesVideoRecordingChannel,
+  reapStaleVideoRecordingPartials,
   VideoRecordingFileWriter,
 } from '../../../app/minutes_video_recording_channel.main.ts';
 import { CallMode } from '../../types/CallDisposition.std.ts';
@@ -36,6 +39,30 @@ describe('VideoRecordingFileWriter', () => {
 
   afterEach(async () => {
     await rm(recordingsDir, { recursive: true, force: true });
+  });
+
+  it('reaps only partial files older than the retention window', async () => {
+    const stalePartial = join(recordingsDir, 'stale.webm.partial');
+    const freshPartial = join(recordingsDir, 'fresh.webm.partial');
+    const completedRecording = join(recordingsDir, 'meeting.webm');
+    await Promise.all([
+      writeFile(stalePartial, 'stale'),
+      writeFile(freshPartial, 'fresh'),
+      writeFile(completedRecording, 'complete'),
+    ]);
+    const now = Date.UTC(2026, 7, 4, 12);
+    const staleDate = new Date(now - 25 * 60 * 60_000);
+    await utimes(stalePartial, staleDate, staleDate);
+
+    const removed = await reapStaleVideoRecordingPartials(recordingsDir, {
+      now,
+      maxAgeMs: 24 * 60 * 60_000,
+    });
+
+    assert.deepEqual(removed, [stalePartial]);
+    await assertFileDoesNotExist(stalePartial);
+    assert.strictEqual((await stat(freshPartial)).isFile(), true);
+    assert.strictEqual((await stat(completedRecording)).isFile(), true);
   });
 
   it('serializes concurrent chunk appends in invocation order', async () => {
@@ -149,7 +176,11 @@ describe('VideoRecordingFileWriter', () => {
   });
 
   it('streams mixed PCM into a finalized sidecar referenced by metadata', async () => {
-    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const pcmStorageDir = join(recordingsDir, 'private-pcm');
+    const writer = new VideoRecordingFileWriter({
+      recordingsDir,
+      pcmStorageDir,
+    });
     const startedAt = Date.UTC(2026, 6, 24, 10, 0, 0);
     const session = await writer.create(7, {
       conversationId: 'conversation-id',
@@ -192,6 +223,7 @@ describe('VideoRecordingFileWriter', () => {
       )
     );
     assert.deepEqual([...pcmSamples], [0.25, -0.5]);
+    assert.strictEqual(result.pcmPath.startsWith(`${pcmStorageDir}/`), true);
     const metadata = JSON.parse(await readFile(result.metadataPath, 'utf8'));
     assert.strictEqual(metadata.pcmFile, result.pcmPath.split('/').at(-1));
   });
@@ -391,6 +423,44 @@ describe('VideoRecordingFileWriter', () => {
     assert.deepEqual(first, { partialPath: session.partialPath });
     assert.deepEqual(second, { partialPath: session.partialPath });
     assert.deepEqual([...(await readFile(session.partialPath))], [1, 2]);
+  });
+
+  it('attempts to close both files when one close fails during abort', async () => {
+    let opened = 0;
+    let pcmClosed = false;
+    const writer = new VideoRecordingFileWriter({
+      recordingsDir,
+      openFile: async () => {
+        opened += 1;
+        const isPcm = opened === 2;
+        return {
+          writeFile: async () => undefined,
+          sync: async () => undefined,
+          close: async () => {
+            if (isPcm) {
+              pcmClosed = true;
+            } else {
+              throw new Error('media close failed');
+            }
+          },
+        };
+      },
+    });
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Direct,
+      startedAt: Date.UTC(2026, 6, 22, 10, 0, 0),
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+
+    assert.deepEqual(await writer.abort(7, session.sessionId), {
+      partialPath: session.partialPath,
+    });
+    assert.strictEqual(pcmClosed, true);
   });
 
   it('does not reveal an aborted session path to another owner', async () => {

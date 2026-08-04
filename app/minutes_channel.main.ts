@@ -17,7 +17,10 @@ import {
   initializeMinutesRecordingsDirectory,
   resolveMinutesRecordingsDir,
 } from '../ts/minutes/recordingsDirectory.node.ts';
-import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
+import {
+  getPrivateRecordingPcmPath,
+  RECORDING_PCM_STORAGE_DIR,
+} from '../ts/minutes/recordingPcmStorage.node.ts';
 import type { SpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
 import {
   getAiSettingsPublic,
@@ -103,6 +106,10 @@ export async function initializeMinutesChannel(): Promise<void> {
       legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
       targetDir: preferredRecordingsDir,
     });
+  const pcmStorageDir = join(
+    app.getPath('userData'),
+    RECORDING_PCM_STORAGE_DIR
+  );
   if (migrationError) {
     log.error(
       'failed to migrate recordings to Documents; using app storage',
@@ -123,6 +130,7 @@ export async function initializeMinutesChannel(): Promise<void> {
   initializeMinutesVideoRecordingChannel({
     ipcMain,
     recordingsDir,
+    pcmStorageDir,
   });
 
   ipcMain.handle('minutes:get-loopback-audio-source', async () => {
@@ -171,9 +179,10 @@ export async function initializeMinutesChannel(): Promise<void> {
       await writeFile(filePath, Buffer.from(options.data));
 
       if (options.pcm48 && options.pcm48.length > 0) {
-        const pcmPath = join(
-          recordingsDir,
-          `${baseName}${RECORDING_PCM_SIDECAR_SUFFIX}`
+        await ensureDir(pcmStorageDir);
+        const pcmPath = getPrivateRecordingPcmPath(
+          app.getPath('userData'),
+          filePath
         );
         await writeFile(
           pcmPath,
