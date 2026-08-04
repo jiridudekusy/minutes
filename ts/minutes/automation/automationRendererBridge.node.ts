@@ -50,8 +50,14 @@ export class AutomationRendererBridge {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.#pending.delete(id);
+        const isMessageSend = method === 'sendMessage';
         reject(
-          new AutomationRendererError('TIMEOUT', 'Renderer request timed out')
+          new AutomationRendererError(
+            isMessageSend ? 'QUEUE_STATUS_UNKNOWN' : 'TIMEOUT',
+            isMessageSend
+              ? 'Renderer did not confirm whether the message was queued; retry only with the same idempotencyKey'
+              : 'Renderer request timed out'
+          )
         );
       }, this.#timeoutMs);
       this.#pending.set(id, { resolve, reject, timeout });

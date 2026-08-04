@@ -105,10 +105,12 @@ export function registerLiveMcpCapabilities(
     server.registerTool(
       'send_message',
       {
-        description: 'Sends a text message to a Signal conversation.',
+        description:
+          'Sends a text message to a Signal conversation. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
         inputSchema: {
           conversationId: z.string().min(1),
           text: z.string().min(1).max(65_536),
+          idempotencyKey: z.string().min(1).max(256).optional(),
         },
         annotations: {
           readOnlyHint: false,

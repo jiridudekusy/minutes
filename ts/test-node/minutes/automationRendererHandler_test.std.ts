@@ -120,4 +120,67 @@ describe('AutomationRendererHandler', () => {
     assert.deepEqual(await duplicate, await first);
     assert.strictEqual(sendCount, 1);
   });
+
+  it('reuses a completed send result for the same idempotency key', async () => {
+    let sendCount = 0;
+    const capabilities = createCapabilities({
+      sendMessage: async () => {
+        sendCount += 1;
+        return { queued: true };
+      },
+    });
+    const firstHandler = new AutomationRendererHandler(capabilities);
+    const secondHandler = new AutomationRendererHandler(capabilities);
+    const params = {
+      conversationId: 'conversation-1',
+      text: 'Only once',
+      idempotencyKey: 'campaign-2026-08-04-alice',
+    };
+
+    assert.deepEqual(
+      await firstHandler.handle({
+        id: 'first-send',
+        method: 'sendMessage',
+        params,
+      }),
+      { id: 'first-send', ok: true, result: { queued: true } }
+    );
+    assert.deepEqual(
+      await secondHandler.handle({
+        id: 'retried-send',
+        method: 'sendMessage',
+        params,
+      }),
+      { id: 'retried-send', ok: true, result: { queued: true } }
+    );
+    assert.strictEqual(sendCount, 1);
+  });
+
+  it('rejects reuse of an idempotency key for different message content', async () => {
+    const handler = new AutomationRendererHandler(createCapabilities());
+    await handler.handle({
+      id: 'first-send',
+      method: 'sendMessage',
+      params: {
+        conversationId: 'conversation-1',
+        text: 'First message',
+        idempotencyKey: 'reused-key',
+      },
+    });
+
+    const conflict = await handler.handle({
+      id: 'second-send',
+      method: 'sendMessage',
+      params: {
+        conversationId: 'conversation-1',
+        text: 'Different message',
+        idempotencyKey: 'reused-key',
+      },
+    });
+
+    assert.deepInclude(conflict, { id: 'second-send', ok: false });
+    if (!conflict.ok) {
+      assert.strictEqual(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
+    }
+  });
 });

@@ -177,6 +177,7 @@ export class RendererAutomationService {
   sendMessage(options: {
     conversationId: string;
     text: string;
+    idempotencyKey?: string;
   }): Promise<unknown> {
     return this.bridge.request('sendMessage', options);
   }

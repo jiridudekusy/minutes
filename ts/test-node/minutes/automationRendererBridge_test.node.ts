@@ -76,6 +76,28 @@ describe('AutomationRendererBridge', () => {
     await expectRejected(timedOut, 'Renderer request timed out');
   });
 
+  it('reports an unknown queue state when a message send times out', async () => {
+    const bridge = new AutomationRendererBridge({
+      send: () => undefined,
+      timeoutMs: 5,
+    });
+
+    let caught: unknown;
+    try {
+      await bridge.request('sendMessage', {
+        conversationId: 'conversation-1',
+        text: 'hello',
+        idempotencyKey: 'send-1',
+      });
+    } catch (error) {
+      caught = error;
+    }
+
+    assert.instanceOf(caught, Error);
+    assert.propertyVal(caught, 'code', 'QUEUE_STATUS_UNKNOWN');
+    assert.include(caught.message, 'same idempotencyKey');
+  });
+
   it('rejects pending requests when the renderer reloads', async () => {
     const bridge = new AutomationRendererBridge({
       send: () => undefined,

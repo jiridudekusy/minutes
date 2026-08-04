@@ -73,7 +73,10 @@ describe('live Signal MCP capabilities', () => {
       leaveGroup: async (id: string) => ({ id, left: true }),
       getMessages: async () => ({ items: [] }),
       searchMessages: async () => ({ items: [] }),
-      sendMessage: async () => ({ queued: true }),
+      sendMessage: async (options: Readonly<Record<string, unknown>>) => ({
+        queued: true,
+        ...options,
+      }),
       setMessageReaction: async (options: Readonly<Record<string, unknown>>) =>
         options,
       getActiveCall: async () => ({ call: null }),
@@ -159,9 +162,17 @@ describe('live Signal MCP capabilities', () => {
 
     const sent = await request(4, 'tools/call', {
       name: 'send_message',
-      arguments: { conversationId: 'conversation-1', text: 'hello' },
+      arguments: {
+        conversationId: 'conversation-1',
+        text: 'hello',
+        idempotencyKey: 'send-hello-once',
+      },
     });
     assert.include(sent.result?.content?.[0]?.text ?? '', '"queued":true');
+    assert.include(
+      sent.result?.content?.[0]?.text ?? '',
+      '"idempotencyKey":"send-hello-once"'
+    );
 
     const reacted = await request(5, 'tools/call', {
       name: 'set_message_reaction',
