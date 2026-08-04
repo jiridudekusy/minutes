@@ -2,11 +2,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { strict as assert } from 'node:assert';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import {
+  mkdtemp,
+  mkdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
 import {
+  initializeMinutesRecordingsDirectory,
   migrateLegacyRecordingsDirectory,
   resolveMinutesRecordingsDir,
 } from '../../minutes/recordingsDirectory.node.ts';
@@ -136,5 +144,36 @@ describe('Minutes recordings directory', () => {
 
     assert.deepEqual(first, { migratedFiles: [], conflicts: [] });
     assert.deepEqual(second, { migratedFiles: [], conflicts: [] });
+  });
+
+  it('does not create the Documents directory before the first recording', async () => {
+    const legacyDir = join(rootDir, 'legacy');
+    const targetDir = join(rootDir, 'Documents', 'Minutes');
+
+    const result = await migrateLegacyRecordingsDirectory({
+      legacyDir,
+      targetDir,
+    });
+
+    assert.deepEqual(result, { migratedFiles: [], conflicts: [] });
+    await assert.rejects(stat(targetDir), { code: 'ENOENT' });
+  });
+
+  it('falls back to legacy app storage when Documents migration fails', async () => {
+    const legacyDir = join(rootDir, 'Application Support', 'recordings');
+    const targetDir = join(rootDir, 'Documents', 'Minutes');
+    const migrationError = Object.assign(new Error('permission denied'), {
+      code: 'EACCES',
+    });
+    const result = await initializeMinutesRecordingsDirectory({
+      legacyDir,
+      targetDir,
+      migrate: async () => {
+        throw migrationError;
+      },
+    });
+
+    assert.equal(result.recordingsDir, legacyDir);
+    assert.equal(result.migrationError, migrationError);
   });
 });

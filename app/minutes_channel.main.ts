@@ -7,13 +7,14 @@ import { mkdir, open, stat, writeFile } from 'node:fs/promises';
 import { app, desktopCapturer, ipcMain, shell } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
+import * as Errors from '../ts/types/errors.std.ts';
 import {
   LEGACY_RECORDINGS_DIR_NAME,
   SPEAKER_ACTIVITY_FILE_SUFFIX,
   SUMMARIES_DIR_NAME,
 } from '../ts/minutes/constants.std.ts';
 import {
-  migrateLegacyRecordingsDirectory,
+  initializeMinutesRecordingsDirectory,
   resolveMinutesRecordingsDir,
 } from '../ts/minutes/recordingsDirectory.node.ts';
 import { RECORDING_PCM_SIDECAR_SUFFIX } from '../ts/minutes/whisperSettings.std.ts';
@@ -94,11 +95,20 @@ async function ensureDir(path: string): Promise<void> {
 }
 
 export async function initializeMinutesChannel(): Promise<void> {
-  const recordingsDir = resolveMinutesRecordingsDir(app.getPath('documents'));
-  const migration = await migrateLegacyRecordingsDirectory({
-    legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
-    targetDir: recordingsDir,
-  });
+  const preferredRecordingsDir = resolveMinutesRecordingsDir(
+    app.getPath('documents')
+  );
+  const { recordingsDir, migration, migrationError } =
+    await initializeMinutesRecordingsDirectory({
+      legacyDir: join(app.getPath('userData'), LEGACY_RECORDINGS_DIR_NAME),
+      targetDir: preferredRecordingsDir,
+    });
+  if (migrationError) {
+    log.error(
+      'failed to migrate recordings to Documents; using app storage',
+      Errors.toLogFormat(migrationError)
+    );
+  }
   if (migration.migratedFiles.length > 0) {
     log.info(
       `migrated ${migration.migratedFiles.length} recording artifacts to Documents`
