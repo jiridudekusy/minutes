@@ -18,11 +18,19 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Samostatné nahrávání sdíleného videa hovoru do WebM: ukládá pouze prezentaci přenášenou přes Signal (nikdy kamery ani UI); vlastní sdílení čte přímo z odchozího RingRTC video streamu bez dalšího snímání obrazovky, při absenci sdílení používá černý obraz a zvuk přímo z RingRTC; podporuje pause/resume a automatické uložení při konci hovoru
 - Přepis a volitelné AI shrnutí videonahrávek: WebM používá průběžně ukládaný RingRTC PCM sidecar a stejné přiřazení řečníků, frontu, Whisper a sumarizační pipeline jako MP3
 - MCP zprávy obsahují reakce včetně emoji, autora a času; nový nástroj `set_message_reaction` umí reakci přidat, nahradit i odstranit přes standardní Signal frontu
+- Lokální MCP server s volitelnými nástroji pro nahrávky, přepisy, zprávy, hovory a správu skupin; webhooky mají samostatný opt-in přepínač, filtr událostí a HMAC podpis
+- Nastavení velikosti kontextu a reasoning režimu lokálního LLM; dlouhý vstup se ve skutečném runtime kontextu zkrátí s viditelnou značkou místo tichého odříznutí začátku
+- Přesouvatelné dialogy Minutes včetně ovládání klávesnicí
 
 ### Fixed
 
 - Samostatné MP3 nahrávání nyní čte lokální odchozí i vzdálený zvuk přímo z RingRTC stejně jako WebM; neotevírá vlastní mikrofon ani macOS/Windows loopback a respektuje ztlumení mikrofonu v Signalu
 - MCP odeslání zprávy se při opakované inicializaci rendereru již nenásobí; Minutes registruje automation listenery jednou a souběžně duplicitní request ID provede jedinou mutaci
+- Nahrávky se ukládají do `~/Documents/Minutes` s automatickou migrací; velké pracovní PCM sidecary zůstávají v privátním aplikačním úložišti
+- Aktivní hovor se při pouhém zamknutí obrazovky macOS neukončí
+- Lokální AI shrnutí funguje bez vzdáleného API klíče a respektuje nastavený lokální model
+- Opraveny souběhy RingRTC audia/videa, reset video sekvence, přepnutí zdroje během nahrávání a úklid starých `.partial` souborů
+- MCP odesílání zpráv podporuje idempotency klíč, webhook doručování je serializované a citlivé MCP resources respektují vypnuté nástroje
 
 ## [8.21.0-m1.0.11] - 2026-07-19
 
