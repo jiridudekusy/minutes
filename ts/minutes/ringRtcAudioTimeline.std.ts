@@ -15,6 +15,7 @@ export type RingRtcAudioWorkletMessage =
       startSample: number;
       samples: Float32Array<ArrayBuffer>;
     }>
+  | Readonly<{ type: 'start-degraded' }>
   | Readonly<{ type: 'start-generation'; generation: number }>
   | Readonly<{ type: 'reset'; cursor: number; generation: number }>
   | Readonly<{ type: 'pause' }>
@@ -77,7 +78,26 @@ export class RingRtcAudioTimeline {
   }
 
   get ready(): boolean {
-    return this.#canRender(this.#prerollSamples);
+    return this.#started || this.#canRender(this.#prerollSamples);
+  }
+
+  startWithAvailableSource(): boolean {
+    if (this.#started) {
+      return true;
+    }
+
+    const requiredEnd = this.#cursor + this.#prerollSamples;
+    const hasAvailableSource = (['local', 'remote'] as const).some(source => {
+      const knownThrough = this.#knownThrough[source];
+      return knownThrough !== undefined && knownThrough >= requiredEnd;
+    });
+    if (!hasAvailableSource) {
+      return false;
+    }
+
+    this.#started = true;
+    this.#degraded = true;
+    return true;
   }
 
   enqueue(

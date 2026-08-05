@@ -53,6 +53,13 @@ class MinutesRingRtcAudioSource
             type: 'ready',
           } satisfies RingRtcAudioWorkletEvent);
         }
+      } else if (data.type === 'start-degraded') {
+        if (!this.#readyReported && this.#timeline.startWithAvailableSource()) {
+          this.#readyReported = true;
+          this.port.postMessage({
+            type: 'ready',
+          } satisfies RingRtcAudioWorkletEvent);
+        }
       } else if (data.type === 'start-generation') {
         this.#pcmChunker.reset();
         this.#progressGeneration = data.generation;

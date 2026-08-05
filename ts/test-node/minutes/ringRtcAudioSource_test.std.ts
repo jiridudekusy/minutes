@@ -25,7 +25,7 @@ type AudioSourceProcessor = Readonly<{
 }>;
 
 describe('Minutes RingRTC audio worklet', () => {
-  it('reports exactly every rendered recording sample to the PCM sidecar', async () => {
+  it('supports one-sided startup and reports rendered PCM exactly', async () => {
     let ProcessorClass: (new () => AudioSourceProcessor) | undefined;
     const globals = globalThis as typeof globalThis & {
       AudioWorkletProcessor?: unknown;
@@ -50,6 +50,24 @@ describe('Minutes RingRTC audio worklet', () => {
     try {
       await import('../../minutes/ringRtcAudioSource.std.ts');
       assert.ok(ProcessorClass);
+
+      const degradedProcessor = new ProcessorClass();
+      assert.ok(degradedProcessor.port.onmessage);
+      degradedProcessor.port.onmessage({
+        data: {
+          type: 'packet',
+          source: 'remote',
+          startSample: 0,
+          samples: new Float32Array(4_800).fill(0.5),
+        },
+      });
+      assert.deepEqual(degradedProcessor.port.events, []);
+      degradedProcessor.port.onmessage({ data: { type: 'start-degraded' } });
+      assert.deepEqual(degradedProcessor.port.events, [{ type: 'ready' }]);
+      const degradedOutput = new Float32Array(128);
+      degradedProcessor.process([], [[degradedOutput]]);
+      assert.deepEqual([...degradedOutput], Array(128).fill(0.5));
+
       const processor = new ProcessorClass();
       assert.ok(processor.port.onmessage);
 

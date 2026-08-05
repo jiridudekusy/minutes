@@ -11,7 +11,10 @@ import {
   resolveRingRtcAudioTapApi,
   type RingRtcAudioTapApi,
 } from './ringRtcAudioTapApi.std.ts';
-import type { RingRtcAudioWorkletMessage } from './ringRtcAudioTimeline.std.ts';
+import {
+  RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT,
+  type RingRtcAudioWorkletMessage,
+} from './ringRtcAudioTimeline.std.ts';
 import {
   readRenderedPcmEvent,
   readRingRtcAudioReadyEvent,
@@ -21,6 +24,7 @@ import { configureRingRtcRecordingAudioContext } from './ringRtcAudioContext.std
 const log = createLogger('minutes/ringRtcAudioTrack');
 const POLL_INTERVAL_MS = 10;
 const MAX_SAMPLES_PER_POLL = 4_800;
+const DEGRADED_START_GRACE_MS = 500;
 const STARTUP_TIMEOUT_MS = 2_000;
 
 export class RingRtcAudioTrack {
@@ -36,6 +40,10 @@ export class RingRtcAudioTrack {
   #fatalErrorReported = false;
   #latestWriterCursor = 0;
   #progressGeneration = 0;
+  #localSamplesObserved = 0;
+  #remoteSamplesObserved = 0;
+  #degradedStartAllowed = false;
+  #degradedStartRequested = false;
   readonly #readyPromise: Promise<void>;
   #rejectReady: ((error: Error) => void) | undefined;
   #resolveReady: (() => void) | undefined;
@@ -237,6 +245,9 @@ export class RingRtcAudioTrack {
         packets.local.startSample + packets.local.samples.length,
         packets.remote.startSample + packets.remote.samples.length
       );
+      this.#localSamplesObserved += packets.local.samples.length;
+      this.#remoteSamplesObserved += packets.remote.samples.length;
+      this.#requestDegradedStartIfNeeded();
 
       if (this.#paused) {
         return;
@@ -284,22 +295,57 @@ export class RingRtcAudioTrack {
   }
 
   async #waitUntilReady(): Promise<void> {
+    let degradedStartTimer: ReturnType<typeof setTimeout> | undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     try {
+      degradedStartTimer = setTimeout(() => {
+        this.#degradedStartAllowed = true;
+        this.#requestDegradedStartIfNeeded();
+      }, DEGRADED_START_GRACE_MS);
       await Promise.race([
         this.#readyPromise,
         new Promise<void>((_resolve, reject) => {
           timeout = setTimeout(() => {
             reject(
-              new Error('RingRTC recording audio did not become ready in time')
+              new Error(
+                'RingRTC recording audio did not become ready in time ' +
+                  `(local samples: ${this.#localSamplesObserved}, ` +
+                  `remote samples: ${this.#remoteSamplesObserved})`
+              )
             );
           }, STARTUP_TIMEOUT_MS);
         }),
       ]);
     } finally {
+      if (degradedStartTimer) {
+        clearTimeout(degradedStartTimer);
+      }
       if (timeout) {
         clearTimeout(timeout);
       }
     }
+  }
+
+  #requestDegradedStartIfNeeded(): void {
+    if (
+      !this.#degradedStartAllowed ||
+      this.#degradedStartRequested ||
+      (this.#localSamplesObserved < RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT &&
+        this.#remoteSamplesObserved < RING_RTC_AUDIO_PREROLL_SAMPLE_COUNT)
+    ) {
+      return;
+    }
+
+    this.#degradedStartRequested = true;
+    const availableSources = [
+      this.#localSamplesObserved > 0 ? 'local' : undefined,
+      this.#remoteSamplesObserved > 0 ? 'remote' : undefined,
+    ].filter(Boolean);
+    log.warn(
+      `RingRTC audio startup is using available source(s): ${availableSources.join(', ')}`
+    );
+    this.#worklet.port.postMessage({
+      type: 'start-degraded',
+    } satisfies RingRtcAudioWorkletMessage);
   }
 }

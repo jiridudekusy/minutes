@@ -41,6 +41,28 @@ describe('RingRtcAudioTimeline', () => {
     assert.equal(timeline.cursor, 1088);
   });
 
+  it('can start with one available source and add the other one later', () => {
+    const timeline = new RingRtcAudioTimeline(4);
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+
+    assert.isFalse(timeline.ready);
+    assert.isTrue(timeline.startWithAvailableSource());
+    assert.isTrue(timeline.ready);
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.5));
+
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 4, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+  });
+
+  it('does not force a degraded start without a full preroll', () => {
+    const timeline = new RingRtcAudioTimeline(4);
+    timeline.enqueue('remote', 0, new Float32Array(3).fill(0.5));
+
+    assert.isFalse(timeline.startWithAvailableSource());
+    assert.isFalse(timeline.ready);
+  });
+
   it('aligns local and remote packets by absolute sample offset and fills gaps with silence', () => {
     const timeline = new RingRtcAudioTimeline();
     timeline.enqueue('local', 2, Float32Array.from([0.25, 0.5]));
