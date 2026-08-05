@@ -32,7 +32,7 @@ Signal UX and login are unchanged. Minutes extensions live in `ts/minutes/` with
 Detailní popis: **[images/minutes/prirucka.md](images/minutes/prirucka.md)**  
 Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 
-## Prerequisites (Windows / macOS)
+## Prerequisites (Windows / macOS / Linux)
 
 ### Windows
 
@@ -50,6 +50,13 @@ Změny verzí: **[CHANGELOG.md](CHANGELOG.md)**
 4. **Xcode Command Line Tools** — `xcode-select --install` (potřeba pro native moduly, `iconutil`)
 5. Pouze **Apple Silicon (arm64)** — `whisper-cpp-node` nemá prebuild pro darwin-x64, Intel Mac není podporovaný
 
+### Linux (AppImage, x64)
+
+1. **Node.js** — verze z `.nvmrc`; doporučené je `nvm install`.
+2. **pnpm** — po instalaci Node spusťte `corepack enable`.
+3. **Build tools** — C/C++ toolchain, Python 3 a `make`.
+4. **FUSE 2** — potřebné pro přímé spuštění AppImage; alternativou je `--appimage-extract-and-run`.
+
 ## First-time build
 
 ```powershell
@@ -63,6 +70,13 @@ pnpm run start:minutes
 ```bash
 # macOS
 cd ~/dev/minutes
+pnpm install
+pnpm run generate
+pnpm run start:minutes
+```
+
+```bash
+# Linux (x64)
 pnpm install
 pnpm run generate
 pnpm run start:minutes
@@ -92,7 +106,7 @@ Lokálně před commitem:
 pnpm run check:types
 ```
 
-## Windows / macOS installer (pro někoho jiného)
+## Windows / macOS installer a Linux AppImage
 
 Pro vytvoření **instalátoru**, který můžete poslat kolegovi — NSIS `.exe` na Windows, `.dmg` na macOS (arm64):
 
@@ -104,6 +118,17 @@ pnpm run build:minutes:installer
 Výstup: `release/minutes/Minutes-setup-<verze>.exe` (Windows) / `release/minutes/Minutes-<verze>-mac-arm64.dmg` (macOS).
 
 Na macOS build automaticky detekuje `darwin` a spustí `electron-builder --mac dmg --arm64` (viz `scripts/build-minutes-installer.mjs`). Instalátor je **nepodepsaný** (ad-hoc, bez Apple Developer ID) — po instalaci Gatekeeper zablokuje normální dvojklik: klikněte pravým tlačítkem na `Minutes.app` → **Otevřít**, nebo spusťte `xattr -dr com.apple.quarantine /Applications/Minutes.app`.
+
+### Linux AppImage (x64)
+
+Na x64 Linuxu sestavíte lokální AppImage bez změny verze a changelogu:
+
+```bash
+pnpm install
+pnpm run build:minutes:appimage
+```
+
+Výstup je `release/minutes/Minutes-<verze>-linux-x86_64.AppImage`.
 
 ### Release přes GitHub Actions (doporučeno)
 
@@ -146,12 +171,13 @@ Instalátor je vhodný pro interní/ad-hoc distribuci. Pro veřejné šíření 
 
 ## Output locations
 
-| Type                                  | Windows                                      | macOS                                                            |
-| ------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------- |
-| Call recordings (MP3/WebM + sidecars) | `%USERPROFILE%\\Documents\\Minutes`         | `~/Documents/Minutes`                                            |
-| Chat summaries (MD + JSON metadata)   | `%APPDATA%\Minutes\minutes\summaries\`       | `~/Library/Application Support/Minutes/minutes/summaries/`       |
-| AI settings (encrypted API key)       | `%APPDATA%\Minutes\minutes\ai-settings.json` | `~/Library/Application Support/Minutes/minutes/ai-settings.json` |
-| Whisper models                        | `%APPDATA%\Minutes\minutes\whisper-models\`  | `~/Library/Application Support/Minutes/minutes/whisper-models/`  |
+| Type                                  | Windows                                             | macOS                                                                   |
+| ------------------------------------- | --------------------------------------------------- | ----------------------------------------------------------------------- |
+| Call recordings (MP3/WebM + sidecars) | `%USERPROFILE%\\Documents\\Minutes`                 | `~/Documents/Minutes`                                                   |
+| Chat summaries (MD + JSON metadata)   | `%APPDATA%\Minutes\minutes\summaries\`              | `~/Library/Application Support/Minutes/minutes/summaries/`              |
+| MCP attachments (staging/downloads)   | `%APPDATA%\Minutes\minutes\automation-attachments\` | `~/Library/Application Support/Minutes/minutes/automation-attachments/` |
+| AI settings (encrypted API key)       | `%APPDATA%\Minutes\minutes\ai-settings.json`        | `~/Library/Application Support/Minutes/minutes/ai-settings.json`        |
+| Whisper models                        | `%APPDATA%\Minutes\minutes\whisper-models\`         | `~/Library/Application Support/Minutes/minutes/whisper-models/`         |
 
 Menu: **Minutes → Open Call Recordings / Open Chat Summaries / AI Settings… / Příručka…**
 
@@ -189,6 +215,21 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 1. **Menu → Minutes → Nastavení AI…** — API klíče (OpenAI, Gemini, Claude, Perplexity), model, jazyk; klíč šifrovaně přes OS safeStorage
 2. **Menu → Minutes → Sumarizace hovoru…** — Whisper přepis, rozšíření přepisu, volitelná AI korekce
 3. Data chatu/hovoru zůstávají lokálně; do cloudu jdou jen volání zvoleného AI poskytovatele (pokud je zapnuto)
+
+## MCP attachments
+
+- `get_attachment_directories` vrátí absolutní staging adresář `outgoing` a cílový adresář `downloads`.
+- Pro odeslání nejprve vložte soubor do `outgoing` a zavolejte `send_message` s `attachments: [{ path, contentType? }]`; zpráva může obsahovat text, přílohy nebo obojí.
+- `download_attachment` přijímá `messageId` a `attachmentId` z výsledku `get_messages` / `search_messages` a vrací absolutní cestu uloženého souboru.
+- Cesty mimo staging, symbolické odkazy, nebezpečné typy a soubory nad aktuálním limitem Signalu se odmítnou. Existující stažený soubor se nepřepisuje.
+- Pro opakování odeslání používejte stejný `idempotencyKey`; identita příloh je součástí kontroly proti duplicitám.
+
+## MCP zprávy a skupiny
+
+- `get_messages` vrací zprávy implicitně od nejnovějších; poslední zpráva v konverzaci je tedy jeden dotaz s `limit: 1`. Podporuje textový filtr `search`, přesného autora `senderContactId`, směr `incoming` / `outgoing`, časové meze `from` / `to` v Unix ms a pořadí `newest` / `oldest`.
+- Pro další stránku se beze změny předává serverem vrácený `nextCursor`; klient kurzor nikdy nesestavuje. Vyhledávání při pokračování načítá skutečnou historii a nekončí na původním interním okně 500 zpráv.
+- Výsledek zprávy obsahuje `authorId` a `authorName`, takže lze v grupě přesně najít odpověď konkrétního člena. `get_message` načte zprávu podle ID a volitelně až 100 zpráv před ní a po ní.
+- `terminate_group` je trvalé ukončení Group V2 pro všechny členy a vyžaduje, aby byl lokální účet administrátor. Je záměrně oddělené od `leave_group`, které odebere jen lokální účet.
 
 ## Architecture
 

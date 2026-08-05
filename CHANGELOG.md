@@ -15,9 +15,24 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 ### Added
 
+- Lokální Linux x64 AppImage build přes `pnpm run build:minutes:appimage` s Minutes brandingem.
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.13] - 2026-08-05
+
+### Added
+
+- MCP vyhledávání zpráv vrací nejnovější výsledky jako první, podporuje autora, směr, časový rozsah, textový filtr, hluboké stránkování a načtení jedné zprávy s okolním kontextem; výsledky obsahují identitu autora.
+- MCP nástroj `terminate_group` umí jako administrátor trvale ukončit Signal Group V2 pro všechny členy, odděleně od pouhého `leave_group`.
+
+## [8.21.0-m1.0.12] - 2026-08-04
+
+### Added
+
 - Samostatné nahrávání sdíleného videa hovoru do WebM: ukládá pouze prezentaci přenášenou přes Signal (nikdy kamery ani UI); vlastní sdílení čte přímo z odchozího RingRTC video streamu bez dalšího snímání obrazovky, při absenci sdílení používá černý obraz a zvuk přímo z RingRTC; podporuje pause/resume a automatické uložení při konci hovoru
 - Přepis a volitelné AI shrnutí videonahrávek: WebM používá průběžně ukládaný RingRTC PCM sidecar a stejné přiřazení řečníků, frontu, Whisper a sumarizační pipeline jako MP3
 - MCP zprávy obsahují reakce včetně emoji, autora a času; nový nástroj `set_message_reaction` umí reakci přidat, nahradit i odstranit přes standardní Signal frontu
+- MCP umí přes `download_attachment` bezpečně stáhnout přílohu zprávy a `send_message` umí odeslat text, přílohy nebo obojí přes standardní Signal attachment pipeline
 - Lokální MCP server s volitelnými nástroji pro nahrávky, přepisy, zprávy, hovory a správu skupin; webhooky mají samostatný opt-in přepínač, filtr událostí a HMAC podpis
 - Nastavení velikosti kontextu a reasoning režimu lokálního LLM; dlouhý vstup se ve skutečném runtime kontextu zkrátí s viditelnou značkou místo tichého odříznutí začátku
 - Přesouvatelné dialogy Minutes včetně ovládání klávesnicí
