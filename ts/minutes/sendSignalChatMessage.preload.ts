@@ -4,6 +4,7 @@
 import { createLogger } from '../logging/log.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import * as Errors from '../types/errors.std.ts';
+import type { AttachmentType } from '../types/Attachment.std.ts';
 import { formatMarkdownForSignalMessage } from './signalChatText.std.ts';
 
 const log = createLogger('minutes/sendSignalChat');
@@ -12,8 +13,9 @@ const MAX_MESSAGE_BODY_LENGTH = 64 * 1024;
 
 export async function sendSignalChatMessage(
   conversationId: string,
-  text: string,
-  logLabel: string
+  text: string | undefined,
+  logLabel: string,
+  attachments: Array<AttachmentType> = []
 ): Promise<boolean> {
   const conversation = window.ConversationController.get(conversationId);
   if (!conversation) {
@@ -24,13 +26,19 @@ export async function sendSignalChatMessage(
     return false;
   }
 
-  const formatted = formatMarkdownForSignalMessage(text);
-  if (!formatted.body) {
+  const formatted =
+    text == null
+      ? { body: undefined, bodyRanges: undefined }
+      : formatMarkdownForSignalMessage(text);
+  if (!formatted.body && attachments.length === 0) {
     window.reduxActions.toast.showToast({ toastType: ToastType.Error });
     return false;
   }
 
-  if (formatted.body.length > MAX_MESSAGE_BODY_LENGTH) {
+  if (
+    formatted.body != null &&
+    formatted.body.length > MAX_MESSAGE_BODY_LENGTH
+  ) {
     window.reduxActions.toast.showToast({
       toastType: ToastType.MessageBodyTooLong,
     });
@@ -41,7 +49,7 @@ export async function sendSignalChatMessage(
     await conversation.enqueueMessageForSend(
       {
         body: formatted.body,
-        attachments: [],
+        attachments,
         bodyRanges: formatted.bodyRanges,
       },
       {

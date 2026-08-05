@@ -53,6 +53,8 @@ describe('MCP tool registration controls', () => {
       {} as RendererAutomationService,
       selected(
         'list_contacts',
+        'get_attachment_directories',
+        'download_attachment',
         'find_groups_by_member',
         'remove_group_members',
         'send_message'
@@ -61,6 +63,8 @@ describe('MCP tool registration controls', () => {
 
     assert.deepEqual(registry.tools, [
       'list_contacts',
+      'get_attachment_directories',
+      'download_attachment',
       'send_message',
       'find_groups_by_member',
       'remove_group_members',

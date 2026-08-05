@@ -116,6 +116,7 @@ export class AutomationRendererHandler {
     const signature = JSON.stringify({
       conversationId: Reflect.get(request.params, 'conversationId'),
       text: Reflect.get(request.params, 'text'),
+      attachments: Reflect.get(request.params, 'attachments'),
     });
     const existing = idempotentSendRequests.get(idempotencyKey);
     if (existing != null) {

@@ -25,9 +25,16 @@ function createCapabilities(
     setGroupMemberRoles: async () => ({ id: 'group-1' }),
     setGroupPermissions: async () => ({ id: 'group-1' }),
     setGroupDisappearingMessages: async () => ({ id: 'group-1' }),
+    terminateGroup: async () => ({ id: 'group-1' }),
     leaveGroup: async () => ({ id: 'group-1' }),
     getMessages: async () => ({ items: [] }),
+    getMessage: async () => ({ message: { id: 'message-1' } }),
     searchMessages: async () => ({ items: [] }),
+    getAttachmentDirectories: async () => ({
+      outgoing: '/safe/outgoing',
+      downloads: '/safe/downloads',
+    }),
+    downloadAttachment: async () => ({ path: '/safe/downloads/file' }),
     sendMessage: async () => ({ messageId: 'message-1' }),
     setMessageReaction: async () => ({ changed: true }),
     getActiveCall: async () => ({ call: null }),
@@ -175,6 +182,46 @@ describe('AutomationRendererHandler', () => {
         conversationId: 'conversation-1',
         text: 'Different message',
         idempotencyKey: 'reused-key',
+      },
+    });
+
+    assert.deepInclude(conflict, { id: 'second-send', ok: false });
+    if (!conflict.ok) {
+      assert.strictEqual(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
+    }
+  });
+
+  it('rejects reuse of an idempotency key for different attachments', async () => {
+    const handler = new AutomationRendererHandler(createCapabilities());
+    await handler.handle({
+      id: 'first-send',
+      method: 'sendMessage',
+      params: {
+        conversationId: 'conversation-1',
+        text: 'Report',
+        attachments: [
+          {
+            path: '/safe/outgoing/report-a.pdf',
+            contentType: 'application/pdf',
+          },
+        ],
+        idempotencyKey: 'reused-attachment-key',
+      },
+    });
+
+    const conflict = await handler.handle({
+      id: 'second-send',
+      method: 'sendMessage',
+      params: {
+        conversationId: 'conversation-1',
+        text: 'Report',
+        attachments: [
+          {
+            path: '/safe/outgoing/report-b.pdf',
+            contentType: 'application/pdf',
+          },
+        ],
+        idempotencyKey: 'reused-attachment-key',
       },
     });
 

@@ -462,6 +462,51 @@ CREATE INDEX callsHistory_order ON callsHistory (
 </details>
 
 <details>
+<summary>Table: chatFolders</summary>
+
+```sql
+CREATE TABLE chatFolders (
+  id TEXT NOT NULL PRIMARY KEY,
+  folderType INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  position INTEGER NOT NULL,
+  showOnlyUnread INTEGER NOT NULL,
+  showMutedChats INTEGER NOT NULL,
+  includeAllIndividualChats INTEGER NOT NULL,
+  includeAllGroupChats INTEGER NOT NULL,
+  includedConversationIds TEXT NOT NULL,
+  excludedConversationIds TEXT NOT NULL,
+  deletedAtTimestampMs INTEGER NOT NULL,
+  storageID TEXT,
+  storageVersion INTEGER,
+  storageUnknownFields BLOB,
+  storageNeedsSync INTEGER NOT NULL
+) STRICT
+```
+
+<details>
+<summary>Index: chatFolders → chatFolders_by_position</summary>
+
+```sql
+CREATE INDEX chatFolders_by_position on chatFolders (position)
+```
+
+</details>
+
+<details>
+<summary>Index: chatFolders → sqlite_autoindex_chatFolders_1</summary>
+
+```text
+(404: SQL Not Found)
+```
+
+</details>
+
+---
+
+</details>
+
+<details>
 <summary>Table: conversations</summary>
 
 ```sql
@@ -706,51 +751,6 @@ CREATE TABLE groupSendMemberEndorsement (
 
 <details>
 <summary>Index: groupSendMemberEndorsement → sqlite_autoindex_groupSendMemberEndorsement_1</summary>
-
-```text
-(404: SQL Not Found)
-```
-
-</details>
-
----
-
-</details>
-
-<details>
-<summary>Table: chatFolders</summary>
-
-```sql
-CREATE TABLE chatFolders (
-  id TEXT NOT NULL PRIMARY KEY,
-  folderType INTEGER NOT NULL,
-  name TEXT NOT NULL,
-  position INTEGER NOT NULL,
-  showOnlyUnread INTEGER NOT NULL,
-  showMutedChats INTEGER NOT NULL,
-  includeAllIndividualChats INTEGER NOT NULL,
-  includeAllGroupChats INTEGER NOT NULL,
-  includedConversationIds TEXT NOT NULL,
-  excludedConversationIds TEXT NOT NULL,
-  deletedAtTimestampMs INTEGER NOT NULL,
-  storageID TEXT,
-  storageVersion INTEGER,
-  storageUnknownFields BLOB,
-  storageNeedsSync INTEGER NOT NULL
-) STRICT
-```
-
-<details>
-<summary>Index: chatFolders → chatFolders_by_position</summary>
-
-```sql
-CREATE INDEX chatFolders_by_position on chatFolders (position)
-```
-
-</details>
-
-<details>
-<summary>Index: chatFolders → sqlite_autoindex_chatFolders_1</summary>
 
 ```text
 (404: SQL Not Found)
@@ -1733,6 +1733,15 @@ CREATE INDEX messages_receipt ON messages (sent_at)
 </details>
 
 <details>
+<summary>Index: messages → messages_schemaVersion</summary>
+
+```sql
+CREATE INDEX messages_schemaVersion ON messages (schemaVersion)
+```
+
+</details>
+
+<details>
 <summary>Index: messages → messages_searchOrder</summary>
 
 ```sql
@@ -1740,15 +1749,6 @@ CREATE INDEX messages_searchOrder on messages (
   received_at,
   sent_at
 )
-```
-
-</details>
-
-<details>
-<summary>Index: messages → messages_schemaVersion</summary>
-
-```sql
-CREATE INDEX messages_schemaVersion ON messages (schemaVersion)
 ```
 
 </details>

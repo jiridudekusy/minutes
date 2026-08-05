@@ -3,7 +3,7 @@
 
 import { ipcRenderer } from 'electron';
 import { mkdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 import type { MessageType } from '../../sql/Interface.std.ts';
 import { DataReader } from '../../sql/Client.preload.ts';
@@ -25,6 +25,16 @@ import { canEditGroupInfo } from '../../util/canEditGroupInfo.preload.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import { getMessageById } from '../../messages/getMessageById.preload.ts';
 import { enqueueReactionForSend } from '../../reactions/enqueueReactionForSend.preload.ts';
+import type { AttachmentType } from '../../types/Attachment.std.ts';
+import { AttachmentDownloadUrgency } from '../../types/AttachmentDownload.std.ts';
+import { getAttachmentSizeLimit } from '../../types/AttachmentSize.std.ts';
+import { stringToMIMEType } from '../../types/MIME.std.ts';
+import * as RemoteConfig from '../../RemoteConfig.dom.ts';
+import * as Attachment from '../../util/Attachment.std.ts';
+import { isFileDangerous } from '../../util/isFileDangerous.std.ts';
+import { processAttachment } from '../../util/processAttachment.preload.ts';
+import { queueAttachmentDownloadsAndMaybeSaveMessage } from '../../util/queueAttachmentDownloads.preload.ts';
+import { readAttachmentData } from '../../util/migrations.preload.ts';
 import { callRecordingService } from '../callRecordingService.preload.ts';
 import { sendSignalChatMessage } from '../sendSignalChatMessage.preload.ts';
 import { videoRecordingService } from '../videoRecordingService.preload.ts';
@@ -37,7 +47,10 @@ import type {
   AutomationRendererRequest,
 } from './automationContracts.std.ts';
 import { AutomationRendererHandler } from './automationRendererHandler.std.ts';
-import { paginateAutomationItems } from './pagination.std.ts';
+import {
+  decodeAutomationCursor,
+  paginateAutomationItems,
+} from './pagination.std.ts';
 import { emitRendererAutomationEvent } from './automationEvents.preload.ts';
 import {
   RECORDING_STATE_CHANGED,
@@ -58,13 +71,28 @@ import {
   validateGroupRoleChanges,
 } from './groupAutomation.std.ts';
 import { planMessageReactionChange } from './messageReactionAutomation.std.ts';
-import { toAutomationMessage } from './automationMessage.std.ts';
+import {
+  getAutomationAttachmentId,
+  selectAutomationMessageContext,
+  toAutomationMessage,
+} from './automationMessage.std.ts';
 import { readConfinedGroupAvatar } from './groupAvatarFile.node.ts';
+import {
+  inferAttachmentContentType,
+  readConfinedAttachmentFile,
+  writeConfinedAttachmentFile,
+} from './attachmentFiles.node.ts';
 
 const MAX_QUERY_ITEMS = 500;
 const MAX_GROUP_AVATAR_BYTES = 10 * 1024 * 1024;
 const GROUP_AVATAR_DIRECTORY_NAME = 'automation-group-avatars';
+const AUTOMATION_ATTACHMENTS_DIRECTORY_NAME = 'automation-attachments';
 let automationRendererInitialized = false;
+
+type AutomationAttachmentSpec = Readonly<{
+  path: string;
+  contentType?: string;
+}>;
 
 type ConversationModel = ReturnType<
   typeof window.ConversationController.getAll
@@ -133,6 +161,217 @@ function optionalLimit(
 ): number | undefined {
   const value = params.limit;
   return typeof value === 'number' ? value : undefined;
+}
+
+function optionalTimestamp(
+  params: Readonly<Record<string, unknown>>,
+  name: string
+): number | undefined {
+  const value = params[name];
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Number.isSafeInteger(value) || Number(value) < 0) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `${name} must be a non-negative Unix millisecond timestamp`
+    );
+  }
+  return Number(value);
+}
+
+function messageQueryOptions(params: Readonly<Record<string, unknown>>): {
+  search?: string;
+  senderContactId?: string;
+  direction?: 'incoming' | 'outgoing';
+  from?: number;
+  to?: number;
+  order: 'oldest' | 'newest';
+} {
+  const search = optionalString(params, 'search');
+  const senderContactId = optionalString(params, 'senderContactId');
+  if (senderContactId != null) {
+    requireExactContact(senderContactId);
+  }
+  const direction = params.direction;
+  if (
+    direction !== undefined &&
+    direction !== 'incoming' &&
+    direction !== 'outgoing'
+  ) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      'direction must be incoming or outgoing'
+    );
+  }
+  const from = optionalTimestamp(params, 'from');
+  const to = optionalTimestamp(params, 'to');
+  if (from != null && to != null && from > to) {
+    return automationError('INVALID_ARGUMENT', 'from must not be after to');
+  }
+  const order = params.order ?? 'newest';
+  if (order !== 'oldest' && order !== 'newest') {
+    return automationError(
+      'INVALID_ARGUMENT',
+      'order must be oldest or newest'
+    );
+  }
+  return { search, senderContactId, direction, from, to, order };
+}
+
+function matchesMessageQuery(
+  message: AutomationMessage,
+  options: ReturnType<typeof messageQueryOptions>
+): boolean {
+  if (options.direction != null && message.source !== options.direction) {
+    return false;
+  }
+  if (
+    options.senderContactId != null &&
+    message.authorId !== options.senderContactId
+  ) {
+    return false;
+  }
+  if (options.from != null && message.sentAt < options.from) {
+    return false;
+  }
+  if (options.to != null && message.sentAt > options.to) {
+    return false;
+  }
+  if (
+    options.search != null &&
+    message.text
+      ?.toLocaleLowerCase()
+      .includes(options.search.toLocaleLowerCase()) !== true
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function normalizedMessagePageSize(
+  params: Readonly<Record<string, unknown>>
+): number {
+  const requested = optionalLimit(params);
+  return requested == null || !Number.isSafeInteger(requested)
+    ? 100
+    : Math.max(1, Math.min(100, requested));
+}
+
+async function loadFilteredConversationMessages(
+  conversationId: string,
+  params: Readonly<Record<string, unknown>>,
+  query: ReturnType<typeof messageQueryOptions>
+): Promise<Array<AutomationMessage>> {
+  const { offset } = decodeAutomationCursor(optionalString(params, 'cursor'));
+  const requiredMatches = offset + normalizedMessagePageSize(params) + 1;
+  let fetchLimit = Math.max(MAX_QUERY_ITEMS, requiredMatches);
+
+  for (;;) {
+    // Each attempt expands the same ordered database window.
+    // oxlint-disable-next-line no-await-in-loop
+    const messages = await (query.order === 'newest'
+      ? DataReader.getOlderMessagesByConversation({
+          conversationId,
+          includeStoryReplies: false,
+          storyId: undefined,
+          limit: fetchLimit,
+        })
+      : DataReader.getNewerMessagesByConversation({
+          conversationId,
+          includeStoryReplies: false,
+          storyId: undefined,
+          limit: fetchLimit,
+        }));
+    const filtered = messages
+      .map(mapAutomationMessage)
+      .filter(message => matchesMessageQuery(message, query));
+    if (filtered.length >= requiredMatches || messages.length < fetchLimit) {
+      return filtered;
+    }
+    const nextLimit = Math.min(Number.MAX_SAFE_INTEGER, fetchLimit * 2);
+    if (nextLimit === fetchLimit) {
+      return filtered;
+    }
+    fetchLimit = nextLimit;
+  }
+}
+
+async function loadFilteredSearchMessages(
+  queryText: string,
+  conversationId: string | undefined,
+  params: Readonly<Record<string, unknown>>,
+  filters: ReturnType<typeof messageQueryOptions>
+): Promise<Array<AutomationMessage>> {
+  const { offset } = decodeAutomationCursor(optionalString(params, 'cursor'));
+  const requiredMatches = offset + normalizedMessagePageSize(params) + 1;
+  let fetchLimit = Math.max(MAX_QUERY_ITEMS, requiredMatches);
+
+  for (;;) {
+    // Each attempt expands the same ordered FTS result window.
+    // oxlint-disable-next-line no-await-in-loop
+    const messages = await DataReader.searchMessages({
+      query: queryText,
+      conversationId,
+      options: { limit: fetchLimit },
+    });
+    const filtered = messages
+      .map(mapAutomationMessage)
+      .filter(message => matchesMessageQuery(message, filters));
+    if (
+      (filters.order === 'newest' && filtered.length >= requiredMatches) ||
+      messages.length < fetchLimit
+    ) {
+      return filtered.toReversed();
+    }
+    const nextLimit = Math.min(Number.MAX_SAFE_INTEGER, fetchLimit * 2);
+    if (nextLimit === fetchLimit) {
+      return filtered.toReversed();
+    }
+    fetchLimit = nextLimit;
+  }
+}
+
+function optionalAttachmentSpecs(
+  params: Readonly<Record<string, unknown>>
+): Array<AutomationAttachmentSpec> {
+  const value = params.attachments;
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value) || value.length === 0 || value.length > 32) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      'attachments must contain between 1 and 32 items'
+    );
+  }
+  return value.map(item => {
+    if (item == null || typeof item !== 'object' || Array.isArray(item)) {
+      return automationError('INVALID_ARGUMENT', 'Invalid attachment item');
+    }
+    const path = Reflect.get(item, 'path');
+    const contentType = Reflect.get(item, 'contentType');
+    if (typeof path !== 'string' || path.trim().length === 0) {
+      return automationError(
+        'INVALID_ARGUMENT',
+        'Attachment path must be a non-empty string'
+      );
+    }
+    if (
+      contentType !== undefined &&
+      (typeof contentType !== 'string' || contentType.trim().length === 0)
+    ) {
+      return automationError(
+        'INVALID_ARGUMENT',
+        'Attachment contentType must be a non-empty string'
+      );
+    }
+    return {
+      path: path.trim(),
+      contentType:
+        typeof contentType === 'string' ? contentType.trim() : undefined,
+    };
+  });
 }
 
 function requiredStringArray(
@@ -361,13 +600,15 @@ async function readValidatedGroupAvatar(
   );
   await mkdir(avatarDirectory, { recursive: true, mode: 0o700 });
 
-  let buffer: Buffer;
+  let bytes: Uint8Array<ArrayBuffer>;
   try {
-    buffer = await readConfinedGroupAvatar(
+    const buffer = await readConfinedGroupAvatar(
       path,
       avatarDirectory,
       MAX_GROUP_AVATAR_BYTES
     );
+    bytes = new Uint8Array(buffer.byteLength);
+    bytes.set(buffer);
   } catch (error) {
     if (
       error != null &&
@@ -382,8 +623,6 @@ async function readValidatedGroupAvatar(
       error instanceof Error ? error.message : String(error)
     );
   }
-  const bytes = new Uint8Array(buffer.byteLength);
-  bytes.set(buffer);
   if (detectGroupAvatarFormat(bytes) == null) {
     return automationError(
       'INVALID_ARGUMENT',
@@ -391,6 +630,178 @@ async function readValidatedGroupAvatar(
     );
   }
   return bytes;
+}
+
+function getAutomationAttachmentDirectories(): {
+  outgoing: string;
+  downloads: string;
+} {
+  const userDataPath: unknown = ipcRenderer.sendSync('get-user-data-path');
+  if (typeof userDataPath !== 'string' || userDataPath.length === 0) {
+    return automationError('INTERNAL', 'Signal user data path is unavailable');
+  }
+  const root = join(
+    userDataPath,
+    'minutes',
+    AUTOMATION_ATTACHMENTS_DIRECTORY_NAME
+  );
+  return {
+    outgoing: join(root, 'outgoing'),
+    downloads: join(root, 'downloads'),
+  };
+}
+
+async function ensureAutomationAttachmentDirectories(): Promise<{
+  outgoing: string;
+  downloads: string;
+}> {
+  const directories = getAutomationAttachmentDirectories();
+  await Promise.all([
+    mkdir(directories.outgoing, { recursive: true, mode: 0o700 }),
+    mkdir(directories.downloads, { recursive: true, mode: 0o700 }),
+  ]);
+  return directories;
+}
+
+async function prepareOutgoingAttachments(
+  specs: ReadonlyArray<AutomationAttachmentSpec>,
+  outgoingDirectory: string
+): Promise<Array<AttachmentType>> {
+  const attachments = new Array<AttachmentType>();
+  for (const spec of specs) {
+    const fileName = basename(spec.path);
+    if (isFileDangerous(fileName)) {
+      return automationError(
+        'INVALID_ARGUMENT',
+        `Dangerous attachment file type is not allowed: ${fileName}`
+      );
+    }
+    const contentType = stringToMIMEType(
+      inferAttachmentContentType(spec.path, spec.contentType)
+    );
+    const sizeLimit = getAttachmentSizeLimit({
+      contentType,
+      getRemoteConfigValue: RemoteConfig.getValue,
+    });
+    let data: Buffer<ArrayBuffer>;
+    try {
+      // Reading is deliberately confined to the MCP staging directory.
+      // oxlint-disable-next-line no-await-in-loop
+      data = await readConfinedAttachmentFile(
+        spec.path,
+        outgoingDirectory,
+        sizeLimit
+      );
+    } catch (error) {
+      if (
+        error != null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === 'ENOENT'
+      ) {
+        return automationError(
+          'NOT_FOUND',
+          `Attachment file not found: ${spec.path}`
+        );
+      }
+      return automationError(
+        'INVALID_ARGUMENT',
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+    const bytes = new Uint8Array(data.byteLength);
+    bytes.set(data);
+    const file = new File([bytes], fileName, { type: contentType });
+    // Use Signal's regular attachment processing so media metadata,
+    // thumbnails, transcoding, and outgoing size checks stay identical.
+    // oxlint-disable-next-line no-await-in-loop
+    const attachment = await processAttachment(file, {
+      generateScreenshot: true,
+      flags: null,
+    });
+    if (attachment == null) {
+      return automationError(
+        'INVALID_ARGUMENT',
+        `Attachment could not be processed: ${fileName}`
+      );
+    }
+    attachments.push(attachment);
+  }
+  return attachments;
+}
+
+async function downloadAutomationAttachment(
+  messageId: string,
+  attachmentId: string,
+  downloadsDirectory: string
+): Promise<{
+  path: string;
+  fileName: string;
+  contentType: string;
+  size: number;
+}> {
+  const message = await getMessageById(messageId);
+  if (message == null) {
+    return automationError('NOT_FOUND', 'Message not found');
+  }
+  let attachments = message.get('attachments') ?? [];
+  const index = attachments.findIndex(
+    (attachment, attachmentIndex) =>
+      getAutomationAttachmentId(messageId, attachment, attachmentIndex) ===
+      attachmentId
+  );
+  if (index < 0) {
+    return automationError(
+      'NOT_FOUND',
+      'Attachment does not belong to the specified message'
+    );
+  }
+
+  let attachment = attachments[index];
+  if (attachment == null) {
+    return automationError('NOT_FOUND', 'Attachment not found');
+  }
+  if (!Attachment.isDownloaded(attachment)) {
+    await queueAttachmentDownloadsAndMaybeSaveMessage(message, {
+      isManualDownload: true,
+      urgency: AttachmentDownloadUrgency.IMMEDIATE,
+      signaturesToQueue: new Set([
+        Attachment.getUndownloadedAttachmentSignature(attachment),
+      ]),
+    });
+    attachments = message.get('attachments') ?? [];
+    attachment = attachments[index];
+  }
+  if (attachment == null || !Attachment.isDownloaded(attachment)) {
+    return automationError(
+      'INVALID_STATE',
+      'Attachment could not be downloaded from Signal'
+    );
+  }
+
+  const fileName = Attachment.getSuggestedFilename({
+    attachment,
+    timestamp: message.get('sent_at'),
+    index: index + 1,
+  });
+  if (isFileDangerous(fileName)) {
+    return automationError(
+      'INVALID_ARGUMENT',
+      `Dangerous attachment file type is not allowed: ${fileName}`
+    );
+  }
+  const data = await readAttachmentData(attachment);
+  const path = await writeConfinedAttachmentFile({
+    data,
+    directory: downloadsDirectory,
+    fileName,
+  });
+  return {
+    path,
+    fileName: basename(path),
+    contentType: attachment.contentType,
+    size: data.byteLength,
+  };
 }
 
 function requirePermission(allowed: boolean, message: string): void {
@@ -426,12 +837,27 @@ function requestedMemberRoles(
 }
 
 function mapAutomationMessage(message: MessageType): AutomationMessage {
-  return toAutomationMessage(message, authorId => {
-    const title = window.ConversationController.get(authorId)
-      ?.getTitle()
-      .trim();
-    return title || null;
-  });
+  return toAutomationMessage(
+    message,
+    authorId => {
+      const title = window.ConversationController.get(authorId)
+        ?.getTitle()
+        .trim();
+      return title || null;
+    },
+    (sourceServiceId, source) => {
+      let author: ConversationModel | undefined;
+      if (source === 'outgoing') {
+        author = window.ConversationController.getOurConversationOrThrow();
+      } else if (sourceServiceId != null) {
+        author = window.ConversationController.get(sourceServiceId);
+      }
+      if (author == null) {
+        return null;
+      }
+      return { id: author.id, name: author.getTitle().trim() || author.id };
+    }
+  );
 }
 
 function activeCallResult(): {
@@ -930,6 +1356,17 @@ export function initializeAutomationRenderer(): void {
       );
       return mapAutomationGroup(group);
     },
+    terminateGroup: async params => {
+      const group = requireGroupV2(requiredString(params, 'groupId'), {
+        forMutation: true,
+      });
+      requirePermission(
+        areWeAdmin(group.attributes),
+        'Only a group administrator can terminate the group'
+      );
+      await group.terminateGroup();
+      return mapAutomationGroup(group);
+    },
     leaveGroup: async params => {
       const group = requireGroupV2(requiredString(params, 'groupId'), {
         forMutation: true,
@@ -944,38 +1381,106 @@ export function initializeAutomationRenderer(): void {
         Object.assign(error, { code: 'NOT_FOUND' });
         throw error;
       }
-      const messages = await DataReader.getOlderMessagesByConversation({
+      const query = messageQueryOptions(params);
+      const messages = await loadFilteredConversationMessages(
         conversationId,
-        includeStoryReplies: false,
-        storyId: undefined,
-        limit: MAX_QUERY_ITEMS,
-      });
-      return paginateAutomationItems(messages.map(mapAutomationMessage), {
+        params,
+        query
+      );
+      return paginateAutomationItems(messages, {
         cursor: optionalString(params, 'cursor'),
         limit: optionalLimit(params),
         maxLimit: 100,
+        order: query.order,
       });
+    },
+    getMessage: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const before = optionalNonNegativeInteger(params, 'before') ?? 0;
+      const after = optionalNonNegativeInteger(params, 'after') ?? 0;
+      if (before > 100 || after > 100) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'before and after must not exceed 100'
+        );
+      }
+      const message = await DataReader.getMessageById(messageId);
+      if (message == null) {
+        return automationError('NOT_FOUND', 'Message not found');
+      }
+      if (before === 0 && after === 0) {
+        return {
+          message: mapAutomationMessage(message),
+          before: [],
+          after: [],
+        };
+      }
+      const context = await DataReader.getConversationRangeCenteredOnMessage({
+        conversationId: message.conversationId,
+        includeStoryReplies: false,
+        limit: Math.max(before, after),
+        messageId: message.id,
+        receivedAt: message.received_at,
+        sentAt: message.sent_at,
+        storyId: undefined,
+      });
+      const mappedContext = selectAutomationMessageContext(
+        context.older.map(mapAutomationMessage),
+        context.newer.map(mapAutomationMessage),
+        before,
+        after
+      );
+      return {
+        message: mapAutomationMessage(message),
+        ...mappedContext,
+      };
     },
     searchMessages: async params => {
       const query = requiredString(params, 'query');
-      const messages = await DataReader.searchMessages({
+      const filters = messageQueryOptions(params);
+      const messages = await loadFilteredSearchMessages(
         query,
-        conversationId: optionalString(params, 'conversationId'),
-        options: { limit: MAX_QUERY_ITEMS },
-      });
-      return paginateAutomationItems(messages.map(mapAutomationMessage), {
+        optionalString(params, 'conversationId'),
+        params,
+        filters
+      );
+      return paginateAutomationItems(messages, {
         cursor: optionalString(params, 'cursor'),
         limit: optionalLimit(params),
         maxLimit: 100,
+        order: filters.order,
       });
+    },
+    getAttachmentDirectories: async () => {
+      return ensureAutomationAttachmentDirectories();
+    },
+    downloadAttachment: async params => {
+      const messageId = requiredString(params, 'messageId');
+      const attachmentId = requiredString(params, 'attachmentId');
+      const { downloads } = await ensureAutomationAttachmentDirectories();
+      return downloadAutomationAttachment(messageId, attachmentId, downloads);
     },
     sendMessage: async params => {
       const conversationId = requiredString(params, 'conversationId');
-      const text = requiredString(params, 'text');
+      const text =
+        params.text === undefined ? undefined : requiredString(params, 'text');
+      const attachmentSpecs = optionalAttachmentSpecs(params);
+      if (text == null && attachmentSpecs.length === 0) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'At least one of text or attachments is required'
+        );
+      }
+      const { outgoing } = await ensureAutomationAttachmentDirectories();
+      const attachments = await prepareOutgoingAttachments(
+        attachmentSpecs,
+        outgoing
+      );
       const queued = await sendSignalChatMessage(
         conversationId,
         text,
-        'automation/sendMessage'
+        'automation/sendMessage',
+        attachments
       );
       if (!queued) {
         const error = new Error('Message could not be queued');
@@ -989,11 +1494,18 @@ export function initializeAutomationRenderer(): void {
         data: {
           messageId: `automation:${globalThis.crypto.randomUUID()}`,
           conversationId,
-          text,
-          attachments: [],
+          text: text ?? null,
+          attachments: attachments.map((attachment, index) => ({
+            id:
+              attachment.clientUuid ??
+              `automation:${globalThis.crypto.randomUUID()}:${index}`,
+            contentType: attachment.contentType,
+            fileName: attachment.fileName,
+            size: attachment.size,
+          })),
         },
       });
-      return { queued: true };
+      return { queued: true, attachmentCount: attachments.length };
     },
     setMessageReaction: async params => {
       const messageId = requiredString(params, 'messageId');

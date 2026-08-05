@@ -20,6 +20,29 @@ const memberIdsSchema = z.array(z.string().min(1)).min(1).max(1_000);
 const groupRoleSchema = z.enum(['admin', 'member']);
 const groupAccessSchema = z.enum(['members', 'admins']);
 const inviteLinkSchema = z.enum(['disabled', 'open', 'admin_approval']);
+const messageDirectionSchema = z.enum(['incoming', 'outgoing']);
+const messageOrderSchema = z.enum(['newest', 'oldest']);
+const messageFilterSchema = {
+  senderContactId: z
+    .string()
+    .min(1)
+    .describe('Exact contact ID returned by list_contacts')
+    .optional(),
+  direction: messageDirectionSchema.optional(),
+  from: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe('Inclusive sent-at timestamp in Unix milliseconds')
+    .optional(),
+  to: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe('Inclusive sent-at timestamp in Unix milliseconds')
+    .optional(),
+  order: messageOrderSchema.default('newest'),
+};
 
 function jsonResult(value: unknown) {
   return {
@@ -76,14 +99,33 @@ export function registerLiveMcpCapabilities(
     server.registerTool(
       'get_messages',
       {
-        description: 'Returns messages from one Signal conversation.',
+        description:
+          'Finds messages in one Signal conversation. Results default to newest first, so the latest message needs only limit=1. Reuse the opaque nextCursor exactly as returned; never construct cursors in the client.',
         inputSchema: {
           conversationId: z.string().min(1),
+          search: z.string().min(1).optional(),
+          ...messageFilterSchema,
           ...paginationSchema,
         },
         annotations: { readOnlyHint: true, openWorldHint: false },
       },
       async input => jsonResult(await live.getMessages(input))
+    );
+  }
+  if (enabledTools.has('get_message')) {
+    server.registerTool(
+      'get_message',
+      {
+        description:
+          'Returns one Signal message by ID, optionally with messages immediately before and after it.',
+        inputSchema: {
+          messageId: z.string().min(1),
+          before: z.number().int().min(0).max(100).optional(),
+          after: z.number().int().min(0).max(100).optional(),
+        },
+        annotations: { readOnlyHint: true, openWorldHint: false },
+      },
+      async input => jsonResult(await live.getMessage(input))
     );
   }
   if (enabledTools.has('search_messages')) {
@@ -94,6 +136,7 @@ export function registerLiveMcpCapabilities(
         inputSchema: {
           query: z.string().min(1),
           conversationId: z.string().optional(),
+          ...messageFilterSchema,
           ...paginationSchema,
         },
         annotations: { readOnlyHint: true, openWorldHint: false },
@@ -101,15 +144,56 @@ export function registerLiveMcpCapabilities(
       async input => jsonResult(await live.searchMessages(input))
     );
   }
+  if (enabledTools.has('get_attachment_directories')) {
+    server.registerTool(
+      'get_attachment_directories',
+      {
+        description:
+          'Returns the designated local directories for staging outgoing Signal attachments and storing downloaded attachments.',
+        inputSchema: {},
+        annotations: { readOnlyHint: true, openWorldHint: false },
+      },
+      async () => jsonResult(await live.getAttachmentDirectories())
+    );
+  }
+  if (enabledTools.has('download_attachment')) {
+    server.registerTool(
+      'download_attachment',
+      {
+        description:
+          'Downloads one attachment belonging to a Signal message into the designated local downloads directory.',
+        inputSchema: {
+          messageId: z.string().min(1),
+          attachmentId: z.string().min(1),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: false,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.downloadAttachment(input))
+    );
+  }
   if (enabledTools.has('send_message')) {
     server.registerTool(
       'send_message',
       {
         description:
-          'Sends a text message to a Signal conversation. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
+          'Sends text and/or staged local attachments to a Signal conversation. Attachment paths must be inside the outgoing directory returned by get_attachment_directories. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
         inputSchema: {
           conversationId: z.string().min(1),
-          text: z.string().min(1).max(65_536),
+          text: z.string().min(1).max(65_536).optional(),
+          attachments: z
+            .array(
+              z.object({
+                path: z.string().min(1),
+                contentType: z.string().min(1).optional(),
+              })
+            )
+            .min(1)
+            .max(32)
+            .optional(),
           idempotencyKey: z.string().min(1).max(256).optional(),
         },
         annotations: {
@@ -335,6 +419,22 @@ export function registerLiveMcpCapabilities(
         },
       },
       async input => jsonResult(await live.leaveGroup(input.groupId))
+    );
+  }
+  if (enabledTools.has('terminate_group')) {
+    server.registerTool(
+      'terminate_group',
+      {
+        description:
+          'Permanently terminates a Signal Group V2 group for every member. The local account must be an administrator.',
+        inputSchema: { groupId: z.string().min(1) },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.terminateGroup(input.groupId))
     );
   }
   if (enabledTools.has('get_active_call')) {

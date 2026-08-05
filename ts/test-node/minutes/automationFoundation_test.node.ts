@@ -61,6 +61,42 @@ describe('Minutes automation foundation', () => {
         'Invalid automation cursor'
       );
     });
+
+    it('pages newest items first when requested', () => {
+      const first = paginateAutomationItems(['old', 'middle', 'new'], {
+        limit: 2,
+        maxLimit: 2,
+        order: 'newest',
+      });
+      assert.deepEqual(first.items, ['new', 'middle']);
+
+      const second = paginateAutomationItems(['old', 'middle', 'new'], {
+        cursor: first.nextCursor,
+        limit: 2,
+        maxLimit: 2,
+        order: 'newest',
+      });
+      assert.deepEqual(second.items, ['old']);
+    });
+
+    it('applies message filters before cursor pagination', () => {
+      const page = paginateAutomationItems(
+        [
+          { id: '1', source: 'incoming' },
+          { id: '2', source: 'incoming' },
+          { id: '3', source: 'outgoing' },
+        ],
+        {
+          limit: 1,
+          maxLimit: 10,
+          order: 'newest',
+          filter: item => item.source === 'incoming',
+        }
+      );
+
+      assert.deepEqual(page.items, [{ id: '2', source: 'incoming' }]);
+      assert.isString(page.nextCursor);
+    });
   });
 
   describe('job registry', () => {

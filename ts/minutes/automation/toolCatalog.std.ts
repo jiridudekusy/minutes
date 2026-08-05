@@ -43,8 +43,23 @@ export const AUTOMATION_TOOL_CATALOG = [
     group: 'messages',
   },
   {
+    name: 'get_message',
+    label: 'Načíst jednu zprávu',
+    group: 'messages',
+  },
+  {
     name: 'search_messages',
     label: 'Hledat ve zprávách',
+    group: 'messages',
+  },
+  {
+    name: 'get_attachment_directories',
+    label: 'Zjistit adresáře příloh',
+    group: 'messages',
+  },
+  {
+    name: 'download_attachment',
+    label: 'Stáhnout přílohu',
     group: 'messages',
   },
   {
@@ -105,6 +120,11 @@ export const AUTOMATION_TOOL_CATALOG = [
   {
     name: 'leave_group',
     label: 'Opustit skupinu',
+    group: 'groups',
+  },
+  {
+    name: 'terminate_group',
+    label: 'Ukončit skupinu',
     group: 'groups',
   },
   {

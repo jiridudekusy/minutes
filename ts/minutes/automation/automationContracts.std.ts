@@ -61,6 +61,8 @@ export type AutomationMessage = Readonly<{
   id: string;
   conversationId: string;
   source: 'incoming' | 'outgoing';
+  authorId: string | null;
+  authorName: string | null;
   sentAt: number;
   receivedAt?: number;
   text: string | null;
@@ -96,9 +98,13 @@ export type AutomationRendererMethod =
   | 'setGroupMemberRoles'
   | 'setGroupPermissions'
   | 'setGroupDisappearingMessages'
+  | 'terminateGroup'
   | 'leaveGroup'
   | 'getMessages'
+  | 'getMessage'
   | 'searchMessages'
+  | 'getAttachmentDirectories'
+  | 'downloadAttachment'
   | 'sendMessage'
   | 'setMessageReaction'
   | 'getActiveCall'

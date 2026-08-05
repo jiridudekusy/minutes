@@ -47,6 +47,8 @@ export function paginateAutomationItems<T>(
     cursor?: string;
     limit?: number;
     maxLimit: number;
+    order?: 'oldest' | 'newest';
+    filter?: (item: T) => boolean;
   }>
 ): AutomationPage<T> {
   const { offset } = decodeAutomationCursor(options.cursor);
@@ -58,13 +60,17 @@ export function paginateAutomationItems<T>(
       Number.isSafeInteger(requestedLimit) ? requestedLimit : options.maxLimit
     )
   );
-  const pageItems = items.slice(offset, offset + limit);
+  const filteredItems =
+    options.filter == null ? items : items.filter(options.filter);
+  const orderedItems =
+    options.order === 'newest' ? filteredItems.toReversed() : filteredItems;
+  const pageItems = orderedItems.slice(offset, offset + limit);
   const nextOffset = offset + pageItems.length;
 
   return {
     items: pageItems,
     nextCursor:
-      nextOffset < items.length
+      nextOffset < orderedItems.length
         ? encodeAutomationCursor({ offset: nextOffset })
         : undefined,
   };

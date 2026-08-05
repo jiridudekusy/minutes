@@ -70,9 +70,25 @@ describe('live Signal MCP capabilities', () => {
       setGroupDisappearingMessages: async (
         options: Readonly<Record<string, unknown>>
       ) => options,
+      terminateGroup: async (id: string) => ({ id, terminated: true }),
       leaveGroup: async (id: string) => ({ id, left: true }),
-      getMessages: async () => ({ items: [] }),
+      getMessages: async (options: Readonly<Record<string, unknown>>) => ({
+        items: [],
+        query: options,
+      }),
+      getMessage: async (options: Readonly<Record<string, unknown>>) => ({
+        message: { id: options.messageId },
+        before: [],
+        after: [],
+      }),
       searchMessages: async () => ({ items: [] }),
+      getAttachmentDirectories: async () => ({
+        outgoing: '/safe/outgoing',
+        downloads: '/safe/downloads',
+      }),
+      downloadAttachment: async (
+        options: Readonly<Record<string, unknown>>
+      ) => ({ path: '/safe/downloads/report.pdf', ...options }),
       sendMessage: async (options: Readonly<Record<string, unknown>>) => ({
         queued: true,
         ...options,
@@ -127,7 +143,10 @@ describe('live Signal MCP capabilities', () => {
       'list_conversations',
       'list_contacts',
       'get_messages',
+      'get_message',
       'search_messages',
+      'get_attachment_directories',
+      'download_attachment',
       'send_message',
       'set_message_reaction',
       'get_active_call',
@@ -147,6 +166,7 @@ describe('live Signal MCP capabilities', () => {
       'set_group_member_roles',
       'set_group_permissions',
       'set_group_disappearing_messages',
+      'terminate_group',
       'leave_group',
     ]);
   });
@@ -164,7 +184,12 @@ describe('live Signal MCP capabilities', () => {
       name: 'send_message',
       arguments: {
         conversationId: 'conversation-1',
-        text: 'hello',
+        attachments: [
+          {
+            path: '/safe/outgoing/report.pdf',
+            contentType: 'application/pdf',
+          },
+        ],
         idempotencyKey: 'send-hello-once',
       },
     });
@@ -173,8 +198,30 @@ describe('live Signal MCP capabilities', () => {
       sent.result?.content?.[0]?.text ?? '',
       '"idempotencyKey":"send-hello-once"'
     );
+    assert.include(
+      sent.result?.content?.[0]?.text ?? '',
+      '"path":"/safe/outgoing/report.pdf"'
+    );
 
-    const reacted = await request(5, 'tools/call', {
+    const directories = await request(5, 'tools/call', {
+      name: 'get_attachment_directories',
+      arguments: {},
+    });
+    assert.include(
+      directories.result?.content?.[0]?.text ?? '',
+      '"outgoing":"/safe/outgoing"'
+    );
+
+    const downloaded = await request(6, 'tools/call', {
+      name: 'download_attachment',
+      arguments: { messageId: 'message-1', attachmentId: 'attachment-1' },
+    });
+    assert.include(
+      downloaded.result?.content?.[0]?.text ?? '',
+      '"path":"/safe/downloads/report.pdf"'
+    );
+
+    const reacted = await request(7, 'tools/call', {
       name: 'set_message_reaction',
       arguments: { messageId: 'message-1', emoji: '👍' },
     });
@@ -183,7 +230,7 @@ describe('live Signal MCP capabilities', () => {
       '"messageId":"message-1","emoji":"👍"'
     );
 
-    const removed = await request(6, 'tools/call', {
+    const removed = await request(8, 'tools/call', {
       name: 'set_message_reaction',
       arguments: { messageId: 'message-1', emoji: null },
     });
@@ -215,10 +262,50 @@ describe('live Signal MCP capabilities', () => {
       '"memberIds":["contact-1","contact-2"]'
     );
 
-    const left = await request(7, 'tools/call', {
+    const terminated = await request(7, 'tools/call', {
+      name: 'terminate_group',
+      arguments: { groupId: 'group-1' },
+    });
+    assert.include(
+      terminated.result?.content?.[0]?.text ?? '',
+      '"terminated":true'
+    );
+
+    const left = await request(8, 'tools/call', {
       name: 'leave_group',
       arguments: { groupId: 'group-1' },
     });
     assert.include(left.result?.content?.[0]?.text ?? '', '"left":true');
+  });
+
+  it('forwards rich message lookup parameters without client-built cursors', async () => {
+    const result = await request(9, 'tools/call', {
+      name: 'get_message',
+      arguments: { messageId: 'message-1', before: 2, after: 3 },
+    });
+
+    assert.include(result.result?.content?.[0]?.text ?? '', '"id":"message-1"');
+  });
+
+  it('forwards message discovery filters as one query', async () => {
+    const result = await request(10, 'tools/call', {
+      name: 'get_messages',
+      arguments: {
+        conversationId: 'group-1',
+        search: 'odpověď',
+        senderContactId: 'alice-id',
+        direction: 'incoming',
+        from: 1_786_000_000_000,
+        to: 1_786_086_400_000,
+        order: 'newest',
+        limit: 1,
+      },
+    });
+    const text = result.result?.content?.[0]?.text ?? '';
+
+    assert.include(text, '"search":"odpověď"');
+    assert.include(text, '"senderContactId":"alice-id"');
+    assert.include(text, '"direction":"incoming"');
+    assert.include(text, '"order":"newest"');
   });
 });

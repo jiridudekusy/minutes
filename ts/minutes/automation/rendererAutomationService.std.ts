@@ -147,6 +147,12 @@ export class RendererAutomationService {
     ) as Promise<AutomationGroup>;
   }
 
+  terminateGroup(groupId: string): Promise<AutomationGroup> {
+    return this.bridge.request('terminateGroup', {
+      groupId,
+    }) as Promise<AutomationGroup>;
+  }
+
   leaveGroup(groupId: string): Promise<AutomationGroup> {
     return this.bridge.request('leaveGroup', {
       groupId,
@@ -155,6 +161,12 @@ export class RendererAutomationService {
 
   getMessages(options: {
     conversationId: string;
+    search?: string;
+    senderContactId?: string;
+    direction?: 'incoming' | 'outgoing';
+    from?: number;
+    to?: number;
+    order?: 'oldest' | 'newest';
     cursor?: string;
     limit?: number;
   }): Promise<AutomationPage<AutomationMessage>> {
@@ -163,9 +175,30 @@ export class RendererAutomationService {
     >;
   }
 
+  getMessage(options: {
+    messageId: string;
+    before?: number;
+    after?: number;
+  }): Promise<{
+    message: AutomationMessage;
+    before: ReadonlyArray<AutomationMessage>;
+    after: ReadonlyArray<AutomationMessage>;
+  }> {
+    return this.bridge.request('getMessage', options) as Promise<{
+      message: AutomationMessage;
+      before: ReadonlyArray<AutomationMessage>;
+      after: ReadonlyArray<AutomationMessage>;
+    }>;
+  }
+
   searchMessages(options: {
     query: string;
     conversationId?: string;
+    senderContactId?: string;
+    direction?: 'incoming' | 'outgoing';
+    from?: number;
+    to?: number;
+    order?: 'oldest' | 'newest';
     cursor?: string;
     limit?: number;
   }): Promise<AutomationPage<AutomationMessage>> {
@@ -174,9 +207,29 @@ export class RendererAutomationService {
     >;
   }
 
+  getAttachmentDirectories(): Promise<{
+    outgoing: string;
+    downloads: string;
+  }> {
+    return this.bridge.request('getAttachmentDirectories', {}) as Promise<{
+      outgoing: string;
+      downloads: string;
+    }>;
+  }
+
+  downloadAttachment(options: {
+    messageId: string;
+    attachmentId: string;
+  }): Promise<unknown> {
+    return this.bridge.request('downloadAttachment', options);
+  }
+
   sendMessage(options: {
     conversationId: string;
-    text: string;
+    text?: string;
+    attachments?: ReadonlyArray<
+      Readonly<{ path: string; contentType?: string }>
+    >;
     idempotencyKey?: string;
   }): Promise<unknown> {
     return this.bridge.request('sendMessage', options);
