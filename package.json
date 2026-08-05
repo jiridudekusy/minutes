@@ -6,7 +6,7 @@
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "minutes.desktop",
   "repository": "https://github.com/zmitko-uni/minutes.git",
-  "version": "8.21.0-m1.0.11",
+  "version": "8.21.0-m1.0.13",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Signal Messenger, LLC",
@@ -111,6 +111,7 @@
     "release:minutes:beta:trigger": "node scripts/trigger-minutes-beta-release.mjs",
     "release:minutes:prod:trigger": "node scripts/trigger-minutes-prod-release.mjs",
     "build:minutes:installer": "node scripts/build-minutes-installer.mjs",
+    "build:minutes:appimage": "node scripts/build-minutes-appimage.mjs",
     "build:dev": "run-s --print-label generate build:rolldown:prod",
     "build:rolldown": "rolldown -c",
     "build:rolldown:prod": "pnpm build:rolldown --minify",

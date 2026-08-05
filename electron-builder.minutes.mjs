@@ -35,6 +35,23 @@ export default {
     shortcutName: isBeta ? 'Minutes Beta' : 'Minutes',
     deleteAppDataOnUninstall: false,
   },
+  linux: {
+    ...pkg.build.linux,
+    target: [{ target: 'AppImage', arch: ['x64'] }],
+    executableName: isBeta ? 'minutes-beta' : 'minutes',
+    icon: 'build/icons/minutes/png',
+    artifactName: isBeta
+      ? 'Minutes-Beta-${version}-linux-${arch}.${ext}'
+      : 'Minutes-${version}-linux-${arch}.${ext}',
+    publish: null,
+    desktop: {
+      ...pkg.build.linux.desktop,
+      entry: {
+        ...pkg.build.linux.desktop.entry,
+        StartupWMClass: isBeta ? 'minutes-beta' : 'minutes',
+      },
+    },
+  },
   mac: {
     ...pkg.build.mac,
     target: [{ target: 'dmg', arch: ['arm64'] }],
