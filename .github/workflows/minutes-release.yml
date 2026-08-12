@@ -27,6 +27,11 @@ on:
         required: false
         default: false
         type: boolean
+      artifact_only:
+        description: 'Build and retain installer as a workflow artifact without publishing a release'
+        required: false
+        default: false
+        type: boolean
       bump_level:
         description: 'Prod semver bump (patch/minor/major). Beta always increments -beta.N'
         required: false
@@ -56,6 +61,7 @@ jobs:
     timeout-minutes: 90
     outputs:
       channel: ${{ steps.channel.outputs.channel }}
+      artifact_only: ${{ steps.channel.outputs.artifact_only }}
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -74,8 +80,11 @@ jobs:
           else
             CHANNEL="prod"
           fi
+          ARTIFACT_ONLY="${{ inputs.artifact_only || false }}"
           echo "channel=${CHANNEL}" >> "$GITHUB_OUTPUT"
+          echo "artifact_only=${ARTIFACT_ONLY}" >> "$GITHUB_OUTPUT"
           echo "Release channel: ${CHANNEL} (branch ${{ github.ref_name }})"
+          echo "Artifact only: ${ARTIFACT_ONLY}"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
@@ -94,7 +103,7 @@ jobs:
           key: electron-gyp-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - name: Configure git
-        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true && inputs.artifact_only != true
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -105,7 +114,7 @@ jobs:
           NPM_CONFIG_LOGLEVEL: verbose
 
       - name: Bump version and prepare CHANGELOG
-        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true && inputs.artifact_only != true
         env:
           MINUTES_RELEASE_CHANNEL: ${{ steps.channel.outputs.channel }}
           MINUTES_BUMP_LEVEL: ${{ inputs.bump_level || 'patch' }}
@@ -136,7 +145,7 @@ jobs:
           " "${VERSION}"
 
       - name: Commit version bump
-        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true
+        if: github.event_name == 'workflow_dispatch' && inputs.skip_version_bump != true && inputs.artifact_only != true
         shell: bash
         run: |
           git add package.json CHANGELOG.md
@@ -201,6 +210,7 @@ jobs:
           ls -la release/minutes/*.exe
 
       - name: Create GitHub Release
+        if: steps.channel.outputs.artifact_only != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -230,12 +240,21 @@ jobs:
               "${ASSET_STABLE}"
           fi
 
+      - name: Upload installer artifact
+        if: steps.channel.outputs.artifact_only == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: minutes-windows-installer-${{ steps.version.outputs.version }}
+          path: release/minutes/Minutes*-setup-windows-x64.exe
+          if-no-files-found: error
+          retention-days: 14
+
   release-macos:
     name: Build & publish macOS installer
     needs: release-windows
     # macOS ships prod-only (arm64 dmg, no beta variant); skip on beta so the
     # stable Minutes-mac-arm64.dmg is never overwritten by a beta build.
-    if: needs.release-windows.result == 'success' && needs.release-windows.outputs.channel == 'prod'
+    if: needs.release-windows.result == 'success' && needs.release-windows.outputs.channel == 'prod' && needs.release-windows.outputs.artifact_only != 'true'
     runs-on: macos-latest
     timeout-minutes: 90
     steps:
