@@ -306,6 +306,7 @@ class MinutesAutomationRuntime {
     const server = new MinutesMcpHttpServer({
       port: settings.port,
       tokenHash,
+      allowedHosts: settings.allowedHosts,
       configureServer: (mcp: McpServer) => {
         const enabledTools = new Set(settings.enabledTools);
         registerMeetingMcpCapabilities(mcp, this.#meetings, enabledTools);
@@ -432,6 +433,7 @@ export async function initializeMinutesAutomationRuntime(options: {
       input: {
         enabled: boolean;
         port: number;
+        allowedHosts: ReadonlyArray<string>;
         enabledTools: ReadonlyArray<string>;
       }
     ) => {

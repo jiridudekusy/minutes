@@ -96,6 +96,7 @@ function createProtocolServer(
 export class MinutesMcpHttpServer {
   readonly #configuredPort: number;
   readonly #tokenHash: string;
+  readonly #allowedHosts: ReadonlySet<string>;
   readonly #configureServer: ((server: McpServer) => void) | undefined;
   readonly #sessions = new Map<string, Session>();
   #httpServer: HttpServer | undefined;
@@ -105,6 +106,7 @@ export class MinutesMcpHttpServer {
     options: Readonly<{
       port: number;
       tokenHash: string;
+      allowedHosts?: ReadonlyArray<string>;
       configureServer?: (server: McpServer) => void;
     }>
   ) {
@@ -117,6 +119,9 @@ export class MinutesMcpHttpServer {
     }
     this.#configuredPort = options.port;
     this.#tokenHash = options.tokenHash;
+    this.#allowedHosts = new Set(
+      options.allowedHosts?.map(value => value.toLowerCase()) ?? []
+    );
     this.#configureServer = options.configureServer;
   }
 
@@ -327,10 +332,22 @@ export class MinutesMcpHttpServer {
     if (host == null || this.#listeningPort == null) {
       return false;
     }
-    return (
-      host === `${HOST}:${this.#listeningPort}` ||
-      host === `localhost:${this.#listeningPort}`
-    );
+    try {
+      const parsed = new URL(`http://${host}`);
+      return (
+        !parsed.username &&
+        !parsed.password &&
+        parsed.pathname === '/' &&
+        !parsed.search &&
+        !parsed.hash &&
+        parsed.port === String(this.#listeningPort) &&
+        (parsed.hostname.toLowerCase() === HOST ||
+          parsed.hostname.toLowerCase() === 'localhost' ||
+          this.#allowedHosts.has(parsed.hostname.toLowerCase()))
+      );
+    } catch {
+      return false;
+    }
   }
 
   #hasValidOrigin(request: IncomingMessage): boolean {
@@ -343,9 +360,14 @@ export class MinutesMcpHttpServer {
     }
     try {
       const parsed = new URL(origin);
+      if (origin !== parsed.origin) {
+        return false;
+      }
       return (
         parsed.protocol === 'http:' &&
-        (parsed.hostname === HOST || parsed.hostname === 'localhost') &&
+        (parsed.hostname === HOST ||
+          parsed.hostname === 'localhost' ||
+          this.#allowedHosts.has(parsed.hostname.toLowerCase())) &&
         parsed.port === String(this.#listeningPort)
       );
     } catch {

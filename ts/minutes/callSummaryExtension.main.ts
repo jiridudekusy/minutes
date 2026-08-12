@@ -33,7 +33,7 @@ import {
   type TranscribePcmResult,
   type WhisperTranscribeRuntimeOptions,
 } from './whisperTranscribe.main.ts';
-import { preparePcmForWhisper } from './whisperAudioPrep.std.ts';
+import { readPcmF32FileForWhisper } from './recordingPcmReader.node.ts';
 import { getRecordingArtifactPaths } from './recordingArtifacts.std.ts';
 import {
   getPrivateRecordingPcmPath,
@@ -321,19 +321,10 @@ async function loadRecordingPcmSidecar(
     if (resolvedPcmPath == null) {
       throw new Error('PCM sidecar missing');
     }
-    const raw = await readFile(resolvedPcmPath);
-    if (raw.byteLength < 4) {
-      throw new Error('PCM sidecar is empty');
-    }
-    const pcm48 = new Float32Array(
-      raw.buffer,
-      raw.byteOffset,
-      Math.floor(raw.byteLength / 4)
-    );
-    if (pcm48.length === 0) {
-      throw new Error('PCM sidecar is empty');
-    }
-    return preparePcmForWhisper(pcm48, sampleRate);
+    return await readPcmF32FileForWhisper({
+      path: resolvedPcmPath,
+      inputSampleRate: sampleRate,
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'PCM sidecar missing';

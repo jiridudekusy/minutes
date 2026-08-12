@@ -14,8 +14,53 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+- (doplňte před příštím release)
+
+## [8.21.0-m1.0.15] - 2026-08-12
+
+### Added
+- expand MCP message and group automation
+- add explicit webhook controls
+- add local MCP automation and group management
+- make Minutes windows draggable
+- configure local LLM call summaries
+- transcribe and summarize video recordings
+- store recordings in Documents
+- record shared Signal video and RingRTC audio
+- add dry_run checkbox to Merge Signal upstream workflow
+- weekly Signal Desktop upstream version check with auto sync PR
+
+### Changed
+- describe MCP and Linux release support
+- add Linux x64 AppImage packaging
+- document Minutes release touchpoints
+- remove unused macOS audio tap
+- Dependabot only Minutes deps (llama, whisper, resedit)
+
+### Fixed
+- tolerate one-sided RingRTC audio startup
+- harden Minutes automation runtime
+- stop draggable surfaces on lost pointer input
+- fit local LLM prompts to runtime context
+- clean up stale video recording partials
+- store recording PCM outside Documents
+- gate MCP resources with tool controls
+- make MCP message sends idempotent
+- serialize MCP runtime reconciliation
+- confine MCP group avatar files
+- serialize webhook outbox delivery
+- recover from RingRTC video sequence resets
+- keep RingRTC recording audio synchronized
+- serialize local LLM model lifecycle
+- fall back when Documents recordings are unavailable
+- keep Minutes calls active on screen lock
+
+## [8.21.0-m1.0.14] - 2026-08-05
+
+### Added
 
 - Lokální Linux x64 AppImage build přes `pnpm run build:minutes:appimage` s Minutes brandingem.
+- Nastavitelný seznam povolených MCP hostů umožňuje bezpečné připojení z Docker Desktop přes `host.docker.internal`; HTTP originy se odvozují automaticky, server zůstává navázaný jen na `127.0.0.1` a vyžaduje token.
 - (doplňte před příštím release)
 
 ## [8.21.0-m1.0.13] - 2026-08-05

@@ -36,6 +36,71 @@ function normalizePort(value: unknown): number {
     : DEFAULT_AUTOMATION_PORT;
 }
 
+const MAX_ALLOWED_HOSTS = 32;
+
+function normalizeAllowedHost(value: string): string {
+  const trimmed = value.trim().toLowerCase();
+  if (trimmed.length === 0 || trimmed.length > 253) {
+    throw new Error('Allowed MCP host must be between 1 and 253 characters');
+  }
+  let url: URL;
+  try {
+    url = new URL(`http://${trimmed}`);
+  } catch {
+    throw new Error(`Invalid allowed MCP host: ${value}`);
+  }
+  if (
+    url.username ||
+    url.password ||
+    url.port ||
+    url.pathname !== '/' ||
+    url.search ||
+    url.hash ||
+    !url.hostname
+  ) {
+    throw new Error(`Invalid allowed MCP host: ${value}`);
+  }
+  return url.hostname.toLowerCase();
+}
+
+function normalizeAllowedHosts(
+  values: unknown,
+  strict: boolean
+): ReadonlyArray<string> {
+  if (values == null) {
+    return [];
+  }
+  if (!Array.isArray(values)) {
+    if (strict) {
+      throw new Error('Allowed MCP hosts must be an array');
+    }
+    return [];
+  }
+  const result = new Set<string>();
+  for (const value of values) {
+    if (typeof value !== 'string') {
+      if (strict) {
+        throw new Error('Allowed MCP hosts must be strings');
+      }
+      continue;
+    }
+    try {
+      result.add(normalizeAllowedHost(value));
+    } catch (error) {
+      if (strict) {
+        throw error;
+      }
+    }
+  }
+  if (result.size > MAX_ALLOWED_HOSTS) {
+    if (!strict) {
+      return [...result].slice(0, MAX_ALLOWED_HOSTS);
+    }
+    throw new Error(`At most ${MAX_ALLOWED_HOSTS} MCP hosts may be configured`);
+  }
+  return [...result];
+}
+
 function normalizeStored(
   value: StoredAutomationSettings | undefined
 ): StoredAutomationSettings {
@@ -43,6 +108,7 @@ function normalizeStored(
     enabled: value?.enabled === true,
     webhooksEnabled: value?.webhooksEnabled === true,
     port: normalizePort(value?.port),
+    allowedHosts: normalizeAllowedHosts(value?.allowedHosts, false),
     encryptedTokenHash: value?.encryptedTokenHash,
     enabledTools: normalizeStoredAutomationToolNames(value?.enabledTools),
     endpoints: value?.endpoints ?? [],
@@ -76,6 +142,7 @@ function toPublic(stored: StoredAutomationSettings): AutomationSettingsPublic {
     enabled: stored.enabled === true,
     webhooksEnabled: stored.webhooksEnabled === true,
     port: normalizePort(stored.port),
+    allowedHosts: normalizeAllowedHosts(stored.allowedHosts, false),
     hasToken: Boolean(stored.encryptedTokenHash),
     enabledTools: normalizeStoredAutomationToolNames(stored.enabledTools),
     endpoints: (stored.endpoints ?? []).map(endpoint => ({
@@ -113,6 +180,7 @@ export class AutomationSettingsStore {
     input: Readonly<{
       enabled: boolean;
       port: number;
+      allowedHosts: ReadonlyArray<string>;
       enabledTools: ReadonlyArray<string>;
     }>
   ): Promise<AutomationSettingsPublic> {
@@ -125,6 +193,7 @@ export class AutomationSettingsStore {
       ...current,
       enabled: input.enabled,
       port,
+      allowedHosts: normalizeAllowedHosts(input.allowedHosts, true),
       enabledTools: validateAutomationToolNames(input.enabledTools),
     };
     await this.#deps.write(next);

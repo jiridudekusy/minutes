@@ -6,7 +6,7 @@
   "description": "Signal Desktop fork with meeting minutes — call recording and chat summaries",
   "desktopName": "minutes.desktop",
   "repository": "https://github.com/zmitko-uni/minutes.git",
-  "version": "8.21.0-m1.0.13",
+  "version": "8.21.0-m1.0.15",
   "license": "AGPL-3.0-only",
   "author": {
     "name": "Signal Messenger, LLC",

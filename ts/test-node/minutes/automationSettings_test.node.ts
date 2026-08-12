@@ -46,6 +46,7 @@ describe('AutomationSettingsStore', () => {
       enabled: false,
       webhooksEnabled: false,
       port: 37221,
+      allowedHosts: [],
       hasToken: false,
       enabledTools: [
         'list_recordings',
@@ -102,6 +103,7 @@ describe('AutomationSettingsStore', () => {
     const settings = await store.saveServerSettings({
       enabled: true,
       port: 37221,
+      allowedHosts: [],
       enabledTools: ['list_recordings', 'send_message'],
     });
 
@@ -122,9 +124,39 @@ describe('AutomationSettingsStore', () => {
       store.saveServerSettings({
         enabled: true,
         port: 37221,
+        allowedHosts: [],
         enabledTools: ['list_recordings', 'delete_everything'],
       }),
       'Unknown MCP tool: delete_everything'
+    );
+    assert.isEmpty(saved);
+  });
+
+  it('normalizes and persists custom MCP hosts', async () => {
+    const { saved, store } = createStore();
+
+    const settings = await store.saveServerSettings({
+      enabled: true,
+      port: 37221,
+      allowedHosts: [' Host.Docker.Internal ', 'host.docker.internal'],
+      enabledTools: ['list_recordings'],
+    });
+
+    assert.deepEqual(settings.allowedHosts, ['host.docker.internal']);
+    assert.deepEqual(saved.at(-1)?.allowedHosts, ['host.docker.internal']);
+  });
+
+  it('rejects malformed MCP hosts before writing settings', async () => {
+    const { saved, store } = createStore();
+
+    await expectRejected(
+      store.saveServerSettings({
+        enabled: true,
+        port: 37221,
+        allowedHosts: ['http://host.docker.internal'],
+        enabledTools: ['list_recordings'],
+      }),
+      'Invalid allowed MCP host'
     );
     assert.isEmpty(saved);
   });

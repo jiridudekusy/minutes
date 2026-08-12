@@ -21,6 +21,7 @@ export function getAutomationStatus(): Promise<AutomationRuntimeStatus> {
 export function saveAutomationServerSettings(input: {
   enabled: boolean;
   port: number;
+  allowedHosts: ReadonlyArray<string>;
   enabledTools: ReadonlyArray<string>;
 }): Promise<{
   settings: AutomationSettingsPublic;

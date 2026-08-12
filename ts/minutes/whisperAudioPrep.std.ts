@@ -1,4 +1,4 @@
-// Copyright 2026 minutes contributors
+// Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { DEFAULT_WHISPER_PROMPT } from './whisperSettings.std.ts';
@@ -10,6 +10,27 @@ export const SPEAKER_WINDOW_PADDING_MS = 280;
 
 const MAX_CHAINED_PROMPT_CHARS = 360;
 
+function getNormalizationGain(
+  input: Float32Array,
+  targetRms: number,
+  maxGain: number
+): number {
+  if (input.length === 0) {
+    return 1;
+  }
+
+  let sumSquares = 0;
+  for (const sample of input) {
+    sumSquares += sample * sample;
+  }
+  const rms = Math.sqrt(sumSquares / input.length);
+  if (rms < 1e-6) {
+    return 1;
+  }
+
+  return Math.min(maxGain, targetRms / rms);
+}
+
 /**
  * Normalizuje hlasitost na cílovou RMS — pomáhá u tichého VoIP signálu.
  */
@@ -18,20 +39,7 @@ export function normalizePcmForWhisper(
   targetRms = 0.08,
   maxGain = 12
 ): Float32Array {
-  if (input.length === 0) {
-    return input;
-  }
-
-  let sumSquares = 0;
-  for (let i = 0; i < input.length; i += 1) {
-    sumSquares += (input[i] ?? 0) * (input[i] ?? 0);
-  }
-  const rms = Math.sqrt(sumSquares / input.length);
-  if (rms < 1e-6) {
-    return input;
-  }
-
-  const gain = Math.min(maxGain, targetRms / rms);
+  const gain = getNormalizationGain(input, targetRms, maxGain);
   if (Math.abs(gain - 1) < 0.05) {
     return input;
   }
@@ -41,6 +49,27 @@ export function normalizePcmForWhisper(
     output[i] = Math.max(-1, Math.min(1, (input[i] ?? 0) * gain));
   }
   return output;
+}
+
+/**
+ * Normalizes an owned PCM buffer without allocating a second equally large
+ * Float32Array. This is important for multi-hour recordings.
+ */
+export function normalizePcmForWhisperInPlace(
+  input: Float32Array,
+  targetRms = 0.08,
+  maxGain = 12
+): Float32Array {
+  const gain = getNormalizationGain(input, targetRms, maxGain);
+  if (Math.abs(gain - 1) < 0.05) {
+    return input;
+  }
+
+  const owned = input;
+  for (let i = 0; i < owned.length; i += 1) {
+    owned[i] = Math.max(-1, Math.min(1, (owned[i] ?? 0) * gain));
+  }
+  return owned;
 }
 
 export function resamplePcmTo16kHz(

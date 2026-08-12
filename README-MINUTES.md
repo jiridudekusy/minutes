@@ -224,6 +224,14 @@ Uživatelská příručka (součást aplikace): `images/minutes/prirucka.md` —
 - Cesty mimo staging, symbolické odkazy, nebezpečné typy a soubory nad aktuálním limitem Signalu se odmítnou. Existující stažený soubor se nepřepisuje.
 - Pro opakování odeslání používejte stejný `idempotencyKey`; identita příloh je součástí kontroly proti duplicitám.
 
+## MCP z Dockeru na macOS
+
+- Server nadále naslouchá pouze na `127.0.0.1`; nevystavuje se do LAN a každý požadavek stále vyžaduje bearer token.
+- V **Minutes → Nastavení MCP** přidejte do „Povolení hosté“ hodnotu `host.docker.internal`. Hodnoty se zadávají čárkami, bez schématu a portu.
+- Docker klient se pak připojí na `http://host.docker.internal:37221/mcp` (nebo na zvolený port). Host networking ani bind mount Unix socketu není potřeba.
+- Povolená HTTP origin se z hostname a nastaveného portu odvodí automaticky. Nativní MCP klienti hlavičku `Origin` obvykle neposílají.
+- `127.0.0.1` a `localhost` zůstávají povolené automaticky a není nutné je uvádět v seznamu.
+
 ## MCP zprávy a skupiny
 
 - `get_messages` vrací zprávy implicitně od nejnovějších; poslední zpráva v konverzaci je tedy jeden dotaz s `limit: 1`. Podporuje textový filtr `search`, přesného autora `senderContactId`, směr `incoming` / `outgoing`, časové meze `from` / `to` v Unix ms a pořadí `newest` / `oldest`.

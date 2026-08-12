@@ -32,6 +32,7 @@ export type AutomationSettingsPublic = Readonly<{
   enabled: boolean;
   webhooksEnabled: boolean;
   port: number;
+  allowedHosts: ReadonlyArray<string>;
   hasToken: boolean;
   enabledTools: ReadonlyArray<AutomationToolName>;
   endpoints: ReadonlyArray<AutomationWebhookEndpointPublic>;
@@ -51,6 +52,7 @@ export type StoredAutomationSettings = Readonly<{
   enabled?: boolean;
   webhooksEnabled?: boolean;
   port?: number;
+  allowedHosts?: ReadonlyArray<string>;
   encryptedTokenHash?: string;
   enabledTools?: ReadonlyArray<string>;
   endpoints?: ReadonlyArray<StoredAutomationWebhookEndpoint>;

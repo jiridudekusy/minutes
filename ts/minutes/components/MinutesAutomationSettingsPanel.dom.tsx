@@ -49,6 +49,7 @@ const EMPTY_SETTINGS: AutomationSettingsPublic = {
   enabled: false,
   webhooksEnabled: false,
   port: DEFAULT_AUTOMATION_PORT,
+  allowedHosts: [],
   hasToken: false,
   enabledTools: ALL_AUTOMATION_TOOL_NAMES,
   endpoints: [],
@@ -78,12 +79,20 @@ function statusLabel(status: AutomationRuntimeStatus): string {
   }
 }
 
+function parseCommaSeparated(value: string): ReadonlyArray<string> {
+  return value
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
 export function MinutesAutomationSettingsPanel(): JSX.Element {
   const [settings, setSettings] =
     useState<AutomationSettingsPublic>(EMPTY_SETTINGS);
   const [enabled, setEnabled] = useState(false);
   const [webhooksEnabled, setWebhooksEnabled] = useState(false);
   const [port, setPort] = useState(DEFAULT_AUTOMATION_PORT);
+  const [allowedHosts, setAllowedHosts] = useState('');
   const [enabledTools, setEnabledTools] = useState<
     ReadonlySet<AutomationToolName>
   >(new Set(ALL_AUTOMATION_TOOL_NAMES));
@@ -107,6 +116,7 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
     setEnabled(nextSettings.enabled);
     setWebhooksEnabled(nextSettings.webhooksEnabled);
     setPort(nextSettings.port);
+    setAllowedHosts(nextSettings.allowedHosts.join(', '));
     setEnabledTools(new Set(nextSettings.enabledTools));
     setRuntimeStatus(nextStatus);
   }, []);
@@ -171,6 +181,24 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
           onChange={event => setPort(Number(event.target.value))}
         />
       </label>
+      <label className={tw('flex flex-col gap-1')}>
+        <span>Povolení hosté</span>
+        <input
+          type="text"
+          placeholder="host.docker.internal"
+          className={tw(
+            'rounded-md border border-solid px-3 py-2',
+            'border-label-disabled bg-background-primary'
+          )}
+          value={allowedHosts}
+          onChange={event => setAllowedHosts(event.target.value)}
+        />
+        <span className={tw('text-label-small opacity-70')}>
+          Hostnames oddělené čárkami, bez schématu a portu. Povolená HTTP origin
+          se odvodí automaticky z hostname a nastaveného portu. 127.0.0.1 a
+          localhost jsou povolené vždy.
+        </span>
+      </label>
       <p className={tw('text-label-small')} role="status">
         Stav: {statusLabel(runtimeStatus)}
       </p>
@@ -188,11 +216,13 @@ export function MinutesAutomationSettingsPanel(): JSX.Element {
               const result = await saveAutomationServerSettings({
                 enabled,
                 port,
+                allowedHosts: parseCommaSeparated(allowedHosts),
                 enabledTools: ALL_AUTOMATION_TOOL_NAMES.filter(name =>
                   enabledTools.has(name)
                 ),
               });
               setSettings(result.settings);
+              setAllowedHosts(result.settings.allowedHosts.join(', '));
               setEnabledTools(new Set(result.settings.enabledTools));
               setRuntimeStatus(result.status);
               setMessage(

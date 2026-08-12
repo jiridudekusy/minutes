@@ -2,11 +2,39 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { assert } from 'chai';
+import { request as httpRequest } from 'node:http';
 
 import { hashAutomationToken } from '../../minutes/automation/auth.node.ts';
 import { MinutesMcpHttpServer } from '../../minutes/automation/mcpHttpServer.node.ts';
 
 const TOKEN = 'test-token';
+
+async function getHealthWithHost(
+  baseUrl: string,
+  host: string
+): Promise<number | undefined> {
+  const url = new URL(baseUrl);
+  return new Promise((resolve, reject) => {
+    const request = httpRequest(
+      {
+        hostname: url.hostname,
+        port: url.port,
+        path: '/health',
+        method: 'GET',
+        headers: {
+          authorization: `Bearer ${TOKEN}`,
+          host,
+        },
+      },
+      response => {
+        response.resume();
+        response.once('end', () => resolve(response.statusCode));
+      }
+    );
+    request.once('error', reject);
+    request.end();
+  });
+}
 
 function mcpHeaders(
   sessionId?: string,
@@ -92,6 +120,70 @@ describe('MinutesMcpHttpServer', () => {
     });
 
     assert.strictEqual(response.status, 403);
+  });
+
+  it('accepts an explicitly allowed Docker Desktop host', async () => {
+    await server.stop();
+    server = new MinutesMcpHttpServer({
+      port: 0,
+      tokenHash: hashAutomationToken(TOKEN),
+      allowedHosts: ['host.docker.internal'],
+    });
+    await server.start();
+    baseUrl = server.url;
+    const port = new URL(baseUrl).port;
+
+    const status = await getHealthWithHost(
+      baseUrl,
+      `host.docker.internal:${port}`
+    );
+
+    assert.strictEqual(status, 200);
+  });
+
+  it('rejects a Docker Desktop host unless it is explicitly allowed', async () => {
+    const port = new URL(baseUrl).port;
+    const status = await getHealthWithHost(
+      baseUrl,
+      `host.docker.internal:${port}`
+    );
+
+    assert.strictEqual(status, 403);
+  });
+
+  it('derives the allowed browser origin from an allowed host', async () => {
+    await server.stop();
+    server = new MinutesMcpHttpServer({
+      port: 0,
+      tokenHash: hashAutomationToken(TOKEN),
+      allowedHosts: ['host.docker.internal'],
+    });
+    await server.start();
+    baseUrl = server.url;
+    const port = new URL(baseUrl).port;
+
+    const allowed = await fetch(`${baseUrl}/health`, {
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        origin: `http://host.docker.internal:${port}`,
+      },
+    });
+    const rejected = await fetch(`${baseUrl}/health`, {
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        origin: `http://other.example:${port}`,
+      },
+    });
+    const malformed = await fetch(`${baseUrl}/health`, {
+      headers: {
+        authorization: `Bearer ${TOKEN}`,
+        origin: `http://host.docker.internal:${port}/path`,
+      },
+    });
+
+    assert.strictEqual(allowed.status, 200);
+    assert.strictEqual(rejected.status, 403);
+    assert.strictEqual(malformed.status, 403);
   });
 
   it('negotiates an MCP session and exposes the server status tool', async () => {
