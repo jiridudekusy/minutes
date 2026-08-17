@@ -94,6 +94,35 @@ describe('VideoRecordingFileWriter', () => {
     assert.deepEqual([...(await readFile(result.filePath))], [1, 2, 3, 4]);
   });
 
+  it('patches a seekable duration into a MediaRecorder WebM header', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const startedAt = Date.UTC(2026, 6, 22, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Direct,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    await writer.append(7, session.sessionId, createMinimalWebmHeader());
+
+    const result = await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 2_500,
+      recordedDurationMs: 2_500,
+      speakerActivityLog: createTestSpeakerActivityLog(startedAt, 2_500),
+    });
+
+    const output = await readFile(result.filePath);
+    const durationElementOffset = output.indexOf(
+      Buffer.from([0x44, 0x89, 0x88])
+    );
+    assert.isAtLeast(durationElementOffset, 0);
+    assert.strictEqual(output.readDoubleBE(durationElementOffset + 3), 2_500);
+  });
+
   it('rejects a chunk when the bounded write queue is full', async () => {
     const writer = new VideoRecordingFileWriter({
       recordingsDir,
@@ -767,6 +796,14 @@ function createTestSpeakerActivityLog(
     participants: {},
     samples: [],
   };
+}
+
+function createMinimalWebmHeader(): Uint8Array<ArrayBuffer> {
+  return Uint8Array.from([
+    0x1a, 0x45, 0xdf, 0xa3, 0x80, 0x18, 0x53, 0x80, 0x67, 0x01, 0xff, 0xff,
+    0xff, 0xff, 0xff, 0xff, 0xff, 0x15, 0x49, 0xa9, 0x66, 0x80, 0x16, 0x54,
+    0xae, 0x6b, 0x80,
+  ]);
 }
 
 type FakeSender = EventEmitter & Readonly<{ id: number }>;

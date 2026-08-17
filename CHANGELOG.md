@@ -20,6 +20,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Fixed
 
 - rejoin RingRTC audio sources after a temporary recording stall
+- record an authoritative incoming screen share in direct calls
+- write a seekable duration into finalized WebM recordings
 
 ## [8.21.0-m1.0.15] - 2026-08-12
 

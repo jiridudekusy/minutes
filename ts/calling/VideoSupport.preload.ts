@@ -582,9 +582,11 @@ export class CanvasVideoRenderer {
     }
     this.imageData.data.set(this.buffer.subarray(0, width * height * 4));
     context.putImageData(this.imageData, 0, 0);
-    if (presentationSourceController.getActiveSource()?.source === canvas) {
-      presentationSourceController.markRendered(canvas);
-    }
+    // The presentation source cannot become active until its first decoded
+    // frame is marked as rendered. PresentationSourceController rejects
+    // canvases that are not registered as the authoritative screen share, so
+    // this does not make ordinary remote camera video recordable.
+    presentationSourceController.markRendered(canvas);
 
     if (sizeChanged) {
       this.sizeCallback?.({ width, height });

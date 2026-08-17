@@ -24,6 +24,10 @@ import {
 } from '../ts/minutes/videoRecordingFile.std.ts';
 import { SPEAKER_ACTIVITY_FILE_SUFFIX } from '../ts/minutes/constants.std.ts';
 import { isSpeakerActivityLog } from '../ts/minutes/speakerActivity.std.ts';
+import {
+  addWebmDurationPlaceholder,
+  encodeWebmDuration,
+} from '../ts/minutes/webmDuration.std.ts';
 
 type FinalizeOptions = Omit<FinalizeVideoRecordingFileInput, 'sessionId'>;
 
@@ -41,6 +45,12 @@ type IpcMainLike = Readonly<{
 
 type VideoFileHandle = Readonly<{
   writeFile(data: Uint8Array<ArrayBuffer>): Promise<void>;
+  write?(
+    data: Uint8Array<ArrayBuffer>,
+    offset: number,
+    length: number,
+    position: number
+  ): Promise<Readonly<{ bytesWritten: number }>>;
   sync(): Promise<void>;
   close(): Promise<void>;
 }>;
@@ -133,6 +143,8 @@ type Session = Readonly<{
 }> & {
   queuedBytes: number;
   writes: Promise<void>;
+  videoHeaderInspected: boolean;
+  webmDurationValueOffset?: number;
 };
 
 function sanitizeFilePart(value: string): string {
@@ -217,6 +229,7 @@ export class VideoRecordingFileWriter {
       options,
       queuedBytes: 0,
       writes: Promise.resolve(),
+      videoHeaderInspected: false,
     });
     return { sessionId, partialPath };
   }
@@ -227,13 +240,21 @@ export class VideoRecordingFileWriter {
     data: Uint8Array<ArrayBuffer>
   ): Promise<void> {
     const session = this.#getOwnedSession(ownerId, sessionId);
-    if (session.queuedBytes + data.byteLength > this.#maxQueuedBytes) {
+    let chunk = Buffer.from(data);
+    if (!session.videoHeaderInspected) {
+      session.videoHeaderInspected = true;
+      const prepared = addWebmDurationPlaceholder(data);
+      if (prepared) {
+        chunk = Buffer.from(prepared.data);
+        session.webmDurationValueOffset = prepared.durationValueOffset;
+      }
+    }
+    if (session.queuedBytes + chunk.byteLength > this.#maxQueuedBytes) {
       throw createVideoRecordingFileError(
         'Video recording write queue is full',
         session.partialPath
       );
     }
-    const chunk = Buffer.from(data);
     session.queuedBytes += chunk.byteLength;
     session.writes = this.#writeAfterPending(
       sessionId,
@@ -327,6 +348,7 @@ export class VideoRecordingFileWriter {
     let speakerActivityRenamed = false;
     try {
       await session.writes;
+      await this.#writeWebmDuration(session, options.recordedDurationMs);
       await session.handle.sync();
       await session.pcmHandle.sync();
       await writeFile(
@@ -407,6 +429,29 @@ export class VideoRecordingFileWriter {
       metadataPath,
       speakerActivityPath,
     };
+  }
+
+  async #writeWebmDuration(
+    session: Session,
+    durationMs: number
+  ): Promise<void> {
+    const position = session.webmDurationValueOffset;
+    if (position === undefined) {
+      return;
+    }
+    if (!session.handle.write) {
+      throw new Error('Video file handle does not support positional writes');
+    }
+    const duration = encodeWebmDuration(durationMs);
+    const result = await session.handle.write(
+      duration,
+      0,
+      duration.byteLength,
+      position
+    );
+    if (result.bytesWritten !== duration.byteLength) {
+      throw new Error('Could not write the complete WebM duration');
+    }
   }
 
   async abort(
