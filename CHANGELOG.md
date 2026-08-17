@@ -14,11 +14,17 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+
 - (doplňte před příštím release)
+
+### Fixed
+
+- rejoin RingRTC audio sources after a temporary recording stall
 
 ## [8.21.0-m1.0.15] - 2026-08-12
 
 ### Added
+
 - expand MCP message and group automation
 - add explicit webhook controls
 - add local MCP automation and group management
@@ -31,6 +37,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - weekly Signal Desktop upstream version check with auto sync PR
 
 ### Changed
+
 - describe MCP and Linux release support
 - add Linux x64 AppImage packaging
 - document Minutes release touchpoints
@@ -38,6 +45,7 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 - Dependabot only Minutes deps (llama, whisper, resedit)
 
 ### Fixed
+
 - tolerate one-sided RingRTC audio startup
 - harden Minutes automation runtime
 - stop draggable surfaces on lost pointer input

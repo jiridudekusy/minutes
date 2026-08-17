@@ -124,6 +124,17 @@ export class RingRtcAudioTimeline {
     }
 
     let rebasedStartSample = startSample + sourceOffset;
+    if (this.#degraded && rebasedStartSample + samples.length <= this.#cursor) {
+      // Once degraded rendering has skipped past a stalled source, a steady
+      // stream can remain a fraction of a packet behind the render cursor
+      // forever. Rebase the first wholly-late packet so that the recovered
+      // source can rejoin the mix instead of being discarded indefinitely.
+      sourceOffset = this.#cursor - startSample;
+      this.#sourceOffsets[source] = sourceOffset;
+      this.#packets[source].length = 0;
+      this.#knownThrough[source] = undefined;
+      rebasedStartSample = this.#cursor;
+    }
     if (
       rebasedStartSample <
       this.#cursor - RING_RTC_AUDIO_COUNTER_RESET_SAMPLE_COUNT

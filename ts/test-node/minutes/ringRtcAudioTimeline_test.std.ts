@@ -126,6 +126,28 @@ describe('RingRtcAudioTimeline', () => {
     assert.equal(timeline.cursor, 10);
   });
 
+  it('rejoins a source that recovers just behind a degraded cursor', () => {
+    const TimelineWithStallTolerance = RingRtcAudioTimeline as new (
+      prerollSamples: number,
+      stallToleranceSamples: number
+    ) => InstanceType<typeof RingRtcAudioTimeline>;
+    const timeline = new TimelineWithStallTolerance(4, 4);
+    timeline.enqueue('local', 0, new Float32Array(4).fill(0.25));
+    timeline.enqueue('remote', 0, new Float32Array(4).fill(0.5));
+    assert.deepEqual([...timeline.render(4)], Array(4).fill(0.75));
+
+    timeline.enqueue('local', 4, new Float32Array(4).fill(0.25));
+    assert.deepEqual([...timeline.render(2)], [0, 0]);
+    assert.deepEqual([...timeline.render(2)], [0.25, 0.25]);
+    assert.equal(timeline.cursor, 8);
+
+    timeline.enqueue('local', 8, new Float32Array(2).fill(0.25));
+    timeline.enqueue('remote', 4, new Float32Array(2).fill(0.5));
+
+    assert.deepEqual([...timeline.render(2)], [0.75, 0.75]);
+    assert.equal(timeline.cursor, 10);
+  });
+
   it('rebases a source when its native sample counter resets', () => {
     const timeline = new RingRtcAudioTimeline();
     timeline.enqueue('local', 0, new Float32Array(5_000).fill(0.25));
