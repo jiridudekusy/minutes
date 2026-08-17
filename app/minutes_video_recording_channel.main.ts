@@ -86,6 +86,8 @@ async function ignoreFailure(operation: () => Promise<unknown>): Promise<void> {
 }
 
 const DEFAULT_PARTIAL_RETENTION_MS = 24 * 60 * 60_000;
+const MAX_PENDING_WEBM_HEADER_BYTES = 4 * 1024;
+const WEBM_EBML_HEADER = Uint8Array.from([0x1a, 0x45, 0xdf, 0xa3]);
 
 export async function reapStaleVideoRecordingPartials(
   directory: string,
@@ -144,8 +146,32 @@ type Session = Readonly<{
   queuedBytes: number;
   writes: Promise<void>;
   videoHeaderInspected: boolean;
+  pendingVideoHeader?: Uint8Array<ArrayBuffer>;
   webmDurationValueOffset?: number;
 };
+
+function canStillBeWebmHeader(data: Uint8Array<ArrayBuffer>): boolean {
+  const comparedByteLength = Math.min(
+    data.byteLength,
+    WEBM_EBML_HEADER.byteLength
+  );
+  for (let index = 0; index < comparedByteLength; index += 1) {
+    if (data[index] !== WEBM_EBML_HEADER[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function concatenateBytes(
+  first: Uint8Array<ArrayBuffer>,
+  second: Uint8Array<ArrayBuffer>
+): Uint8Array<ArrayBuffer> {
+  const output = new Uint8Array(first.byteLength + second.byteLength);
+  output.set(first, 0);
+  output.set(second, first.byteLength);
+  return output;
+}
 
 function sanitizeFilePart(value: string): string {
   return value
@@ -240,13 +266,25 @@ export class VideoRecordingFileWriter {
     data: Uint8Array<ArrayBuffer>
   ): Promise<void> {
     const session = this.#getOwnedSession(ownerId, sessionId);
-    let chunk = Buffer.from(data);
+    let chunk: Uint8Array<ArrayBuffer> = Uint8Array.from(data);
     if (!session.videoHeaderInspected) {
-      session.videoHeaderInspected = true;
-      const prepared = addWebmDurationPlaceholder(data);
+      if (session.pendingVideoHeader) {
+        chunk = concatenateBytes(session.pendingVideoHeader, chunk);
+        session.pendingVideoHeader = undefined;
+      }
+      const prepared = addWebmDurationPlaceholder(chunk);
       if (prepared) {
-        chunk = Buffer.from(prepared.data);
+        session.videoHeaderInspected = true;
+        chunk = prepared.data;
         session.webmDurationValueOffset = prepared.durationValueOffset;
+      } else if (
+        canStillBeWebmHeader(chunk) &&
+        chunk.byteLength < MAX_PENDING_WEBM_HEADER_BYTES
+      ) {
+        session.pendingVideoHeader = chunk;
+        return;
+      } else {
+        session.videoHeaderInspected = true;
       }
     }
     if (session.queuedBytes + chunk.byteLength > this.#maxQueuedBytes) {
@@ -348,6 +386,10 @@ export class VideoRecordingFileWriter {
     let speakerActivityRenamed = false;
     try {
       await session.writes;
+      if (session.pendingVideoHeader) {
+        await session.handle.writeFile(session.pendingVideoHeader);
+        session.pendingVideoHeader = undefined;
+      }
       await this.#writeWebmDuration(session, options.recordedDurationMs);
       await session.handle.sync();
       await session.pcmHandle.sync();

@@ -123,6 +123,37 @@ describe('VideoRecordingFileWriter', () => {
     assert.strictEqual(output.readDoubleBE(durationElementOffset + 3), 2_500);
   });
 
+  it('patches duration when MediaRecorder splits the WebM header across chunks', async () => {
+    const writer = new VideoRecordingFileWriter({ recordingsDir });
+    const startedAt = Date.UTC(2026, 6, 22, 10, 0, 0);
+    const session = await writer.create(7, {
+      conversationId: 'conversation-id',
+      conversationTitle: 'Team call',
+      callMode: CallMode.Direct,
+      startedAt,
+      codec: 'video/webm;codecs=vp9,opus',
+      width: 1920,
+      height: 1080,
+      frameRate: 15,
+    });
+    const header = createMinimalWebmHeader();
+    await writer.append(7, session.sessionId, header.subarray(0, 12));
+    await writer.append(7, session.sessionId, header.subarray(12));
+
+    const result = await writer.finalize(7, session.sessionId, {
+      endedAt: startedAt + 2_500,
+      recordedDurationMs: 2_500,
+      speakerActivityLog: createTestSpeakerActivityLog(startedAt, 2_500),
+    });
+
+    const output = await readFile(result.filePath);
+    const durationElementOffset = output.indexOf(
+      Buffer.from([0x44, 0x89, 0x88])
+    );
+    assert.isAtLeast(durationElementOffset, 0);
+    assert.strictEqual(output.readDoubleBE(durationElementOffset + 3), 2_500);
+  });
+
   it('rejects a chunk when the bounded write queue is full', async () => {
     const writer = new VideoRecordingFileWriter({
       recordingsDir,

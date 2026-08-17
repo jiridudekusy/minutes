@@ -21,7 +21,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 - rejoin RingRTC audio sources after a temporary recording stall
 - record an authoritative incoming screen share in direct calls
-- write a seekable duration into finalized WebM recordings
+- write a seekable duration into finalized WebM recordings, including when
+  MediaRecorder splits the EBML header across chunks
 
 ## [8.21.0-m1.0.15] - 2026-08-12
 
