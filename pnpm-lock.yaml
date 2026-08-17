@@ -53,8 +53,8 @@ importers:
         specifier: workspace:*
         version: link:packages/mute-state-change
       '@signalapp/ringrtc':
-        specifier: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz
-        version: '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz'
+        specifier: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz
+        version: '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz'
       '@signalapp/sqlcipher':
         specifier: 3.3.9
         version: 3.3.9
@@ -2015,9 +2015,9 @@ packages:
     resolution: {integrity: sha512-9QOtNffcOF/c1seMCDnjckb3R9WHcG34tky+FHpNKKCW0wc/scYLwMtO+ptyGUfMW0/b/n4qRiALlaFHc9Oj7Q==, tarball: https://registry.npmjs.org/@malept/flatpak-bundler/-/flatpak-bundler-0.4.0.tgz}
     engines: {node: '>= 10.0.0'}
 
-  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz':
-    resolution: {integrity: sha512-LDxhCwugE29XTO68s5J+lgDfXfrqSRjRI7cGci8re3xQVe5PQn3RcAM5idbhj9fmKRhtOqnnNqbVW1pF8JvXKw==, tarball: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz}
-    version: 2.70.2-minutes.2
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz':
+    resolution: {integrity: sha512-pm7LOKJZk9CPhM9QD+cIJugX1kjCRqTS3GtMnSyRl1r7mEPaU/gKYEaUUkVe+MY04WCs3c640ee2mgWX3KGVfw==, tarball: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz}
+    version: 2.69.7-minutes.3
     hasBin: true
 
   '@modelcontextprotocol/sdk@1.29.0':
@@ -13102,7 +13102,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz':
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.69.7-minutes.3/minutes-ringrtc-2.69.7-minutes.3.tgz':
     dependencies:
       https-proxy-agent: 7.0.6
     transitivePeerDependencies:
