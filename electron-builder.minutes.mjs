@@ -7,7 +7,7 @@ const isBeta = process.env.MINUTES_RELEASE_CHANNEL === 'beta';
 export default {
   ...pkg.build,
   // Avoid parallel electron-rebuild races on shared pnpm node-addon-api paths
-  // (macOS mute-state-change + mac-audio-tap → make "missing separator").
+  // (macOS workspace addons can otherwise race inside node-gyp).
   nativeRebuilder: 'sequential',
   productName: isBeta ? 'Minutes Beta' : 'Minutes',
   appId: isBeta ? 'org.minutes.desktop.beta' : 'org.minutes.desktop',

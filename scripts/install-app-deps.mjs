@@ -14,7 +14,7 @@ const packageJsonPath = path.join(
 
 /**
  * Signal's package.json sets build.nativeRebuilder=parallel. On macOS + pnpm,
- * mute-state-change and mac-audio-tap share node-addon-api@… and parallel
+ * Native workspace addons share node-addon-api@… and parallel
  * electron-rebuild races on .target.mk → make "missing separator".
  *
  * `electron-builder install-app-deps` does not accept `-c.nativeRebuilder=…`,

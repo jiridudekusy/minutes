@@ -144,7 +144,6 @@
   "dependencies": {
     "@indutny/mac-screen-share": "1.2.5",
     "@indutny/simple-windows-notifications": "2.0.21",
-    "@minutes/mac-audio-tap": "workspace:*",
     "@signalapp/libsignal-client": "0.99.2",
     "@signalapp/mute-state-change": "workspace:*",
     "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.2/minutes-ringrtc-2.70.2-minutes.2.tgz",
@@ -660,7 +659,6 @@
       "node_modules/@signalapp/ringrtc/build/${platform}/*${arch}*.node",
       "node_modules/@signalapp/windows-ucv/build/Release/*.node",
       "node_modules/@signalapp/mute-state-change/build/Release/*.node",
-      "node_modules/@minutes/mac-audio-tap/build/Release/*.node",
       "node_modules/@indutny/simple-windows-notifications/prebuilds/${platform}-${arch}/*.node",
       "node_modules/@indutny/mac-screen-share/prebuilds/${platform}-${arch}/*.node",
       "node_modules/fs-xattr/build/Release/*.node",

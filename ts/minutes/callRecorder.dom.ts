@@ -1,8 +1,6 @@
 // Copyright 2026 minutes contributors
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import { ipcRenderer } from 'electron';
-
 import * as Bytes from '../Bytes.std.ts';
 import { createLogger } from '../logging/log.std.ts';
 import type { RendererMessageType } from '../types/AudioRecorder.std.ts';
@@ -229,65 +227,5 @@ export class CallRecorder {
     }
 
     return this.#state.promise;
-  }
-}
-
-export async function getLoopbackAudioStream(): Promise<MediaStream | null> {
-  try {
-    const sourceId = await ipcRenderer.invoke(
-      'minutes:get-loopback-audio-source'
-    );
-    if (typeof sourceId !== 'string' || sourceId.length === 0) {
-      return null;
-    }
-
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-          chromeMediaSourceId: sourceId,
-        },
-      },
-      video: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-          chromeMediaSourceId: sourceId,
-        },
-      },
-    } as MediaStreamConstraints);
-
-    for (const track of stream.getVideoTracks()) {
-      track.stop();
-    }
-
-    if (stream.getAudioTracks().length === 0) {
-      stream.getTracks().forEach(track => track.stop());
-      return null;
-    }
-
-    return stream;
-  } catch (error) {
-    log.warn('getLoopbackAudioStream failed', error);
-    return null;
-  }
-}
-
-export async function getMicrophoneStream(): Promise<MediaStream | null> {
-  try {
-    // Keep processing off so Chromium opens a HAL unit, not VoiceProcessingIO.
-    // macOS allows only one VPIO at a time; the call already uses it (see
-    // enableMacCallVoiceProcessing) so a second VPIO would steal it and gray
-    // out Control Center Mic Modes.
-    return await navigator.mediaDevices.getUserMedia({
-      audio: {
-        channelCount: { ideal: 1 },
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-      },
-    });
-  } catch (error) {
-    log.warn('getMicrophoneStream failed', error);
-    return null;
   }
 }

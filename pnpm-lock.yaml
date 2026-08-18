@@ -50,9 +50,6 @@ importers:
       '@indutny/simple-windows-notifications':
         specifier: 2.0.21
         version: 2.0.21
-      '@minutes/mac-audio-tap':
-        specifier: workspace:*
-        version: link:packages/mac-audio-tap
       '@signalapp/libsignal-client':
         specifier: 0.99.2
         version: 0.99.2
@@ -726,15 +723,6 @@ importers:
         version: 0.4.0(patch_hash=325d1e5f73cce8e15671dbd2394e091aadb71600f41d97d1a8cb63960c188112)
 
   packages/lame: {}
-
-  packages/mac-audio-tap:
-    dependencies:
-      bindings:
-        specifier: 1.5.0
-        version: 1.5.0
-      node-addon-api:
-        specifier: 8.5.0
-        version: 8.5.0
 
   packages/mute-state-change:
     dependencies:

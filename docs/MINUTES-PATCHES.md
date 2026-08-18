@@ -6,10 +6,9 @@
 
 | Soubor | Co | Hook |
 |--------|-----|------|
-| `package.json` | productName, skripty, Minutes RingRTC tarball + ověřený root instalátor, závislost `@minutes/mac-audio-tap` + její `.node` v `build.files` | branding + 4 řádky |
+| `package.json` | productName, skripty a Minutes RingRTC tarball + ověřený root instalátor | branding + 3 řádky |
 | `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
 | `pnpm-workspace.yaml` | dependency install skript Minutes RingRTC je zakázaný; prebuild stahuje ověřený root instalátor | 1 řádek |
-| `rolldown.config.ts` | `@minutes/mac-audio-tap` v `external` (native modul) | 1 řádek |
 | `app/user_config.main.ts` | `minutes-*` userData | 1 řádek |
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
 | `app/WindowsNotifications.main.ts` | fallback toast + log AUMID | minutes |
@@ -112,15 +111,13 @@
 | `app/minutes_tray.main.ts` | tray ikona + tooltip minutes |
 | `images/minutes/app-icon-source.png` | zdrojová ikona Minutes (M + skupina) |
 | `scripts/generate-minutes-icons.mjs` | generuje .ico + PNG velikosti; na macOS navíc `.icns` přes `iconutil` (`build/icons/minutes/mac/icon.icns`) |
-| `packages/mac-audio-tap/**` | native workspace balíček — ScreenCaptureKit binding pro systémové audio na macOS (13+) |
-| `ts/minutes/macLoopbackAudio.preload.ts` | renderer wrapper nad `@minutes/mac-audio-tap` (loopback MediaStream) |
 | `setup-minutes.sh`, `start-minutes.sh`, `start-minutes-quick.sh`, `minutes-quality-gate.sh`, `test-call-pipeline.sh`, `prepare-minutes-release.sh`, `build-minutes-release.sh` | macOS obdoby `.bat` skriptů (Xcode Command Line Tools místo Visual Studio) |
 | `scripts/minutes-ensure-pnpm.sh`, `minutes-control/_ensure-pnpm.bat` | kontrola pinu pnpm (`packageManager`, teď 11.5.2) — novější globální pnpm v tomto repo spadne |
 | `scripts/generate-minutes-tray-icons.mjs` | tray ikony (base + badge) |
 | `images/tray-icons/base/minutes-tray-icon-*` | vygenerované tray ikony |
 | `images/tray-icons/alert/minutes-tray-icon-*` | tray ikony s počtem nepřečtených |
 | `build/icons/minutes/**` | vygenerované ikony (gitignore volitelně) |
-| `.github/workflows/minutes-ci.yml` | CI: generate + check:types (jen PR / ruční spuštění) |
+| `.github/workflows/minutes-ci.yml` | CI: generate + check:types a macOS smoke test Minutes RingRTC prebildu (jen PR / ruční spuštění) |
 | `.github/workflows/minutes-release.yml` | release instalátoru + GitHub Release; job `release-macos` (po `release-windows`, `macos-latest`) přidá `Minutes-<verze>-mac-arm64.dmg` + stabilní `Minutes-mac-arm64.dmg` |
 | `.github/workflows/minutes-merge-upstream.yml` | merge Signal upstream → PR; týdenní check nového stabilního tagu (`scripts/check-signal-upstream.mjs`) |
 | `scripts/resolve-upstream-conflicts.mjs` + `scripts/utils/mergePackageJson.mjs` | konzervativní automatické řešení pouze známých upstream konfliktů |

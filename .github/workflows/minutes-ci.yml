@@ -102,7 +102,7 @@ jobs:
         run: |
           set -euo pipefail
           test -f packages/mute-state-change/build/Release/mute-state-change.node
-          test -f packages/mac-audio-tap/build/Release/mac-audio-tap.node
+          test -f node_modules/@signalapp/ringrtc/build/darwin/libringrtc-arm64.node
           echo "Native addons OK:"
           ls -la packages/mute-state-change/build/Release/*.node
-          ls -la packages/mac-audio-tap/build/Release/*.node
+          ls -la node_modules/@signalapp/ringrtc/build/darwin/libringrtc-arm64.node

@@ -4,7 +4,7 @@
 import { join } from 'node:path';
 import { mkdir, open, stat, writeFile } from 'node:fs/promises';
 
-import { app, desktopCapturer, ipcMain, shell } from 'electron';
+import { app, ipcMain, shell } from 'electron';
 
 import { createLogger } from '../ts/logging/log.std.ts';
 import * as Errors from '../ts/types/errors.std.ts';
@@ -131,24 +131,6 @@ export async function initializeMinutesChannel(): Promise<void> {
     ipcMain,
     recordingsDir,
     pcmStorageDir,
-  });
-
-  ipcMain.handle('minutes:get-loopback-audio-source', async () => {
-    const sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: 1, height: 1 },
-    });
-
-    const primary =
-      sources.find(source => /screen|display|entire/i.test(source.name)) ??
-      sources[0];
-
-    if (!primary) {
-      log.warn('no desktop capturer sources for loopback audio');
-      return '';
-    }
-
-    return primary.id;
   });
 
   ipcMain.handle(
