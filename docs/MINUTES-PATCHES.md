@@ -6,9 +6,9 @@
 
 | Soubor | Co | Hook |
 |--------|-----|------|
-| `package.json` | productName, skripty, závislost `@minutes/mac-audio-tap` + její `.node` v `build.files` | branding + 2 řádky |
+| `package.json` | productName, skripty, Minutes RingRTC tarball + ověřený root instalátor, závislost `@minutes/mac-audio-tap` + její `.node` v `build.files` | branding + 4 řádky |
 | `scripts/utils/parseVersion.mjs` | Minutes `-m` verze pro build skripty | regex větev |
-| `pnpm-workspace.yaml` | `allowBuilds` pro `@minutes/mac-audio-tap` | 1 řádek |
+| `pnpm-workspace.yaml` | dependency install skript Minutes RingRTC je zakázaný; prebuild stahuje ověřený root instalátor | 1 řádek |
 | `rolldown.config.ts` | `@minutes/mac-audio-tap` v `external` (native modul) | 1 řádek |
 | `app/user_config.main.ts` | `minutes-*` userData | 1 řádek |
 | `app/startup_config.main.ts` | minutes AUMID + název aplikace | pár řádků |
@@ -62,6 +62,7 @@
 | `app/minutes_runtime.main.ts` | výchozí `NODE_CONFIG_ENV=minutes` pro balíček |
 | `electron-builder.minutes.mjs` | NSIS profil (sloučení s package.json#build); `mac`/`dmg` bloky — arm64-only, unsigned (`identity: null`, `hardenedRuntime: false`), `afterPack` → ad-hoc podpis |
 | `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |
+| `scripts/install-minutes-ringrtc.mjs` + `scripts/utils/minutesRingRtcInstall.mjs` | ověří přesný Minutes RingRTC package/version/API a teprve potom stáhne prebuild s kontrolou SHA-256 |
 | `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
 | `ts/minutes/aiSettings.std.ts` | typy + výchozí model |

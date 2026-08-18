@@ -16,6 +16,9 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+### Fixed
+- Nahrávání sdíleného videa a zpracovaného zvuku hovoru znovu používá Minutes RingRTC tapy kompatibilní se Signal Desktop 8.23 (`2.70.2-minutes.2`).
+
 ## [8.23.0-m1.3.0] - 2026-08-17
 
 ### Changed

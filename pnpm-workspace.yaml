@@ -124,6 +124,7 @@ allowBuilds:
   'whisper-cpp-node@0.2.12': true
   '@parcel/watcher': set this to true or false
   '@swc/core': set this to true or false
+  '@minutes/ringrtc': false
 
 dedupePeers: true
 dedupePeerDependents: true
