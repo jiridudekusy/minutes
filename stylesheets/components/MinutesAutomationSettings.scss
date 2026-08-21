@@ -1,0 +1,30 @@
+// Copyright 2026 Signal Messenger, LLC
+// SPDX-License-Identifier: AGPL-3.0-only
+
+.MinutesAutomationSettingsModal__surface {
+  width: min(880px, calc(100vw - 32px));
+  min-width: min(560px, calc(100vw - 16px));
+  max-width: calc(100vw - 16px);
+  height: min(760px, calc(100vh - 32px));
+  min-height: min(440px, calc(100vh - 16px));
+  max-height: calc(100vh - 16px);
+  overflow: hidden;
+  resize: both;
+
+  > div {
+    display: flex;
+    min-height: 0;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .MinutesDraggableSurface__handle {
+    flex: 0 0 auto;
+  }
+
+  .MinutesDraggableSurface__handle + div {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: none !important;
+  }
+}

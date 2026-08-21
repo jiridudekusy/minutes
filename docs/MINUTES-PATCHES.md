@@ -79,6 +79,8 @@
 | `ts/minutes/localLlmContextSize.std.ts`, `localLlmReasoning.std.ts`, `callSummaryCredentials.std.ts` | kontext/reasoning lokálního LLM a shrnutí bez cloudového API klíče |
 | `ts/minutes/components/MinutesLocalLlmPanel.dom.tsx` | panel instalace v Nastavení AI |
 | `ts/minutes/components/MinutesDraggableSurface.dom.tsx`, `draggableSurface.std.ts` | přesouvání Minutes dialogů myší i klávesnicí |
+| `ts/minutes/components/MinutesAutomationSettings*.dom.tsx`, `stylesheets/components/MinutesAutomationSettings.scss` | nastavení MCP URL, tokenu, úrovní oprávnění nástrojů a roztahovatelného dialogu |
+| `ts/minutes/automation/toolCatalog.std.ts` | katalog MCP nástrojů včetně úrovně čtení / běžný zápis / destruktivní zápis |
 | `ts/minutes/screenLockCallPolicy.std.ts` | zachování aktivního hovoru při zamknutí obrazovky |
 | `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build`; FileSet pro `build/*.json` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |
