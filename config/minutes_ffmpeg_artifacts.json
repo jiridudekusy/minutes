@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "license": {
+    "name": "GNU General Public License version 3",
+    "url": "https://raw.githubusercontent.com/FFmpeg/FFmpeg/n9.0.1/COPYING.GPLv3",
+    "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+  },
+  "targets": {
+    "darwin-arm64": {
+      "archiveType": "zip",
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1787073674_9.0.1/ffmpeg.zip",
+      "sha256": "8287a1b2229e05eb41859f073e18e6c52c60a778f2f5e6881070fe51b79407fe",
+      "binaryName": "ffmpeg",
+      "expectedVersion": "9.0.1",
+      "downloadLabel": "přibližně 27 MB",
+      "sourceUrl": "https://github.com/FFmpeg/FFmpeg/tree/n9.0.1",
+      "buildInfoUrl": "https://ffmpeg.martin-riedl.de/"
+    },
+    "win32-x64": {
+      "archiveType": "zip",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-20-13-45/ffmpeg-n8.1.2-44-g7c533d0f86-win64-gpl-8.1.zip",
+      "sha256": "410c82fc0a7d713fd83412138271b8559faa8cf8a74a75eaf541dfca75ea4590",
+      "binaryName": "ffmpeg.exe",
+      "expectedVersion": "8.1.2",
+      "downloadLabel": "přibližně 168 MB",
+      "sourceUrl": "https://github.com/FFmpeg/FFmpeg/tree/n8.1.2",
+      "buildInfoUrl": "https://github.com/BtbN/FFmpeg-Builds"
+    },
+    "linux-x64": {
+      "archiveType": "tar.xz",
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-08-20-13-45/ffmpeg-n8.1.2-44-g7c533d0f86-linux64-gpl-8.1.tar.xz",
+      "sha256": "1135ba005de82cecce7ceba9d653c47374af8a657a0eae93571214c6a5169850",
+      "binaryName": "ffmpeg",
+      "expectedVersion": "8.1.2",
+      "downloadLabel": "přibližně 126 MB",
+      "sourceUrl": "https://github.com/FFmpeg/FFmpeg/tree/n8.1.2",
+      "buildInfoUrl": "https://github.com/BtbN/FFmpeg-Builds"
+    }
+  }
+}

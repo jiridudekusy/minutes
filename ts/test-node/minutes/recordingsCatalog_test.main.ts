@@ -63,9 +63,39 @@ describe('recordingsCatalog', () => {
       conversationTitle: 'Team call',
       mediaKind: 'screen-share-video',
       recordingPath,
+      hasMp4Export: false,
       hasPcmSidecar: true,
       hasTranscript: false,
       hasSummary: false,
+    });
+  });
+
+  it('exposes an existing MP4 as a derived video artifact', async () => {
+    const baseName = '2026-07-24_team-call_mp4';
+    const recordingPath = join(recordingsDir, `${baseName}.webm`);
+    const mp4Path = join(recordingsDir, `${baseName}.mp4`);
+    await writeFile(recordingPath, Uint8Array.from([1]));
+    await writeFile(mp4Path, Uint8Array.from([2]));
+    await writeFile(
+      join(recordingsDir, `${baseName}.json`),
+      JSON.stringify({
+        mediaKind: 'screen-share-video',
+        conversationId: 'conversation-id',
+        conversationTitle: 'Team call',
+        startedAt: 1_000,
+        endedAt: 4_000,
+        durationMs: 3_000,
+        videoFile: `${baseName}.webm`,
+      }),
+      'utf8'
+    );
+
+    const [entry] = await listCallRecordings(recordingsDir);
+
+    assert.include(entry, {
+      recordingPath,
+      hasMp4Export: true,
+      mp4Path,
     });
   });
 

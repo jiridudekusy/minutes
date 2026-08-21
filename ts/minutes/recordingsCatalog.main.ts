@@ -21,6 +21,7 @@ import {
   getPrivateRecordingPcmPath,
   resolveRecordingPcmPath,
 } from './recordingPcmStorage.node.ts';
+import { getMp4ExportPath } from './videoMp4Export.node.ts';
 
 const log = createLogger('minutes/recordingsCatalog');
 
@@ -69,6 +70,9 @@ async function buildCatalogEntry(
     })) != null;
   const hasTranscript = await fileExists(transcriptPath);
   const hasSummary = await fileExists(summaryPath);
+  const mp4Path = getMp4ExportPath(recordingPath);
+  const hasMp4Export =
+    mediaKind === 'screen-share-video' && (await fileExists(mp4Path));
   const transcriptMeta = hasTranscript
     ? await readCallTranscriptMetadata(basePath)
     : null;
@@ -81,6 +85,8 @@ async function buildCatalogEntry(
     durationMs: metadata.durationMs,
     mediaKind,
     recordingPath,
+    hasMp4Export,
+    mp4Path: hasMp4Export ? mp4Path : undefined,
     hasPcmSidecar,
     hasTranscript,
     hasSummary,
@@ -185,6 +191,7 @@ export async function listCallRecordings(
       durationMs,
       mediaKind: 'audio',
       recordingPath: mp3Path,
+      hasMp4Export: false,
       hasPcmSidecar,
       hasTranscript,
       hasSummary,
