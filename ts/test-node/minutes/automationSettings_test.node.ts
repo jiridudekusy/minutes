@@ -5,6 +5,32 @@ import { assert } from 'chai';
 
 import { AutomationSettingsStore } from '../../minutes/automation/automationSettings.node.ts';
 import type { StoredAutomationSettings } from '../../minutes/automation/automationSettings.std.ts';
+import {
+  ALL_AUTOMATION_TOOL_NAMES,
+  getAutomationToolNamesByAccess,
+} from '../../minutes/automation/toolCatalog.std.ts';
+
+describe('MCP tool access catalog', () => {
+  it('assigns every MCP tool to exactly one access level', () => {
+    const partition = (['read', 'write', 'destructive'] as const).flatMap(
+      getAutomationToolNamesByAccess
+    );
+
+    assert.sameMembers(partition, [...ALL_AUTOMATION_TOOL_NAMES]);
+    assert.lengthOf(new Set(partition), ALL_AUTOMATION_TOOL_NAMES.length);
+  });
+
+  it('keeps destructive capabilities behind the explicit destructive level', () => {
+    assert.deepEqual(getAutomationToolNamesByAccess('destructive'), [
+      'set_message_reaction',
+      'remove_group_members',
+      'leave_group',
+      'terminate_group',
+      'hang_up_call',
+      'stop_recording',
+    ]);
+  });
+});
 
 describe('AutomationSettingsStore', () => {
   async function expectRejected(
