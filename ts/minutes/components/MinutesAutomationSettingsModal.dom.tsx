@@ -22,7 +22,10 @@ export function MinutesAutomationSettingsModal({
   return (
     <AxoDialog.Root open={open} onOpenChange={onOpenChange}>
       <AxoDialog.Content size="lg" escape="cancel-is-noop">
-        <MinutesDraggableDialogHeader positionKey="automation-settings">
+        <MinutesDraggableDialogHeader
+          positionKey="automation-settings"
+          surfaceClassName="MinutesAutomationSettingsModal__surface"
+        >
           <AxoDialog.Title>
             {formatAppDialogTitle('Nastavení MCP')}
           </AxoDialog.Title>

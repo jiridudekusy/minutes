@@ -118,6 +118,15 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
     };
   }, [constrainCurrentPosition]);
 
+  useLayoutEffect(() => {
+    if (!surfaceElement || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(constrainCurrentPosition);
+    observer.observe(surfaceElement);
+    return () => observer.disconnect();
+  }, [constrainCurrentPosition, surfaceElement]);
+
   const finishDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
     if (dragRef.current?.pointerId !== event.pointerId) {
       return;
@@ -201,16 +210,23 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
 
   const onKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLElement>) => {
-      const delta =
-        event.key === 'ArrowLeft'
-          ? { x: -10, y: 0 }
-          : event.key === 'ArrowRight'
-            ? { x: 10, y: 0 }
-            : event.key === 'ArrowUp'
-              ? { x: 0, y: -10 }
-              : event.key === 'ArrowDown'
-                ? { x: 0, y: 10 }
-                : undefined;
+      let delta: Readonly<{ x: number; y: number }> | undefined;
+      switch (event.key) {
+        case 'ArrowLeft':
+          delta = { x: -10, y: 0 };
+          break;
+        case 'ArrowRight':
+          delta = { x: 10, y: 0 };
+          break;
+        case 'ArrowUp':
+          delta = { x: 0, y: -10 };
+          break;
+        case 'ArrowDown':
+          delta = { x: 0, y: 10 };
+          break;
+        default:
+          delta = undefined;
+      }
       if (!surfaceElement || delta == null) {
         return;
       }
@@ -250,20 +266,29 @@ export function useMinutesDraggableSurface(positionKey: string): Readonly<{
 
 export function MinutesDraggableDialogHeader({
   positionKey,
+  surfaceClassName,
   children,
 }: Readonly<{
   positionKey: string;
+  surfaceClassName?: string;
   children: ReactNode;
 }>): JSX.Element {
   const { setSurfaceElement, dragHandleProps } =
     useMinutesDraggableSurface(positionKey);
+  const styledSurfaceRef = useRef<HTMLElement | null>(null);
   const setHandleElement = useCallback(
     (element: HTMLDivElement | null) => {
-      setSurfaceElement(
-        element?.closest<HTMLElement>('[role="dialog"]') ?? null
-      );
+      if (styledSurfaceRef.current && surfaceClassName) {
+        styledSurfaceRef.current.classList.remove(surfaceClassName);
+      }
+      const surface = element?.closest<HTMLElement>('[role="dialog"]') ?? null;
+      if (surface && surfaceClassName) {
+        surface.classList.add(surfaceClassName);
+      }
+      styledSurfaceRef.current = surface;
+      setSurfaceElement(surface);
     },
-    [setSurfaceElement]
+    [setSurfaceElement, surfaceClassName]
   );
 
   return (

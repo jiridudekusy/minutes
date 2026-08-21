@@ -17,10 +17,13 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 
 - Export videozáznamu WebM do kompatibilního MP4 (H.264/AAC) přímo z historie nahrávek, včetně průběhu, zrušení a bezpečného přegenerování bez změny původního WebM
 - Export přednostně používá kompatibilní systémový FFmpeg; pokud chybí, nabídne jednorázové stažení ověřené GPL podpory do aplikačních dat bez zvětšení instalátoru
+- Přepracované nastavení MCP nabízí kopírování URL, bezpečnější jednorázové zobrazení tokenu, oprávnění po úrovních čtení / běžný zápis / destruktivní zápis a roztahovatelné okno.
 
 ## [8.23.0-m1.3.0-beta.4] - 2026-08-21
 
 ### Added
+
+- Přeposlání a kopírování zpráv s kontextem původního autora a času; kontextové přeposlání má odlišenou ikonu i titulek dialogu.
 - Nastavení AI: **styl shrnutí** — Stručný (výchozí), Detailní, Smart nebo Vlastní instrukce; lze zobrazit náhled system promptu. Platí pro chaty i hovory. Ve **Přepisy** lze hotové shrnutí **přegenerovat** aktuálním stylem.
 
 ### Fixed
