@@ -26,6 +26,8 @@ export type CallRecordingCatalogEntry = Readonly<{
   durationMs: number;
   mediaKind: RecordingMediaKind;
   recordingPath: string;
+  hasMp4Export: boolean;
+  mp4Path?: string;
   hasPcmSidecar: boolean;
   hasTranscript: boolean;
   hasSummary: boolean;

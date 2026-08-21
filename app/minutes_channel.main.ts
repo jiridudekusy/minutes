@@ -84,6 +84,8 @@ import {
 } from '../ts/minutes/automation/automationRuntime.main.ts';
 import { MeetingAutomationService } from '../ts/minutes/automation/meetingAutomationService.node.ts';
 import type { StoredCallRecordingMetadata } from '../ts/minutes/recordingsCatalog.std.ts';
+import { VideoMp4Exporter } from '../ts/minutes/videoMp4Export.node.ts';
+import { VideoMp4Support } from '../ts/minutes/videoMp4Support.main.ts';
 
 const log = createLogger('minutes/main');
 
@@ -121,6 +123,20 @@ export async function initializeMinutesChannel(automationOptions?: {
     app.getPath('userData'),
     RECORDING_PCM_STORAGE_DIR
   );
+  const videoMp4Support = new VideoMp4Support(app.getPath('userData'));
+  const videoMp4Exporter = new VideoMp4Exporter({
+    recordingsDir,
+    resolveFfmpegPath: async () => {
+      const support = await videoMp4Support.resolve(true);
+      if (!support) {
+        throw new Error('Podpora MP4 není dostupná.');
+      }
+      return support.path;
+    },
+  });
+  app.once('before-quit', () => {
+    videoMp4Exporter.cancelActive();
+  });
   if (migrationError) {
     log.error(
       'failed to migrate recordings to Documents; using app storage',
@@ -328,6 +344,42 @@ export async function initializeMinutesChannel(automationOptions?: {
     await ensureDir(recordingsDir);
     return listCallRecordings(recordingsDir);
   });
+
+  ipcMain.handle('minutes:get-recording-mp4-support', async () => {
+    return videoMp4Support.getPublic();
+  });
+
+  ipcMain.handle(
+    'minutes:install-recording-mp4-support',
+    async (event, options: { recordingPath: string }) => {
+      return videoMp4Support.install(progress => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('minutes:recording-mp4-support-progress', {
+            ...progress,
+            recordingPath: options.recordingPath,
+          });
+        }
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:export-recording-mp4',
+    async (event, options: { recordingPath: string; durationMs: number }) => {
+      return videoMp4Exporter.export(options, progress => {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send('minutes:recording-mp4-export-progress', progress);
+        }
+      });
+    }
+  );
+
+  ipcMain.handle(
+    'minutes:cancel-recording-mp4-export',
+    async (_event, options: { recordingPath: string }) => {
+      return videoMp4Exporter.cancel(options.recordingPath);
+    }
+  );
 
   ipcMain.handle(
     'minutes:load-call-recording-output',
