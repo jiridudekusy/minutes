@@ -31,6 +31,14 @@ import {
 import type { CallRecordingOutput } from '../types.std.ts';
 import type { CallRecordingCatalogEntry } from '../recordingsCatalog.std.ts';
 import { getRecordingArtifactPaths } from '../recordingArtifacts.std.ts';
+import {
+  cancelRecordingMp4Export,
+  exportRecordingToMp4,
+  getRecordingMp4Support,
+  installRecordingMp4Support,
+  subscribeVideoMp4ExportProgress,
+  subscribeVideoMp4SupportProgress,
+} from '../videoMp4ExportService.preload.ts';
 import { useMinutesDraggableSurface } from './MinutesDraggableSurface.dom.tsx';
 
 type SendAction =
@@ -330,6 +338,13 @@ function HistoryRecordingCard({
   onRefresh: () => void;
   onSend: (entry: CallRecordingCatalogEntry, action: SendAction) => void;
 }>): JSX.Element {
+  const [mp4Export, setMp4Export] = useState<{
+    status: 'running' | 'failed';
+    percent: number;
+    detail?: string;
+    cancellable?: boolean;
+    error?: string;
+  } | null>(null);
   const durationLabel =
     entry.durationMs > 0
       ? formatRecordingDuration(entry.durationMs)
@@ -339,6 +354,82 @@ function HistoryRecordingCard({
     (entry.transcriptWhisperModelFileName
       ? getWhisperModelLabel(entry.transcriptWhisperModelFileName)
       : null);
+
+  useEffect(() => {
+    const unsubscribeExport = subscribeVideoMp4ExportProgress(progress => {
+      if (progress.recordingPath === entry.recordingPath) {
+        setMp4Export({
+          status: 'running',
+          percent: progress.percent,
+          detail: 'Převádím video do MP4…',
+          cancellable: true,
+        });
+      }
+    });
+    const unsubscribeSupport = subscribeVideoMp4SupportProgress(progress => {
+      if (progress.recordingPath !== entry.recordingPath) {
+        return;
+      }
+      setMp4Export({
+        status: 'running',
+        percent: progress.percent,
+        detail: progress.detail,
+        cancellable: false,
+      });
+    });
+    return () => {
+      unsubscribeExport();
+      unsubscribeSupport();
+    };
+  }, [entry.recordingPath]);
+
+  const startMp4Export = useCallback(() => {
+    setMp4Export({
+      status: 'running',
+      percent: 0,
+      detail: 'Hledám systémový FFmpeg…',
+      cancellable: false,
+    });
+    drop(
+      getRecordingMp4Support()
+        .then(async support => {
+          if (support.source === 'missing') {
+            const accepted = window.confirm(
+              `Kompatibilní systémový FFmpeg nebyl nalezen. Stáhnout jednorázově podporu MP4 (${support.downloadLabel ?? 'velikost dle platformy'})?`
+            );
+            if (!accepted) {
+              setMp4Export(null);
+              return null;
+            }
+            await installRecordingMp4Support(entry.recordingPath);
+          }
+          setMp4Export({
+            status: 'running',
+            percent: 0,
+            detail:
+              support.source === 'system'
+                ? 'Používám systémový FFmpeg…'
+                : 'Převádím video do MP4…',
+            cancellable: true,
+          });
+          return exportRecordingToMp4({
+            recordingPath: entry.recordingPath,
+            durationMs: entry.durationMs,
+          });
+        })
+        .then(() => {
+          setMp4Export(null);
+          onRefresh();
+        })
+        .catch((error: unknown) => {
+          setMp4Export({
+            status: 'failed',
+            percent: 0,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        })
+    );
+  }, [entry.durationMs, entry.recordingPath, onRefresh]);
 
   return (
     <div className="MinutesTranscriptionQueue__job MinutesTranscriptionQueue__job--history">
@@ -364,6 +455,9 @@ function HistoryRecordingCard({
       <div className="MinutesTranscriptionQueue__badges">
         <ArtifactBadge label="Přepis" ready={entry.hasTranscript} />
         <ArtifactBadge label="Shrnutí" ready={entry.hasSummary} />
+        {entry.mediaKind === 'screen-share-video' ? (
+          <ArtifactBadge label="MP4" ready={entry.hasMp4Export} />
+        ) : null}
         {!entry.hasPcmSidecar ? (
           <span className="MinutesTranscriptionQueue__badge MinutesTranscriptionQueue__badge--warn">
             Chybí PCM
@@ -382,6 +476,27 @@ function HistoryRecordingCard({
             panelOpen: true,
           })}
         </div>
+      ) : null}
+      {mp4Export ? (
+        <>
+          <div
+            className={`MinutesTranscriptionQueue__job-status MinutesTranscriptionQueue__job-status--${
+              mp4Export.status === 'failed' ? 'failed' : 'processing'
+            }`}
+          >
+            {mp4Export.status === 'failed'
+              ? `MP4: ${mp4Export.error ?? 'Převod selhal'}`
+              : `${mp4Export.detail ?? 'Převod do MP4'} ${mp4Export.percent} %`}
+          </div>
+          {mp4Export.status === 'running' ? (
+            <div className="MinutesTranscriptionQueue__progress">
+              <div
+                className="MinutesTranscriptionQueue__progress-bar"
+                style={{ width: `${mp4Export.percent}%` }}
+              />
+            </div>
+          ) : null}
+        </>
       ) : null}
       <RecordingSendActions
         itemKey={entry.recordingPath}
@@ -469,6 +584,36 @@ function HistoryRecordingCard({
             Otevřít shrnutí
           </button>
         ) : null}
+        {entry.mediaKind === 'screen-share-video' ? (
+          mp4Export?.status === 'running' && mp4Export.cancellable ? (
+            <button
+              type="button"
+              onClick={() => {
+                drop(cancelRecordingMp4Export(entry.recordingPath));
+              }}
+            >
+              Zrušit převod MP4
+            </button>
+          ) : mp4Export?.status === 'running' ? (
+            <button type="button" disabled>
+              Připravuji MP4…
+            </button>
+          ) : (
+            <button type="button" onClick={startMp4Export}>
+              {entry.hasMp4Export ? 'Přegenerovat MP4' : 'Vytvořit MP4'}
+            </button>
+          )
+        ) : null}
+        {entry.hasMp4Export && entry.mp4Path ? (
+          <button
+            type="button"
+            onClick={() => {
+              ipcRenderer.send('show-item-in-folder', entry.mp4Path);
+            }}
+          >
+            Otevřít MP4
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => {
@@ -476,7 +621,7 @@ function HistoryRecordingCard({
           }}
         >
           {entry.mediaKind === 'screen-share-video'
-            ? 'Otevřít video'
+            ? 'Otevřít WebM'
             : 'Otevřít MP3'}
         </button>
       </div>
