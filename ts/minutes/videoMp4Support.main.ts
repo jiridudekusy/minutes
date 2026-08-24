@@ -39,11 +39,16 @@ async function sha256File(path: string): Promise<string> {
   return hash.digest('hex');
 }
 
-async function run(path: string, args: ReadonlyArray<string>): Promise<string> {
+async function run(
+  path: string,
+  args: ReadonlyArray<string>,
+  env?: NodeJS.ProcessEnv
+): Promise<string> {
   const { stdout, stderr } = await execFileAsync(path, [...args], {
     encoding: 'utf8',
     maxBuffer: MAX_COMMAND_OUTPUT_BYTES,
     windowsHide: true,
+    env: env ? { ...process.env, ...env } : process.env,
   });
   return `${stdout}\n${stderr}`;
 }
@@ -122,26 +127,31 @@ async function findFile(
   return nested.find(path => path != null) ?? null;
 }
 
-async function extractArchive(
-  artifact: Artifact,
+export function buildWindowsExpandArchiveArgs(): ReadonlyArray<string> {
+  return [
+    '-NoProfile',
+    '-NonInteractive',
+    '-Command',
+    "$ErrorActionPreference = 'Stop'; Expand-Archive -LiteralPath $env:MINUTES_MP4_ARCHIVE_PATH -DestinationPath $env:MINUTES_MP4_DESTINATION_PATH -Force",
+  ];
+}
+
+export async function extractFfmpegArchive(
+  archiveType: Artifact['archiveType'],
   archivePath: string,
   destination: string
 ): Promise<void> {
   await rm(destination, { recursive: true, force: true });
   await mkdir(destination, { recursive: true });
-  if (artifact.archiveType === 'tar.xz') {
+  if (archiveType === 'tar.xz') {
     await run('tar', ['-xJf', archivePath, '-C', destination]);
     return;
   }
   if (process.platform === 'win32') {
-    await run('powershell.exe', [
-      '-NoProfile',
-      '-NonInteractive',
-      '-Command',
-      'Expand-Archive -LiteralPath $args[0] -DestinationPath $args[1] -Force',
-      archivePath,
-      destination,
-    ]);
+    await run('powershell.exe', buildWindowsExpandArchiveArgs(), {
+      MINUTES_MP4_ARCHIVE_PATH: archivePath,
+      MINUTES_MP4_DESTINATION_PATH: destination,
+    });
     return;
   }
   await run('ditto', ['-x', '-k', archivePath, destination]);
@@ -238,9 +248,11 @@ export class VideoMp4Support {
     this.#installing = true;
     const artifact = this.#artifact;
     const targetDir = join(this.#toolsDir, this.#targetKey);
+    const archiveExtension =
+      artifact.archiveType === 'tar.xz' ? 'tar.xz' : 'zip';
     const archivePath = join(
       this.#toolsDir,
-      `${this.#targetKey}.${artifact.archiveType === 'tar.xz' ? 'tar.xz' : 'zip'}.partial`
+      `${this.#targetKey}.partial.${archiveExtension}`
     );
     const extractionDir = join(this.#toolsDir, `.extract-${this.#targetKey}`);
     const binaryPath = join(targetDir, artifact.binaryName);
@@ -265,7 +277,11 @@ export class VideoMp4Support {
         throw new Error('Kontrolní součet staženého FFmpeg nesouhlasí.');
       }
       onProgress({ percent: 94, detail: 'Rozbaluji podporu MP4…' });
-      await extractArchive(artifact, archivePath, extractionDir);
+      await extractFfmpegArchive(
+        artifact.archiveType,
+        archivePath,
+        extractionDir
+      );
       const extracted = await findFile(extractionDir, artifact.binaryName);
       if (!extracted) {
         throw new Error(`Archiv neobsahuje ${artifact.binaryName}.`);

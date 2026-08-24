@@ -154,6 +154,13 @@ jobs:
       - name: Typecheck
         run: pnpm run check:types
 
+      - name: Test Windows MP4 support
+        run: pnpm exec electron-mocha --timeout 10000 --extension ts,tsx,js,mjs --file ts/test-node/setup.preload.ts ts/test-node/minutes/videoMp4Support_test.main.ts
+        env:
+          NODE_ENV: test
+          NODE_OPTIONS: --import=tsx
+          LANG: en-us
+
       - name: Build unsigned beta installer
         run: pnpm run build:minutes:installer
         env:
