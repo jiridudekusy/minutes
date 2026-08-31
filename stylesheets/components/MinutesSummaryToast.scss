@@ -5,16 +5,16 @@
 
 .MinutesActivityBanner {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset-block-start: 0;
+  inset-inline: 0;
   z-index: 10000;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 20px;
+  padding-block: 12px;
+  padding-inline: 20px;
   color: variables.$color-gray-05;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
   pointer-events: auto;
@@ -34,7 +34,7 @@
   &__text {
     flex: 1 1 240px;
     min-width: 0;
-    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   &__actions {
@@ -48,7 +48,8 @@
       background: rgba(255, 255, 255, 0.12);
       color: inherit;
       cursor: pointer;
-      padding: 6px 12px;
+      padding-block: 6px;
+      padding-inline: 12px;
 
       &:disabled {
         opacity: 0.6;

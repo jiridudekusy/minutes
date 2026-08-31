@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Kaikki keskustelut"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} lukematon viesti} other {{count,number} lukematonta viestiä}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Tarkista verkkoyhteys."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Laitteella oleva päivämäärä on virheellinen. Säädä kellonaikaa ja yritä uudelleen. Laitteesi päiväys ja kellonaika ovat:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Vianetsintäloki"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Näytä kaikki"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Hae"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} yhteinen ryhmä} other {{count,number} yhteistä ryhmää}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopioi signal.group-linkki leikepöydälle"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Hae jäseniä"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Hae"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Etsi ylläpitäjiä"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Etsi yhteystietoja"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Suodata:"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Kaikki jäsenet"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Ylläpitäjät"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Yhteystiedot"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Ei hakutuloksia"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Ei tuloksia haulle \"{searchQuery}\""
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Ylläpitäjä"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Hakutulokset"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Lisää jäsen"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Lisää jäseniä"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Kutsu ryhmälinkillä"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Pyynnöt ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Estetyt ryhmät"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Estetty {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure -varmuuskopiointi"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Varoitus"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Jos poistat tunnusluvun käytöstä, menetät kaikki tietosi rekisteröityessäsi Signaliin uudelleen, ellet siirrä tietojasi toisesta iOS-laitteesta. Et voi myöskään ottaa rekisteröintiestoa käyttöön, jos tunnusluku on pois päältä."
+    "messageformat": "Jos poistat PIN-koodin käytöstä, menetät kaikki tietosi rekisteröityessäsi Signaliin uudelleen. Et voi myöskään ottaa rekisteröintiestoa käyttöön, jos PIN-koodi on pois päältä."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Poista tunnusluku käytöstä"
@@ -8694,16 +8745,16 @@
     "messageformat": "Pieniä säätöjä, virheenkorjauksia ja suorituskykyparannuksia. Kiitos, että käytät Signalia!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Kyselyitä voi tehdä nyt myös yksittäisissä keskusteluissa."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Ryhmän ylläpitäjät voivat nyt lopettaa keskustelut ryhmäasetuksissa olevan uuden Sulje ryhmä -vaihtoehdon avulla. Ryhmän lopettaminen estää ryhmän jäseniä lähettämästä viestejä tai aloittamasta puheluita, ja se poistaa myös kutsutoiminnon käytöstä."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Esittelyssä katoavat puhelutapahtumat: kun olet asentanut tämän päivityksen, kaikki sen jälkeiset vastaamattomat, lähtevät ja vastatut puhelut katoavat automaattisesti keskusteluista, joissa katoavat viestit ovat käytössä."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Voit tilata asennettuja tarrapaketteja uudelleen, ettei kulu suotta aikaa nykyisten suosikkien kaivamiseen esiin."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Olemme myös helpottaneet ryhmän jäsenten hakua ryhmän asetussivulla."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Lisäsimme ulkoasuasetuksiin kaksi uutta suurennustasoa (110 % ja 90 %)."
   }
 }

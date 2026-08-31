@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "सभी चैट"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} अनरीड मैसेज} other {{count,number} अनरीड मैसेज}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "अपना इंटरनेट कनेक्शन देखें।"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "आपके डिवाइस की तारीख गलत है। अपने डिवाइस की घड़ी ठीक करें और फिर से कोशिश करें। आपके डिवाइस में तारीख और समय:"
   },
   "icu:submitDebugLog": {
     "messageformat": "डीबग लॉग"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "सभी को देखें"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "खोजें"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} ग्रुप कॉमन है} other {{count,number} ग्रुप कॉमन हैं}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "signal.group लिंक को क्लिपबोर्ड पर कॉपी करें"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "मेंबर खोजें"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "खोजें"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "ऐडमिन खोजें"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "कॉन्टैक्ट खोजें"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "फ़िल्टर"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "सभी सदस्य"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "ऐडमिन"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "कॉन्टैक्ट"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "कोई नतीजा नहीं मिला"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "“{searchQuery}” के लिए कोई नतीजा नहीं मिला"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "ऐडमिन"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "खोज नतीजे"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "सदस्य जोड़ें"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "सदस्य जोड़ें"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "ग्रुप लिंक के ज़रिए इनवाइट भेजें"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "अनुरोध ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "ब्लॉक किए गए ग्रुप"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "{blockedAt} को ब्लॉक किया गया"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal सिक्योर बैकअप"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "चेतावनी"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "अगर आपने पिन हटा दिया है, तो Signal पर दोबारा रजिस्टर करने पर आपका सारा डेटा मिट जाएगा। हालांकि, अगर आपने मैन्युअल तरीके से डेटा का बैकअप लिया है, तो आपके पास रीस्टोर करने का विकल्प रहेगा। पिन बंद रहने पर रजिस्ट्रेशन लॉक चालू नहीं किया जा सकता।"
+    "messageformat": "अगर आपने पिन की सुविधा हटा दी है, तो Signal पर दोबारा रजिस्टर करने पर आपका सारा डेटा मिट जाएगा। पिन की सुविधा बंद रहने पर रजिस्ट्रेशन लॉक चालू नहीं किया जा सकता।"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "पिन की सुविधा बंद करें"
@@ -8694,16 +8745,16 @@
     "messageformat": "कई छोटे सुधार किए गए हैं, बग हटाए गए हैं, और परफ़ॉर्मेंस बेहतर की गई है। Signal के साथ बने रहने के लिए धन्यवाद!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "अब अलग-अलग चैट में भी पोल बनाए जा सकते हैं। असमंजस में रहने वाले किसी दोस्त के सामने चुनिंदा विकल्पों की सूची पेश करें। “क्या मैं आपको पसंद हूं? हां/नहीं/शायद” पोल बनाकर अपने पहले प्यार को चिट्ठी थमाने के उस जादुई एहसास को दोबारा महसूस करें।"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "ग्रुप ऐडमिन अब ग्रुप सेटिंग में मौजूद 'ग्रुप बंद करें' वाले नए विकल्प का इस्तेमाल करके, चैट को आसानी से बंद कर सकते हैं। ग्रुप को बंद करने से ग्रुप के मेंबर मैसेज नहीं भेज पाएंगे और न ही कॉल कर पाएंगे। इसके अलावा, इनवाइट सुविधा भी बंद हो जाएगी। अब आप पिछले साल के 'सिलाई-बुनाई' मीटअप ग्रुप को बंद करके यह पक्का कर लें कि हर कोई सही थ्रेड से जुड़ा रहे, और इसके बाद ही एक नए ग्रुप का तानाबाना बुनें।"
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "पेश है 'गायब होने वाले कॉल इवेंट': इस अपडेट को इंस्टॉल करने के बाद, जो भी मिस्ड, आउटगोइंग, और रिसीव की गईं कॉल होंगी, उनका रिकॉर्ड ऐसे सभी चैट से अपने-आप गायब हो जाएगा जिनमें मैसेज गायब होने की सुविधा चालू है।"
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "अब अपने इंस्टॉल किए स्टिकर पैक का क्रम बदला जा सकता है, ताकि आपके नए पसंदीदा पैक हमेशा आसानी से मिलें।"
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "हमने ग्रुप सेटिंग पेज पर ग्रुप मेंबर को खोजना आसान बना दिया है। इससे आपको फटाफट यह पता चल जाएगा कि तीसरे सालाना फ़ैमिली रियूनियन BBQ ग्रुप में आपकी मां ने दूर की उस मौसेरी बहन या फुफेरे भाई को भी जोड़ दिया है, जिसे आप मुश्किल से पहचानते हैं।"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "हमने अपीयरेंस सेटिंग में ज़ूम के दो नए लेवल जोड़े हैं, ताकि आप आसानी से अपने मैसेज 110% (या 90%) ज़ूम करके देख सकें।"
   }
 }

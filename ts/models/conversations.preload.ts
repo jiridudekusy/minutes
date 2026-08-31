@@ -118,7 +118,7 @@ import { migrateColor } from '../util/migrateColor.node.ts';
 import { isNotNil } from '../util/isNotNil.std.ts';
 import { signalProtocolStore } from '../SignalProtocolStore.preload.ts';
 import { shouldSaveNotificationAvatarToDisk } from '../services/notifications.preload.ts';
-import { storageServiceUploadJob } from '../services/storage.preload.ts';
+import { runStorageServiceUploadJob } from '../services/storage.preload.ts';
 import { challengeHandler } from '../services/challengeHandler.preload.ts';
 import { sendUsernameChangeSyncMessage } from '../services/username.preload.ts';
 import { getSendOptions } from '../util/getSendOptions.preload.ts';
@@ -188,6 +188,7 @@ import * as Errors from '../types/errors.std.ts';
 import { isMessageUnread } from '../util/isMessageUnread.std.ts';
 import type { SenderKeyTargetType } from '../util/sendToGroup.preload.ts';
 import {
+  getOurAddress,
   resetSenderKey,
   sendContentMessageToGroup,
 } from '../util/sendToGroup.preload.ts';
@@ -286,6 +287,7 @@ import { canConversationOnlyBeMutedAlways } from '../conversations/canConversati
 import { keyTransparency } from '../services/keyTransparency.preload.ts';
 import type { PollSource } from '../messageModifiers/Polls.preload.ts';
 import { isSignalServiceId } from '../types/SignalConversation.std.ts';
+import { QualifiedAddress } from '../types/QualifiedAddress.std.ts';
 
 const { compact, isNumber, throttle, debounce } = lodash;
 
@@ -1002,7 +1004,13 @@ export class ConversationModel {
     return isBlocked(this.attributes);
   }
 
-  block({ viaStorageServiceSync = false } = {}): void {
+  block({
+    viaStorageServiceSync,
+    timestamp,
+  }: {
+    viaStorageServiceSync: boolean;
+    timestamp: number | undefined;
+  }): void {
     if (isMe(this.attributes)) {
       log.error(`${this.idForLogging()}: Refusing to block Note to Self`);
       return;
@@ -1013,22 +1021,22 @@ export class ConversationModel {
 
     const serviceId = this.getServiceId();
     if (isSignalConversation(this)) {
-      drop(itemStorage.blocked.setReleaseNotesChatBlocked(true));
+      drop(itemStorage.blocked.setReleaseNotesChatBlocked(true, timestamp));
       blocked = true;
     } else if (serviceId && isAciString(serviceId)) {
-      drop(itemStorage.blocked.addBlockedServiceId(serviceId));
+      drop(itemStorage.blocked.addBlockedServiceId(serviceId, timestamp));
       blocked = true;
     }
 
     const e164 = this.get('e164');
     if (e164) {
-      drop(itemStorage.blocked.addBlockedNumber(e164));
+      drop(itemStorage.blocked.addBlockedNumber(e164, timestamp));
       blocked = true;
     }
 
     const groupId = this.get('groupId');
     if (groupId) {
-      drop(itemStorage.blocked.addBlockedGroup(groupId));
+      drop(itemStorage.blocked.addBlockedGroup(groupId, timestamp));
       blocked = true;
     }
 
@@ -1047,7 +1055,7 @@ export class ConversationModel {
 
     const serviceId = this.getServiceId();
     if (serviceId && isSignalServiceId(serviceId)) {
-      drop(itemStorage.blocked.setReleaseNotesChatBlocked(false));
+      drop(itemStorage.blocked.setReleaseNotesChatBlocked(false, undefined));
       unblocked = true;
     } else if (serviceId && isAciString(serviceId)) {
       drop(itemStorage.blocked.removeBlockedServiceId(serviceId));
@@ -1115,10 +1123,11 @@ export class ConversationModel {
         ? {
             source: MessageRequestResponseSource.STORAGE_SERVICE,
             learnedAtMs: Date.now(),
+            blockedAt: undefined,
           }
         : {
             source: MessageRequestResponseSource.LOCAL,
-            timestamp: Date.now(),
+            blockedAt: Date.now(),
           },
       { shouldSave: false }
     );
@@ -2196,7 +2205,23 @@ export class ConversationModel {
       return;
     }
 
+    const wasBlockedByNumber = oldValue
+      ? itemStorage.blocked.getBlockedNumbers().get(oldValue)
+      : undefined;
+    const serviceId = this.get('serviceId');
+    const wasBlockedByServiceId = serviceId
+      ? itemStorage.blocked.getBlockedServiceIds().get(serviceId)
+      : undefined;
+
     this.set({ e164: e164 || undefined });
+
+    if (wasBlockedByNumber || wasBlockedByServiceId) {
+      this.block({
+        viaStorageServiceSync: false,
+        timestamp:
+          wasBlockedByNumber?.blockedAt ?? wasBlockedByServiceId?.blockedAt,
+      });
+    }
 
     // This user changed their phone number
     if (oldValue && e164) {
@@ -2214,11 +2239,27 @@ export class ConversationModel {
       return;
     }
 
+    const wasBlockedByServiceId = oldValue
+      ? itemStorage.blocked.getBlockedServiceIds().get(oldValue)
+      : undefined;
+    const e164 = this.get('e164');
+    const wasBlockedByNumber = e164
+      ? itemStorage.blocked.getBlockedNumbers().get(e164)
+      : undefined;
+
     this.set({
       serviceId: serviceId
         ? normalizeServiceId(serviceId, 'Conversation.updateServiceId')
         : undefined,
     });
+
+    if (wasBlockedByServiceId || wasBlockedByNumber) {
+      this.block({
+        viaStorageServiceSync: false,
+        timestamp:
+          wasBlockedByNumber?.blockedAt ?? wasBlockedByServiceId?.blockedAt,
+      });
+    }
     drop(DataWriter.updateConversation(this.attributes));
     window.ConversationController.idUpdated(this, 'serviceId', oldValue);
 
@@ -2462,9 +2503,9 @@ export class ConversationModel {
     const { source } = responseInfo;
     switch (source) {
       case MessageRequestResponseSource.LOCAL:
-        receivedAtMs = responseInfo.timestamp;
+        receivedAtMs = responseInfo.blockedAt;
         receivedAtCounter = incrementMessageCounter();
-        timestamp = responseInfo.timestamp;
+        timestamp = responseInfo.blockedAt;
         break;
       case MessageRequestResponseSource.MRR_SYNC:
         receivedAtMs = responseInfo.receivedAtMs;
@@ -2605,7 +2646,10 @@ export class ConversationModel {
         isSpam?: boolean;
       }) => {
         if (isBlock) {
-          this.block({ viaStorageServiceSync });
+          this.block({
+            viaStorageServiceSync,
+            timestamp: responseInfo.blockedAt,
+          });
         }
 
         if (isBlock || isDelete) {
@@ -4538,7 +4582,10 @@ export class ConversationModel {
         log.info('updateUsername: clearing username corruption');
         await itemStorage.remove('usernameCorrupted');
       }
-      if (!fromStorageService) {
+      if (
+        !fromStorageService &&
+        window.ConversationController.doWeHaveOtherDevices()
+      ) {
         await sendUsernameChangeSyncMessage();
       }
     }
@@ -5537,6 +5584,15 @@ export class ConversationModel {
       (this.get('left') || this.get('terminated'))
     ) {
       await safeCleanupAvatarFiles(this.attributes);
+      const senderKeyInfo = this.get('senderKeyInfo');
+      if (senderKeyInfo?.distributionId) {
+        const ourAddress = getOurAddress();
+        const ourAci = itemStorage.user.getCheckedAci();
+        await signalProtocolStore.removeSenderKey(
+          new QualifiedAddress(ourAci, ourAddress),
+          senderKeyInfo.distributionId
+        );
+      }
       this.set(GROUP_CLEANUP_FIELDS);
     }
 
@@ -5716,7 +5772,7 @@ export class ConversationModel {
     this.set({ needsStorageServiceSync: true });
 
     void this.queueJob('captureChange', async () => {
-      storageServiceUploadJob({ reason: `captureChange/${logMessage}` });
+      runStorageServiceUploadJob({ reason: `captureChange/${logMessage}` });
     });
   }
 

@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Összes csevegés"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} olvasatlan üzenet} other {{count,number} olvasatlan üzenet}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Ellenőrizd hálózati kapcsolatodat!"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Az eszközöd által jelzett dátum pontatlan. Állítsd be a pontos időt és próbáld újra! Az eszköz dátuma és ideje:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Fejlesztői naplófájl"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Összes megtekintése"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Keresés"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} közös csoport} other {{count,number} közös csoport}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Másold a signal.group hivatkozást a vágólapra"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Tagok keresése"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Keresés"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Adminisztrátorok keresése"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Névjegyek keresése"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Szűrő"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Összes tag"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Adminok"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontaktok"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nincs találat"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Nincs találat a következőre: „{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Keresési eredmények"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Tag hozzáadása"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Tagok hozzáadása"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Meghívás csoportlinken keresztül"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Kérelmek ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Letiltott csoportok"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Letiltás időpontja: {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Biztonságos Biztonsági mentések"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Figyelmeztetés"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Ha letiltod a PIN kódot, a Signal újraregisztrálásakor minden adatot elvesztesz, hacsak nem közvetlenül az adatátvitel funkcióval költöztetted át adataidat régi telefonodról. A Regisztrációs zár funkciót csak bekapcsolt PIN funkcióval használhatod. A PIN használata az üzenetek megőrzését nem biztosítja (csak kontaktlistádat, beállításaidat), azokat régi telefonodról viheted csak át újraregisztráláskor."
+    "messageformat": "A PIN-kódod letiltásával egy esetleges újraregisztráció során az összes Signal adatod el fog veszni. A Regisztrációs zár nem kapcsolható be, amíg a PIN-kód le van tiltva."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "PIN letiltása"
@@ -8694,16 +8745,16 @@
     "messageformat": "Apró finomítások, hibajavítások és teljesítménynövelések. Köszönjük, hogy a Signalt használod!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Szavazások mostantól egyéni csevegésekben is létrehozhatók."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "A csoport adminisztrátorai mostantól lezárhatják a csevegéseket a csoportbeállításokban található új „Csoport megszüntetése” opcióval. A csoport megszüntetése megakadályozza, hogy a csoport tagjai üzeneteket küldjenek vagy hívásokat indítsanak, valamint letiltja a meghívókat is."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Bemutatjuk az eltűnő híváseseményeket: a frissítés telepítése után a nem fogadott, a kimenő és a fogadott hívások mostantól automatikusan eltűnnek minden olyan csevegésből, ahol az eltűnő üzenetek engedélyezve vannak."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Mostantól átrendezheted a telepített matricacsomagokat, így az új kedvenceid nem ragadnak a sor végére."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Megkönnyítettük a csoporttagok keresését a csoportbeállítások oldalon."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Két új nagyítási szintet adtunk hozzá a megjelenési beállításokhoz (110% és 90%)."
   }
 }

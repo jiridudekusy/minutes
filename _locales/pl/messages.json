@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Wszystkie czaty"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} nieodczytana wiadomość} few {{count,number} nieodczytane wiadomości} many {{count,number} nieodczytanych wiadomości} other {{count,number} nieodczytanej wiadomości}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Sprawdź połączenie z internetem."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Data na urządzeniu jest niepoprawna. Ustaw poprawną datę oraz godzinę i spróbuj ponownie. Data i godzina na Twoim urządzeniu:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Dziennik debugowania"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Wyświetl wszystkich"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Wyszukaj"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} wspólna grupa} few {{count,number} wspólne grupy} many {{count,number} wspólnych grup} other {{count,number} wspólnej grupy}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Skopiuj link signal.group do schowka"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Wyszukaj osoby w grupie"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Wyszukaj"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Wyszukaj administratorów"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Wyszukaj kontakty"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtruj"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Wszystkie osoby z grupy"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratorzy"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakty"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nic nie znaleziono"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Nie znaleziono niczego pasującego do hasła „{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrator"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Wyniki wyszukiwania"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Dodaj osobę"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Dodaj osoby"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Zaproś do grupy przez link"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Prośby ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Zablokowane grupy"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Zablokowano {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Bezpieczne kopie zapasowe Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Uwaga"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Jeśli wyłączysz PIN, przy ponownej rejestracji w aplikacji Signal stracisz wszystkie dane (chyba że przeniesiesz je z innego urządzenia z systemem iOS). Gdy PIN jest wyłączony, nie można też korzystać z funkcji blokady rejestracji."
+    "messageformat": "Jeśli wyłączysz PIN, przy ponownej rejestracji w aplikacji Signal stracisz wszystkie dane. Gdy PIN jest wyłączony, nie można też korzystać z funkcji blokady rejestracji."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Wyłącz PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Drobne ulepszenia, poprawki błędów i większa funkcjonalność. Cieszymy się, że korzystasz z aplikacji Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Od teraz możesz tworzyć ankiety również w czatach prywatnych. Kiedy druga osoba nie może się zdecydować, podsuń jej gotowe opcje w ankiecie – od „pizza czy ramen?” po klasyczne „Podobam Ci się? Tak / Nie / Może”, jak na karteczkach krążących niegdyś po klasie na matmie."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Administratorzy grup mogą teraz zakończyć czat dzięki nowej opcji „Rozwiąż grupę” w ustawieniach grupy. Po rozwiązaniu grupy należące do niej osoby nie mogą już wysyłać wiadomości, rozpoczynać połączeń ani zapraszać nowych osób. Teraz można mieć pewność, że nikt przez pomyłkę nie wyśle mapki ze wskazówkami dojazdu w grupie z zeszłorocznych wakacji."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Wprowadzamy znikające informacje o połączeniach. Nieodebrane, wychodzące i odebrane połączenia wykonane po zainstalowaniu tej aktualizacji będą teraz automatycznie znikać we wszystkich czatach, w których włączono znikające wiadomości."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Od teraz możesz zmieniać kolejność zainstalowanych pakietów naklejek, dzięki czemu szybciej znajdziesz te, których używasz najchętniej."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Ułatwiliśmy wyszukiwanie osób w ustawieniach grupy. Teraz bez przekopywania się przez całą rozmowę sprawdzisz, czy do grupy na rodzinnego grilla trafił już ten kuzyn, którego imienia nigdy nie pamiętasz."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Dodaliśmy dwa nowe poziomy powiększenia w ustawieniach wyglądu. Od teraz nawet przy minimalnym wysiłku możesz w swoich wiadomościach dawać z siebie 110% (albo 90%)."
   }
 }

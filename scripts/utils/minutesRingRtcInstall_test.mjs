@@ -23,7 +23,7 @@ const validManifest = {
 };
 
 describe('validateMinutesRingRtcPackage', () => {
-  it('accepts the pinned Signal 8.23 Minutes package', () => {
+  it('accepts the pinned Signal 8.25 Minutes package', () => {
     assert.doesNotThrow(() => validateMinutesRingRtcPackage(validManifest));
   });
 

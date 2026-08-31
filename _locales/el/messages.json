@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Όλες οι συνομιλίες"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} μη αναγνωσμένο μήνυμα} other {{count,number} μη αναγνωσμένα μηνύματα}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Έλεγξε τη σύνδεση στο δικτύου."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Η ημερομηνία της συσκευής σου δεν είναι ακριβής. Ρύθμισε το ρολόι σου και δοκίμασε ξανά. Η ημερομηνία και η ώρα της συσκευής σου είναι:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Αρχείο καταγραφής αποσφαλμάτωσης"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Προβολή όλων"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Αναζήτηση"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} κοινή ομάδα} other {{count,number} κοινές ομάδες}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Αντίγραψε τον σύνδεσμο signal.group στο πρόχειρο"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Αναζήτηση μελών"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Αναζήτηση"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Αναζήτηση διαχειριστών"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Αναζήτηση επαφών"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Φιλτράρισμα"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Όλα τα μέλη"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Διαχειριστές"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Επαφές"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Δεν υπάρχουν αποτελέσματα"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Δεν βρέθηκαν αποτελέσματα για “{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Διαχειριστής/τρια"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Αποτελέσματα αναζήτησης"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Προσθήκη μέλους"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Προσθήκη μελών"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Πρόσκληση μέσω συνδέσμου ομάδας"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Αιτήματα ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Αποκλεισμένες ομάδες"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Αποκλείστηκε στις {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure Backups"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Προσοχή"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Αν απενεργοποιήσεις το PIN, θα χάσεις όλα τα δεδομένα σου όταν επανεγγραφείς στο Signal, εκτός αν τα μεταφέρεις από άλλη iOS συσκευή. Δεν θα μπορείς να ενεργοποιήσεις το Κλείδωμα Εγγραφής όσο το PIN είναι απενεργοποιημένο."
+    "messageformat": "Αν απενεργοποιήσεις το PIN, θα χάσεις όλα τα δεδομένα όταν επανεγγραφείς στο Signal. Δεν μπορείς να ενεργοποιήσεις το Κλείδωμα Εγγραφής όσο το PIN είναι απενεργοποιημένο."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Απενεργοποίηση PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Μικρές τροποποιήσεις, επιδιορθώσεις σφαλμάτων και βελτιώσεις απόδοσης. Ευχαριστούμε που χρησιμοποιείς το Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Πλέον, μπορούν να δημιουργούνται δημοσκοπήσεις και σε ατομικές συνομιλίες. Κάνε δώρο μια επιλεγμένη λίστα επιλογών στο αναποφάσιστο φιλαράκι σου ή ξαναζήσε τη μαγεία του να δίνεις ένα σημείωμα στο άτομο που σου αρέσει, δημιουργώντας μια ψηφοφορία με θέμα «Σου αρέσω; Ναι/Όχι/Ίσως»."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Οι διαχειριστές των ομάδων μπορούν πλέον να κλείσουν τις συνομιλίες χρησιμοποιώντας τη νέα επιλογή «Τερματισμός ομάδας» στις ρυθμίσεις της ομάδας. Ο τερματισμός μιας ομάδας εμποδίζει τα μέλη της να στέλνουν μηνύματα ή να ξεκινάνε κλήσεις, ενώ απενεργοποιεί και τις προσκλήσεις."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Σας παρουσιάζουμε τις εκδηλώσεις κλήσης που εξαφανίζονται: Οι αναπάντητες, εξερχόμενες και εισερχόμενες κλήσεις που πραγματοποιούνται μετά την εγκατάσταση αυτής της ενημέρωσης θα εξαφανίζονται πλέον αυτόματα σε κάθε συνομιλία όπου έχουν ενεργοποιηθεί τα μηνύματα που εξαφανίζονται."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Τώρα μπορείς να αλλάξεις τη σειρά των εγκατεστημένων πακέτων αυτοκόλλητων, ώστε τα νέα σου αγαπημένα να μην μένουν πίσω."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Διευκολύναμε την αναζήτηση μελών της ομάδας στη σελίδα ρυθμίσεων της ομάδας."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Προσθέσαμε δύο νέα επίπεδα μεγέθυνσης στις ρυθμίσεις εμφάνισης (110% και 90%)."
   }
 }

@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Tüm sohbetler"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} okunmamış ileti} other {{count,number} okunmamış ileti}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Ağ bağlantınızı kontrol edin."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Cihaz tarihin hatalı. Saatini ayarlayıp tekrar dene. Cihaz tarihin ve saatin:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Hata ayıklama günlüğü"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Tümünü gör"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Ara"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} ortak grup} other {{count,number} ortak grup}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "signal.group bağlantısını panoya kopyala"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Üye ara"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Ara"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Yöneticileri ara"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Kişileri ara"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrele"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Tüm üyeler"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Yöneticiler"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kişiler"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Sonuç yok"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "\"{searchQuery}\" için sonuç yok"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Yönetici"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Arama Sonuçları"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Üye ekle"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Üye ekle"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Grup bağlantısıyla davet et"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "İstekler ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Engellenen Gruplar"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Engellenme saati: {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Güvenli Yedeklemeler"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Uyarı"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "PIN'i devre dışı bırakırsan, verilerini başka bir iOS cihazından aktarmadığın sürece Signal'a yeniden kaydolduğunda tüm verilerini kaybedersin. PIN devre dışıyken Kayıt Kilidi'ni etkinleştiremezsin."
+    "messageformat": "PIN'i devre dışı bırakırsan, Signal'a yeniden kaydolduğunda tüm verileri kaybedersin. PIN devre dışı kaldığında, Kaydolma Kilidini açamazsın."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "PIN'i devre dışı bırak"
@@ -8694,16 +8745,16 @@
     "messageformat": "Küçük ince ayarlar, hata düzeltmeleri ve performans geliştirmeleri yaptık. Signal'i kullandığın için teşekkürler!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Anketler artık bireysel sohbetlerde de oluşturulabiliyor. Kararsız bir arkadaşına seçenek listesi sunabilir veya hoşlandığın kişiyi \"Beni beğeniyor musun? Evet/Hayır/Belki\" şeklinde bir anketle şaşırtabilirsin."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Grup yöneticileri artık grup ayarlarındaki yeni \"Grubu sonlandır\" seçeneğiyle sohbetleri sona erdirebiliyor. Bir grubun sonlandırılmasıyla, grup üyelerinin mesaj göndermeleri veya arama başlatmaları engellenir ve davetler de devre dışı kalır. Artık kullanılmayan grubu sonlandırıp, herkesin yeni grupta devam etmesini sağlayabilirsin."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Kaybolan arama etkinlikleri: Bu güncellemeyi yükledikten sonra gerçekleşen cevapsız, yapılan ve gelen arama kayıtları, kaybolan mesajların etkinleştirildiği sohbetlerde otomatik olarak kaybolur."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Bundan sonra yüklenen çıkartma paketlerini yeniden sipariş edebilirsin böylece yeni favorilerin sıranın gerisine düşmez."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Grup ayarları sayfasında grup üyelerini aramayı kolaylaştırdık."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Görünüm ayarlarına iki yeni yakınlaştırma seviyesi ekledik (%110 ve %90)."
   }
 }

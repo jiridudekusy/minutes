@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Visi pokalbiai"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} neskaityta žinutė} few {{count,number} neskaitytos žinutės} many {{count,number} neskaitytų žinučių} other {{count,number} neskaitytų žinučių}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Patikrinkite savo tinklo ryšį."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Jūsų įrenginio data netiksli. Pakoreguokite laikrodį ir bandykite vėl. Jūsų įrenginio data ir laikas:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Derinimo žurnalas"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Rodyti visus"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Ieškoti"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} bendra grupė} few {{count,number} bendros grupės} many {{count,number} bendrų grupių} other {{count,number} bendra grupė}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Nukopijuokite signal.group nuorodą į iškarpinę"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Ieškoti narių"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Ieškoti"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Ieškoti administratorių"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Ieškoti adresatų"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtras"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Visi nariai"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratoriai"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Adresatai"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nėra rezultatų"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Paieška „{searchQuery}“ be rezultatų"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administratorius"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Paieškos rezultatai"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Pridėti narį"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Pridėti narius"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Kviesti per grupės nuorodą"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Prašymai ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Užblokuotos grupės"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Užblokuotas {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "„Signal“ saugiosios atsarginės kopijos"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Įspėjimas"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Jei išjungsite PIN kodą, tuomet registruodamiesi iš naujo „Signal“ programėlėje prarasite visus duomenis, nebent perkelsite juos iš kito „iOS“ įrenginio. Tol, kol PIN kodas yra išjungtas, negalėsite įjungti Registracijos užrakto."
+    "messageformat": "Jei išjungsite PIN, tuomet registruodamiesi iš naujo „Signal“ programėlėje prarasite visus duomenis. Tol, kol PIN kodas yra išjungtas, negalėsite įjungti registracijos užrakto."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Išjungti PIN kodą"
@@ -8694,16 +8745,16 @@
     "messageformat": "Smulkūs patobulinimai, klaidų pataisymai ir veikimo pagerinimas. Ačiū, kad naudoji „Signal“!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Dabar apklausas galima kurti ir individualiuose pokalbiuose."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Nuo šiol grupės administratoriai gali užbaigti pokalbius su naująja parinktimi „Uždaryti grupę“ grupės nustatymuose. Uždarius grupę jos nariai nebegalės siųsti žinučių ir skambinti, be to, bus išjungti ir pakvietimai jungtis prie grupės."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Pristatome skambučių įvykius: praleisti, išsiunčiamieji ir gauti skambučiai, įvykę jums jau įdiegus ši atnaujinimą, dabar automatiškai dings bet kuriame pokalbyje, kuriame įjungtos dingstančios žinutės."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Dabar galite pakeisti įdiegtų lipdukų paketų eilės tvarką, kad naujai pamėgti lipdukai nepasimestų eilės gale."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Palengvinome galimybę ieškoti grupės narių grupės nustatymų puslapyje."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Išvaizdos nustatymuose pridėjome du naujus mastelio lygius (110 % ir 90 %)."
   }
 }

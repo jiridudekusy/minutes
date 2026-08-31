@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Tots els xats"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} missatge sense llegir} other {{count,number} missatges sense llegir}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Comproveu la connexió a xarxa."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "La data del dispositiu no és la correcta. Ajusta el teu rellotge i torna-ho a provar. La data i l'hora del teu dispositiu:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Registre de depuració"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Mostra-ho tot"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Cerca"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} grup en comú} other {{count,number} grups en comú}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Copiar l'enllaç signal.group al porta-retalls"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Buscar membres"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Cerca"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Buscar admins"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Buscar contactes"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrar"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Tots els membres"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administradors"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Contactes"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "No hi ha cap resultat."
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "No s'ha trobat cap resultat per a «{searchQuery}»"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrador"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Resultats de la cerca"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Afegeix membre"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Afegeix-hi membres"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Convidar mitjançant enllaç de grup"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Sol·licituds ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Grups bloquejats"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloquejat el {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Còpies de seguretat segures de Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Advertiment"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Si desactiveu el PIN, perdreu totes les dades quan torneu a registrar-vos al Signal, si no és que les transferiu des d'un altre dispositiu iOS. No podeu activar el blocatge de registre mentre el PIN estigui desactivat."
+    "messageformat": "Si desactives el PIN, perdràs totes les dades quan et tornis a registrar a Signal. No podràs activar el bloqueig de registre mentre el PIN estigui desactivat."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Desactiva el PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Petits ajustos, correccions d'errors i tasques de millora de rendiment. Gràcies per utilitzar Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "A partir d'ara, també podràs crear enquestes als xats individuals."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Ara, els admins de grup poden finalitzar els xats amb la nova opció \"Tancar grup\" als ajustos del grup. Tancar un grup evita que els seus membres puguin enviar missatges o iniciar trucades. També desactiva les invitacions al grup."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Arriben les trucades a desaparèixer: totes les trucades que facis o rebis després d'instal·lar aquesta actualització desapareixeran de qualsevol xat en què estiguin habilitats els missatges a desaparèixer."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Ara pots ordenar els paquets d'stickers que tinguis instal·lats com vulguis i tenir sempre els teus stickers preferits a mà."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Hem fet que sigui més fàcil buscar membres del grup a la pàgina d'ajustos."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Hem afegit dos nous nivells de zoom als ajustos d'aparença (110% i 90%)."
   }
 }

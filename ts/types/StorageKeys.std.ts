@@ -29,6 +29,8 @@ import type { LocalBackupExportMetadata } from './LocalExport.std.ts';
 import type { ServerAlertsType } from './ServerAlert.std.ts';
 import type { AssertSameMembers } from './Util.std.ts';
 import type { Emoji } from '../axo/emoji.std.ts';
+import type { PartialRegistrationType } from './StandaloneRegistration.std.ts';
+import type { RegistrationQueueJobState } from '../jobs/registrationJobQueue.preload.ts';
 
 export type AutoDownloadAttachmentType = {
   photos: boolean;
@@ -57,6 +59,19 @@ export type IdentityKeyMap = Record<
   }
 >;
 
+export type BlockedGroup = {
+  blockedAt: number | undefined;
+  groupId: string;
+};
+export type BlockedServiceId = {
+  blockedAt: number | undefined;
+  serviceId: ServiceIdString;
+};
+export type BlockedNumber = {
+  blockedAt: number | undefined;
+  e164: string;
+};
+
 export type StorageAccessType = {
   'always-relay-calls': boolean;
   'audio-notification': boolean;
@@ -64,8 +79,8 @@ export type StorageAccessType = {
   'auto-download-attachment': AutoDownloadAttachmentType;
   autoConvertEmoji: boolean;
   'badge-count-muted-conversations': boolean;
-  'blocked-groups': ReadonlyArray<string>;
-  'blocked-uuids': ReadonlyArray<ServiceIdString>;
+  'blocked-groups': ReadonlyArray<BlockedGroup>;
+  'blocked-uuids': ReadonlyArray<BlockedServiceId>;
   'call-ringtone-notification': boolean;
   'call-system-notification': boolean;
   lastCallQualitySurveyTime: number;
@@ -80,7 +95,7 @@ export type StorageAccessType = {
   audioMessage: boolean;
   attachmentMigration_isComplete: boolean;
   attachmentMigration_lastProcessedIndex: number;
-  blocked: ReadonlyArray<string>;
+  blocked: ReadonlyArray<BlockedNumber>;
   defaultConversationColor: DefaultConversationColorType;
 
   customColors: CustomColorsItemType;
@@ -227,6 +242,7 @@ export type StorageAccessType = {
   releaseNotesVersionWatermark: string;
   releaseNotesPreviousManifestHash: string;
   releaseNotesChatBlocked: boolean;
+  releaseNotesChatBlockedAt: number | undefined;
 
   // If present - we are downloading backup
   backupDownloadPath: string;
@@ -275,6 +291,9 @@ export type StorageAccessType = {
   allowSealedSenderFromAnyone: unknown;
 
   postRegistrationSyncsStatus: 'incomplete' | 'complete';
+  standaloneRegistrationPartialState: PartialRegistrationType | undefined;
+  registrationJobQueueState: RegistrationQueueJobState | undefined; // base64
+  temporaryRegistrationMasterKey: string | undefined;
 
   avatarsHaveBeenMigrated: boolean;
 
@@ -428,6 +447,7 @@ export const STORAGE_KEYS_TO_PRESERVE_WHEN_PRIMARY = [
   'read-receipt-setting',
   'blocked',
   'releaseNotesChatBlocked',
+  'releaseNotesChatBlockedAt',
   'device_name',
   'seenPinMessageDisappearingMessagesWarningCount',
   'usernameLastIntegrityCheck',
@@ -529,6 +549,9 @@ const STORAGE_KEYS_TO_REMOVE_AFTER_UNLINK = [
   'backupSubscriptionStatus',
   'isRestoredFromBackup',
   'postRegistrationSyncsStatus',
+  'standaloneRegistrationPartialState',
+  'registrationJobQueueState',
+  'temporaryRegistrationMasterKey',
   'avatarsHaveBeenMigrated',
   'lastDistinguishedTreeHead',
   'keyTransparencySelfHealth',

@@ -4,6 +4,8 @@ import type { FC, ReactNode } from 'react';
 import { memo, StrictMode } from 'react';
 import { AxoProvider } from '../axo/AxoProvider.dom.tsx';
 import type { AxoProviderProps } from '../axo/AxoProvider.dom.tsx';
+import type { AxoIntl } from '../axo/_internal/AxoIntl.dom.tsx';
+import type { LanguageTag } from '@signalapp/types';
 
 export type AppProviderProps = Readonly<{
   children: ReactNode;
@@ -12,7 +14,17 @@ export type AppProviderProps = Readonly<{
 export const AppProvider: FC<AppProviderProps> = memo(
   function AppProvider(props) {
     const { i18n } = window.SignalContext;
-    const dir = window.SignalContext.getResolvedMessagesLocaleDirection();
+    const locale = window.SignalContext.getResolvedMessagesLocale();
+    const direction = window.SignalContext.getResolvedMessagesLocaleDirection();
+
+    const resolvedAppLocale: AxoIntl.ResolvedAppLocale = {
+      tag: locale as AxoIntl.AppLocaleTag,
+      direction: direction as AxoIntl.Direction,
+    };
+
+    const systemPreferredLanguages: AxoIntl.SystemPreferredLanguages = new Set(
+      window.SignalContext.getPreferredSystemLocales() as Array<LanguageTag>
+    );
 
     const messages: AxoProviderProps['messages'] = {
       'AxoAlertDialog.Cancel': i18n('icu:AxoAlertDialog.Cancel'),
@@ -22,11 +34,16 @@ export const AppProvider: FC<AppProviderProps> = memo(
       'AxoDialog.Close': i18n('icu:AxoDialog.Close'),
       'AxoPasswordField.Reveal': i18n('icu:AxoPasswordField.Reveal'),
       'AxoTextField.Clear': i18n('icu:AxoTextField.Clear'),
+      'AxoContactName.InSystemContactsLabel': i18n('icu:contactInAddressBook'),
     };
 
     return (
       <StrictMode>
-        <AxoProvider dir={dir} messages={messages}>
+        <AxoProvider
+          resolvedAppLocale={resolvedAppLocale}
+          systemPreferredLanguages={systemPreferredLanguages}
+          messages={messages}
+        >
           {props.children}
         </AxoProvider>
       </StrictMode>

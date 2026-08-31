@@ -6,7 +6,7 @@
 
 .MinutesTranscriptionQueue {
   position: fixed;
-  right: 16px;
+  inset-inline-end: 16px;
   // Above composition / chat controls so the pill does not overlap them
   bottom: 72px;
   z-index: 1200;
@@ -33,7 +33,8 @@
 .MinutesTranscriptionQueue--pill {
   width: auto;
   max-height: none;
-  padding: 10px 14px;
+  padding-block: 10px;
+  padding-inline: 14px;
   cursor: pointer;
   background-color: variables.$color-ultramarine;
   color: variables.$color-white;
@@ -50,7 +51,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 12px 14px;
+  padding-block: 12px;
+  padding-inline: 14px;
   border-bottom: 1px solid variables.$color-gray-15;
   background-color: variables.$color-gray-02;
 
@@ -74,7 +76,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 12px 0;
+  padding-block: 8px 0;
+  padding-inline: 12px;
   border-bottom: 1px solid variables.$color-gray-15;
   background-color: variables.$color-gray-02;
 
@@ -91,7 +94,7 @@
 }
 
 .MinutesTranscriptionQueue__tab-refresh {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .MinutesTranscriptionQueue__badges {
@@ -107,7 +110,8 @@
   gap: 4px;
   font-size: 11px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding-block: 2px;
+  padding-inline: 8px;
   border-radius: 999px;
   border: 1px solid variables.$color-gray-20;
 
@@ -137,7 +141,8 @@
 
 .MinutesTranscriptionQueue__body {
   overflow: auto;
-  padding: 8px;
+  padding-block: 8px;
+  padding-inline: 8px;
   background-color: variables.$color-white;
 
   @include mixins.dark-theme {
@@ -146,7 +151,8 @@
 }
 
 .MinutesTranscriptionQueue__empty {
-  padding: 16px;
+  padding-block: 16px;
+  padding-inline: 16px;
   color: variables.$color-gray-45;
   font-size: 13px;
   text-align: center;
@@ -157,7 +163,8 @@
 }
 
 .MinutesTranscriptionQueue__job {
-  padding: 10px 12px;
+  padding-block: 10px;
+  padding-inline: 12px;
   border-radius: 8px;
   border: 1px solid variables.$color-gray-15;
   margin-bottom: 8px;
@@ -256,7 +263,8 @@
 .MinutesTranscriptionQueue__send-icon {
   min-width: 32px;
   height: 28px;
-  padding: 0 8px;
+  padding-block: 0;
+  padding-inline: 8px;
   font-size: 11px;
   font-weight: 600;
   font-family: inherit;
@@ -319,7 +327,8 @@
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 12px;
+  padding-block: 10px;
+  padding-inline: 12px;
   border-top: 1px solid variables.$color-gray-15;
   background-color: variables.$color-gray-02;
 
@@ -341,7 +350,8 @@
   background: variables.$color-white;
   color: inherit;
   cursor: pointer;
-  padding: 5px 10px;
+  padding-block: 5px;
+  padding-inline: 10px;
 
   @include mixins.dark-theme {
     border-color: variables.$color-gray-60;

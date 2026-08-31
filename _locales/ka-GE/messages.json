@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "ყველა ჩატი"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} წაუკითხავი შეტყობინება} other {{count,number} წაუკითხავი შეტყობინება}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Check your network connection."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "შენი მოწყობილობის თარიღი არასწორია. საათი გაასწორე და თავიდან სცადე. შენი მოწყობილობის თარიღი და დროა:"
   },
   "icu:submitDebugLog": {
     "messageformat": "გაუმართაობის რეესტრი"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "ყველას ნახვა"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "ძიება"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} საერთო ჯგუფი} other {{count,number} საერთო ჯგუფი}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "დააკოპირე signal.group ბმული კლავიატურაზე"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "წევრების მოძებნა"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "ძიება"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "ადმინისტრატორების ძიება"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "კონტაქტების ძიება"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "ფილტრი"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "ყველა წევრი"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "ადმინები"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "კონტაქტები"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "შედეგი ვერ მოიძებნა"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "„{searchQuery}“-ზე ვერაფერი მოიძებნა"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "ადმინი"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "ძიების შედეგები"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "წევრის დამატება"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "წევრების დამატება"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "ჯგუფის ბმულით მოწვევა"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "მოთხოვნები ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "დაბლოკილი ჯგუფები"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "დაბლოკვის თარიღია {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal-ის უსაფრთხო სათადარიგო ასლები"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "გაფრთხილება"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "თუ პინ-კოდს გამორთავ, Signal-ზე ხელახლა დარეგისტრირებისას ყველა მონაცემს დაკარგავ, თუ მას სხვა iOS მოწყობილობიდან არ გადმოიტან. რეგისტრაციის დაბლოკვას ვერ ჩართავ, სანამ პინ-კოდი გამორთულია."
+    "messageformat": "თუ პინ-კოდს გამორთავ, Signal-ზე თავიდან დარეგისტრირებისას ყველა მონაცემს დაკარგავ. რეგისტრაციის დაბლოკვას ვერ ჩართავ, სანამ პინ-კოდი გამორთულია."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "პინ-კოდის გამორთვა"
@@ -8694,16 +8745,16 @@
     "messageformat": "მცირე შესწორებები, ბაგების გამოსწორება და წარმადობის გაუმჯობესება. მადლობას გიხდით სიგნალის გამოყენებისთვის!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "ახლა გამოკითხვების შექმნა ინდივიდუალურ ჩატებშიც შეიძლება. გაუგზავნე ვარიანტების ჩამონათვალი მეგობარს, რომელიც ორჭოფობს ან ჰკითხე ქრაშს, მოსწონხარ თუ არა."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "ჯგუფის ადმინისტრატორებს ახლა უკვე შეუძლიათ ჯგუფის პარამეტრებიდან ახალი \"ჯგუფის გაუქმების\" ოფციით ჩატი დაასრულონ. ჯგუფის გაუქმების შემდეგ წევრები წერილებს ვეღარ გაგზავნიან, ზარებს ვეღარ წამოიწყებენ და ვერც ახალი წევრების მოწვევას შეძლებენ. ახლა შეგიძლია დარწმუნებული იყო, რომ წინა წლის ჩატები გაუქმებული იქნება, სანამ ამ წლისთვის ახალს შექმნი."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "წარმოგიდგენთ გაქრობად ზარის აქტივობებს: გამოტოვებული, გამავალი და შემომავალი ზარები, რომლებიც ამ განახლების გადმოწერის შემდეგ განხორციელდება, ავტომატურად გაქრება ყველა ჩატში, რომელშიც გაქრობადი შეტყობინებებია ჩართული."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "ახლა შეგიძლია სტიკერების ნაკრებები დააორგანიზო, რომ შენი ფავორიტები სიის ბოლოში არ მოხვდეს."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "ჯგუფის პარამეტრების გვერდზე ჯგუფის წევრების ძიება გავამარტივეთ."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "ვიზუალის პარამეტრებში მიახლოების ორი ახალი დონე დავამატეთ (110% და 90%)."
   }
 }
