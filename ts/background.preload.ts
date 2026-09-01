@@ -1,6 +1,7 @@
 // Copyright 2020 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
+import { ipcRenderer } from 'electron';
 import lodash from 'lodash';
 import { createRoot } from 'react-dom/client';
 import PQueue from 'p-queue';
@@ -209,6 +210,16 @@ import { createLogger } from './logging/log.std.ts';
 import { deleteAllLogs } from './util/deleteAllLogs.preload.ts';
 import { startInteractionMode } from './services/InteractionMode.dom.ts';
 import { calling } from './services/calling.preload.ts';
+import {
+  initializeMinutes,
+  summarizeSelectedConversation,
+  summarizeUnreadConversations,
+} from './minutes/index.preload.ts';
+import {
+  applyMinutesBuildExpirationPolicy,
+  isMinutesBuildExpirationDisabled,
+} from './minutes/buildExpiration.preload.ts';
+import { handleActiveCallOnScreenLock } from './minutes/screenLockCallPolicy.std.ts';
 import { ReactionSource } from './reactions/ReactionSource.std.ts';
 import { singleProtoJobQueue } from './jobs/singleProtoJobQueue.preload.ts';
 import { SeenStatus } from './MessageSeenStatus.std.ts';
@@ -572,18 +583,29 @@ async function startApp(): Promise<void> {
     window.Whisper.events.on('firstEnvelope', checkFirstEnvelope);
 
     const buildExpirationService = new BuildExpirationService();
+    const { hasBuildExpired, observeSignalExpiration } =
+      await applyMinutesBuildExpirationPolicy({
+        storage: itemStorage,
+        signalHasBuildExpired: buildExpirationService.hasBuildExpired(),
+      });
+
+    if (hasBuildExpired) {
+      log.warn('connectWebAPI: build is marked expired');
+    }
 
     drop(
       connectWebAPI({
         ...itemStorage.user.getWebAPICredentials(),
-        hasBuildExpired: buildExpirationService.hasBuildExpired(),
+        hasBuildExpired,
         hasStoriesDisabled: itemStorage.get('hasStoriesDisabled', false),
       })
     );
 
-    buildExpirationService.on('expired', () => {
-      drop(onExpiration('build'));
-    });
+    if (observeSignalExpiration) {
+      buildExpirationService.on('expired', () => {
+        drop(onExpiration('build'));
+      });
+    }
 
     window.Whisper.events.on('challengeResponse', response => {
       challengeHandler.onResponse(response);
@@ -1359,7 +1381,15 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('powerMonitorLockScreen', () => {
-    window.reduxActions.calling.hangUpActiveCall('powerMonitorLockScreen');
+    const result = handleActiveCallOnScreenLock({
+      isMinutesBuild: window.minutes != null,
+      hangUpActiveCall: reason =>
+        window.reduxActions.calling.hangUpActiveCall(reason),
+    });
+
+    if (result === 'kept') {
+      log.info('powerMonitor: keeping active call on screen lock');
+    }
   });
 
   const reconnectToWebSocketQueue = new LatestQueue();
@@ -1391,6 +1421,11 @@ async function startApp(): Promise<void> {
   });
 
   window.Whisper.events.on('httpResponse499', () => {
+    if (isMinutesBuildExpirationDisabled()) {
+      log.warn('minutes: ignoring HTTP 499 remote build expiration');
+      return;
+    }
+
     if (remotelyExpired) {
       return;
     }
@@ -1687,6 +1722,9 @@ async function startApp(): Promise<void> {
 
     // Listen for changes to the `desktop.clientExpiration` remote flag
     onRemoteConfigChange(['desktop.clientExpiration'], () => {
+      if (isMinutesBuildExpirationDisabled()) {
+        return;
+      }
       if (!isRemoteConfigValueEnabled('desktop.clientExpiration')) {
         return;
       }
@@ -2235,6 +2273,16 @@ async function startApp(): Promise<void> {
     }
 
     drop(calling.prepareCallingAssets());
+
+    initializeMinutes();
+
+    ipcRenderer.on('minutes:summarize-current-chat', () => {
+      drop(summarizeSelectedConversation());
+    });
+
+    ipcRenderer.on('minutes:summarize-unread', () => {
+      drop(summarizeUnreadConversations());
+    });
 
     drop(usernameIntegrity.start());
 

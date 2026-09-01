@@ -34,6 +34,27 @@ export async function prepareMinutesBuildExpiration(
   }
 }
 
+export async function applyMinutesBuildExpirationPolicy({
+  storage,
+  signalHasBuildExpired,
+}: Readonly<{
+  storage: StorageInterface;
+  signalHasBuildExpired: boolean;
+}>): Promise<{
+  hasBuildExpired: boolean;
+  observeSignalExpiration: boolean;
+}> {
+  await prepareMinutesBuildExpiration(storage);
+
+  const expirationDisabled = isMinutesBuildExpirationDisabled();
+  return {
+    hasBuildExpired: expirationDisabled
+      ? getMinutesConnectHasBuildExpired()
+      : signalHasBuildExpired,
+    observeSignalExpiration: !expirationDisabled,
+  };
+}
+
 /** @deprecated use prepareMinutesBuildExpiration */
 export function initializeMinutesBuildExpiration(): void {
   window.getBuildExpiration = () => Date.now() + ROLLING_BUILD_EXPIRATION;
