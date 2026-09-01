@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Alle Chats"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "Über {maxCount,number}"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} ungelesene Nachricht} other {{count,number} ungelesene Nachrichten}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Überprüfe deine Netzwerkverbindung."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Das Datum deines Geräts stimmt nicht. Stell deine Uhr richtig ein und versuch’s noch mal. Die Uhrzeit und das Datum deines Geräts lauten:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Diagnoseprotokoll"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Alle anzeigen"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Suchen"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} gemeinsame Gruppe} other {{count,number} gemeinsame Gruppen}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopiere den signal.group-Link in die Zwischenablage"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Nach Mitgliedern suchen"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Suchen"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Admins suchen"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Kontakte suchen"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Alle Mitglieder"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Admins"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakte"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Keine Ergebnisse"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Keine Ergebnisse für »{searchQuery}«"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Suchergebnisse"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Mitglied hinzufügen"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Mitglieder hinzufügen"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Über Gruppen-Link einladen"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Anfragen ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blockierte Gruppen"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blockiert um {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure Backups"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Warnung"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Falls du deine PIN deaktivierst, wirst du bei erneutem Registrieren von Signal alle Daten verlieren, sofern du sie nicht von einem anderen iOS-Gerät überträgst. Du kannst die Registrierungssperre nur bei aktivierter PIN einschalten."
+    "messageformat": "Falls du deine PIN deaktivierst, wirst du beim erneuten Registrieren von Signal alle Daten verlieren. Bei deaktivierter PIN kannst du die Registrierungssperre nicht einschalten."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "PIN deaktivieren"
@@ -8694,16 +8745,16 @@
     "messageformat": "Kleine Optimierungen, Fehlerbehebungen und Leistungsverbesserungen. Danke, dass du Signal nutzt!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Umfragen können jetzt auch in  1:1-Chats erstellt werden. Zeig einem unentschlossenen Freund eine sorgfältig zusammengestellte Auswahlliste oder lass die gute alte Zeit wieder aufleben – mit einer Umfrage à la »Magst du mich? Ja/Nein/Vielleicht«."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Gruppen-Admins können Chats jetzt mit der neuen Funktion »Gruppe beenden« in den Gruppeneinstellungen auflösen. Durch das Beenden einer Gruppe wird verhindert, dass Gruppenmitglieder Nachrichten senden oder Anrufe starten können – auch Einladungen werden deaktiviert. Jetzt kannst du dafür sorgen, dass alle dem roten Faden folgen, indem du die Näh-Gruppe vom letzten Jahr auflöst, bevor du eine neue bildest."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Vorhang auf für »Verschwindende Anrufereignisse«: Verpasste, ausgehende und eingehende Anrufe, die nach der Installation dieses Updates erfolgen, verschwinden nun automatisch in jedem Chat, in dem »Verschwindende Nachrichten« aktiviert ist."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Jetzt kannst du installierte Sticker-Sets neu anordnen, damit deine liebsten Sticker nicht ganz hinten in deiner Sammlung landen."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Bei den Gruppeneinstellungen haben wir die Suche nach Gruppenmitgliedern vereinfacht, damit du sofort sehen kannst, ob deine Mama deinen Cousin zweiten Grades bereits zur Gruppe für das jährlich stattfindende Großfamilien-Grillfest hinzugefügt hat."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Wir haben in den Darstellungseinstellungen zwei neue Zoomstufen hinzugefügt, sodass du deinen Nachrichten auch mit sehr geringem Aufwand immer noch 110 % (oder 90 %) Ausdruck verleihen kannst."
   }
 }

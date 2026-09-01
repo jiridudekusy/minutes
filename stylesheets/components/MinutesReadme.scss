@@ -32,7 +32,8 @@
 .MinutesMarkdown__h1,
 .MinutesMarkdown__h2,
 .MinutesMarkdown__h3 {
-  margin: 0 0 10px;
+  margin-block: 0 10px;
+  margin-inline: 0;
 
   @include mixins.font-body-1-bold;
 }
@@ -52,20 +53,24 @@
 }
 
 .MinutesMarkdown__p {
-  margin: 0 0 12px;
+  margin-block: 0 12px;
+  margin-inline: 0;
   line-height: 1.5;
 }
 
 .MinutesMarkdown__ul,
 .MinutesMarkdown__ol {
-  margin: 0 0 12px;
+  margin-block: 0 12px;
+  margin-inline: 0;
   padding-inline-start: 22px;
   line-height: 1.5;
 }
 
 .MinutesMarkdown__quote {
-  margin: 0 0 12px;
-  padding: 8px 12px;
+  margin-block: 0 12px;
+  margin-inline: 0;
+  padding-block: 8px;
+  padding-inline: 12px;
   border-inline-start: 3px solid variables.$color-ultramarine;
   border-radius: 4px;
 
@@ -79,7 +84,8 @@
 }
 
 .MinutesMarkdown__hr {
-  margin: 16px 0;
+  margin-block: 16px;
+  margin-inline: 0;
   border: none;
   border-top: 1px solid variables.$color-gray-15;
 
@@ -89,7 +95,8 @@
 }
 
 .MinutesMarkdown__tableWrap {
-  margin: 0 0 12px;
+  margin-block: 0 12px;
+  margin-inline: 0;
   overflow-x: auto;
 }
 
@@ -100,7 +107,8 @@
 
   th,
   td {
-    padding: 8px 10px;
+    padding-block: 8px;
+    padding-inline: 10px;
     border: 1px solid variables.$color-gray-15;
     text-align: start;
     vertical-align: top;
@@ -124,7 +132,8 @@
 }
 
 .MinutesMarkdown code {
-  padding: 1px 5px;
+  padding-block: 1px;
+  padding-inline: 5px;
   border-radius: 4px;
   font-family: variables.$monospace;
   font-size: 0.92em;

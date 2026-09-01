@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Alle samtaler"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} ulest melding} other {{count,number} uleste meldinger}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Kontroller nettverkstilkoblingen."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Datoen på enheten stemmer ikke. Still inn klokken og prøv på nytt. Datoen og tidspunktet på enheten er:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Feilsøkingslogg"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Se alle"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Søk"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} gruppe til felles} other {{count,number} grupper til felles}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopier signal.group-lenken til utklippstavlen"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Søk etter medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Søk"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Søk etter administratorer"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Søk etter kontakter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtre"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Alle medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratorer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakter"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Ingen treff"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "«{searchQuery}» ga ingen resultater"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrator"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Søkeresultater"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Legg til medlem"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Legg til medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Inviter via gruppelenke"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Forespørsler ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blokkerte grupper"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blokkert {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Sikre sikkerhetskopier på Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Advarsel"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Hvis du deaktiverer PIN-koden mister du all informasjon når du registrerer Signal på nytt, med mindre du manuelt tar en sikkerhetskopi og gjenoppretter innholdet. Du kan ikke slå på registreringslås mens PIN-koden er deaktivert."
+    "messageformat": "Hvis du deaktiverer PIN-koden, mister du alle data når du gjennomfører Signal-registreringen på nytt. Du kan ikke slå på registreringslåsen mens PIN-koden er deaktivert."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Deaktiver PIN-koden"
@@ -8694,16 +8745,16 @@
     "messageformat": "Noen små justeringer, feilrettinger og ytelsesforbedringer. Takk for at du bruker Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Nå kan du også lage avstemninger i en-til-en-samtaler."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Gruppeadministratorer kan nå sette punktum for grupper med den nye «Steng gruppe»-funksjonen. Dersom en gruppe stenges, mister alle medlemmene muligheten til å sende meldinger og holde videosamtaler i gruppechatten, samt til å invitere nye medlemmer."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Vi lanserer tidsbegrensede samtalehendelser: tapte, utgående og inngående anrop som skjer etter at du installerer denne oppdateringen, forsvinner nå automatisk i alle samtaler der tidsbegrenset melding-innstillingen er aktivert."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Nå kan du endre rekkefølgen på installerte klistremerkepakker, slik at de nye favorittene dine ikke havner bakerst i køen."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Vi har gjort det enklere å søke etter gruppemedlemmer på siden for gruppeinnstillinger."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Vi har lagt til to nye zoom-nivå i designinnstillingene (90 % og 110 %)."
   }
 }

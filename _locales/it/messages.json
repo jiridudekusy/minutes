@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Tutte le chat"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} messaggio non letto} other {{count,number} messaggi non letti}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Verifica la tua connessione."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "La data impostata sul tuo dispositivo è sbagliata. Correggila e riprova. Ora e data del tuo dispositivo:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Debug log"
@@ -2811,7 +2811,7 @@
     "messageformat": "Condivisi con te"
   },
   "icu:stickers--StickerManager--ReceivedPacksDescription": {
-    "messageformat": "Quando ti viene inviato un adesivo in chat, il relativo pacchetto lo troverai qui."
+    "messageformat": "I pacchetti degli adesivi che ricevi in chat appariranno qui."
   },
   "icu:stickers--StickerManager--Install": {
     "messageformat": "Installa"
@@ -2826,7 +2826,7 @@
     "messageformat": "Potresti non essere più in grado di reinstallare questo pacchetto di adesivi se non hai più il messaggio di origine."
   },
   "icu:stickers--StickerManagerHeader--All": {
-    "messageformat": "Tutte"
+    "messageformat": "Tutti"
   },
   "icu:stickers--StickerManagerHeader--MyStickers": {
     "messageformat": "I miei adesivi"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Vedi tutti"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Cerca"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} gruppo in comune} other {{count,number} gruppi in comune}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Copia il link signal.group negli appunti"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Cerca partecipanti"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Cerca"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Cerca admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Cerca contatti"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtro"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Tutti i partecipanti"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Contatti"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nessun risultato"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Nessun risultato per \"{searchQuery}\""
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Cerca tra i risultati"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Aggiungi partecipante"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Aggiungi membri"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Invita tramite link del gruppo"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Richieste ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Gruppi bloccati"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloccato il {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Backup sicuri di Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Attenzione"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Se disabiliti il PIN, perderai tutti i dati quando ti registrerai nuovamente su Signal, a meno che tu non li trasferisca da un altro dispositivo iOS. Non è possibile attivare il Blocco registrazione mentre il PIN è disabilitato."
+    "messageformat": "Se disabiliti il PIN, perderai tutti i dati quando ti registrerai nuovamente su Signal. Non è possibile attivare il Blocco registrazione mentre il PIN è disabilitato."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Disabilita PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Altre piccole modifiche e correzioni di bug per far funzionare l'app senza problemi. Grazie per usare Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Adesso puoi creare i sondaggi anche nelle chat individuali. Chiedi quello che vuoi: il prossimo film da vedere insieme, quando andare a bere una cosa fuori, un suggerimento sulle prossime vacanze… ma occhio a non spammare troppi sondaggi, mi raccomando!"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Gli admin dei gruppi possono chiudere una chat usando la nuova opzione \"Chiudi gruppo\" nelle Impostazioni del gruppo.Chiudere una chat di gruppo impedirà alle persone che ne fanno parte di inviare ulteriori messaggi o fare chiamate (e non sarà più possibile invitare altri utenti).Insomma, un'ottima opzione da usare per chiudere il gruppo di un progetto concluso o il gruppo del fantacalcio dell'anno scorso."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Arrivano (o meglio dire \"vanno via\") le novità dalle chiamate che scompaiono con il passare del tempo! Le notifiche di chiamate perse, in uscita e ricevute che avvengono dopo l'installazione di questo aggiornamento scompariranno in automatico in qualsiasi chat dove i messaggi temporanei sono attivi."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Ora puoi riordinare i pacchetti di sticker che hai installato, così avrai sempre i tuoi preferiti a portata di mano."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Da adesso è più semplice cercare le persone in un gruppo dalle Impostazioni della chat di gruppo. Puoi vedere i nuovi utenti e apportare modifiche, magari aggiungendo quella persona che ci rimane male se non è la prima a partecipare in un nuovo gruppo."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Abbiamo aggiunto due nuovi livelli di zoom nelle Impostazioni per l'Aspetto, così basta davvero poco per godersi i propri messaggi con lo zoom ideale (al 110% o 90%)."
   }
 }

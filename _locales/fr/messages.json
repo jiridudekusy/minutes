@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Toutes les conversations"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} message non lu} other {{count,number} messages non lus}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Vérifiez votre connexion au réseau."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Votre appareil n'affiche pas la bonne date.\n Réglez l'horloge, puis réessayez. Date et heure de votre appareil :"
   },
   "icu:submitDebugLog": {
     "messageformat": "Journal de débogage"
@@ -3909,7 +3909,7 @@
     "messageformat": "Barre latérale"
   },
   "icu:calling__layout--speaker": {
-    "messageformat": "Haut-parleur"
+    "messageformat": "Intervenant"
   },
   "icu:calling__SelectPresentingSourcesModal--title": {
     "messageformat": "Partagez votre écran"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Tout afficher"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Rechercher"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} groupe en commun} other {{count,number} groupes en commun}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Copier le lien du groupe Signal dans le presse-papiers"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Rechercher des membres"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Rechercher"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Rechercher des admins"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Rechercher des contacts"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Tous les membres"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Admins"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Contacts"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Aucun résultat"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Aucun résultat ne correspond à votre recherche : \"{searchQuery}\""
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Résultats de recherche"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Ajouter des membres"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Ajouter des membres"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Inviter via un lien de groupe"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Demandes ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Groupes bloqués"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloqué le {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Sauvegardes sécurisées Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Avertissement"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "La désactivation du code PIN entraînera la perte de toutes vos données lors de votre réinscription sur Signal, à moins de les transférer depuis un autre appareil iOS. Vous ne pouvez pas activer le blocage d'inscription si le code PIN est désactivé."
+    "messageformat": "La désactivation du code PIN entraînera la perte de toutes vos données lors de votre réinscription sur Signal. Vous ne pouvez pas activer le blocage d'inscription si le code PIN est désactivé."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Désactiver le code PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Au menu de cette version : quelques ajustements de plus, quelques petits bugs en moins et des gains de performance. Merci d'utiliser Signal !",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Les sondages s'invitent dans les conversations individuelles. Présentez une liste d'options claires à un ami indécis, ou revivez vos années collège en demandant à votre crush \"Tu m'aimes ? Oui/Non/Peut-être\"."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Dans les paramètres de groupe, la nouvelle option \"Désactiver le groupe\" permet aux admins de clore les conversations qui s'essoufflent. Les membres ne peuvent alors plus envoyer de messages ni passer d'appels. Les invitations sont également désactivées. Votre groupe de running est en bout de course ? Désactivez-le et prenez un nouveau départ."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "L'historique des appels passe en mode éphémère. Avec cette mise à jour, lorsque les messages éphémères sont activés dans une conversation, l'historique des appels manqués, sortants et entrants disparaît automatiquement."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Et ce n'est pas tout : vous pouvez maintenant réorganiser les packs de stickers que vous avez installés pour que vos préférés soient toujours à portée de main."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Il devient plus facile de rechercher des membres via les paramètres du groupe. Pratique pour savoir en un coup d'œil si votre petite sœur a déjà ajouté votre petite-cousine dans le groupe \"La petite famille\" !"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Deux autres niveaux de zoom débarquent dans les paramètres d'apparence : 90 % et 110 %. Avec la rentrée qui approche, on a envie de voir les choses en grand."
   }
 }

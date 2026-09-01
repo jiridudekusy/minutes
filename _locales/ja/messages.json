@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "すべてのチャット"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, other {{count,number}件の未読メッセージ}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "ネットワーク接続を確認してください。"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "ご利用の端末の日時が正しくありません。日時を調整してもう一度お試しください。ご利用の端末の日時："
   },
   "icu:submitDebugLog": {
     "messageformat": "デバッグログ"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "すべて表示"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "検索"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, other {共通のグループ {count,number}件}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "signal.groupのリンクをクリップボードにコピーする"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "メンバーを検索"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "検索"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "管理者で検索"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "連絡先を検索"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "フィルタ"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "すべてのメンバー"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "管理者"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "連絡先"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "該当なし"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "“{searchQuery}” の検索結果はありません"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "管理者"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "検索結果"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "メンバーを追加する"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "メンバーを追加する"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "グループリンクで招待"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "申請 ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "ブロック中のグループ"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "{blockedAt} にブロック済み"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signalセキュアバックアップ"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "ご注意ください"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "PINを無効にすると、他のiOS端末から移行しない限り、Signalに再登録する際すべてのデータが失われます。PINを無効にしている間は登録ロックは使用できません。"
+    "messageformat": "PINを無効にすると、Signalに再登録する際すべてのデータが失われます。PINを無効にしている間は登録ロックは使用できません。"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "PINを無効にする"
@@ -8694,16 +8745,16 @@
     "messageformat": "細かな微調整、バグ修正、パフォーマンスの向上。 Signalをご利用いただきありがとうございます。",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "個別のチャットでも投票が作成できるようになりました。"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "グループ管理者は、グループ設定内に追加された「グループを終了」という新しいオプションを使用して、チャットを終了できるようになりました。グループを終了すると、メンバーはメッセージ送信や通話開始ができなくなり、招待も無効になります。"
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "通話関連履歴、自動消去のお知らせを追加しました。このアップデートをインストールすると、消えるメッセージが有効になっているチャットでは、不在着信、発信、着信履歴が自動的に消去されます。"
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "インストールしたステッカーパックを並べ替えられるようになりました。これで、新しいお気に入りのパックがリストの後ろに埋もれてしまうことはありません。"
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "★グループ設定のページでのメンバー検索がより簡単になりました。"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "外観設定に、2つの新しいZoomレベル（110％と90％）を追加しました。"
   }
 }

@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Сва ћаскања"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {Непрочитаних порука: {count,number}} other {Непрочитаних порука: {count,number}}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Проверите да ли сте повезани на интернет"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Датум на уређају није исправан. Подесите сат и пробајте поново. Датум и време на вашем уређају су:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Извештај о грешкама"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Прикажи све"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Претрага"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {Заједничких група: {count,number}} other {Заједничких група: {count,number}}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Копирај линк signal.group"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Претражи чланове"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Претрага"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Претражи администраторе"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Претражите контакте"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Филтрирај"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Сви чланови"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Администратори"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Контакти"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Нема резултата"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Нема резултата за „{searchQuery}“"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Администратор"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Резултати претраге"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Додај члана"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Додајте чланове"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Позови путем линка за групу"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Захтеви ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Блокиране групе"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Време блокирања корисника: {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Безбедне резервне копије Signal-а"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Упозорење"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Ако искључите PIN, изгубићете све податке када поново региструјете Signal, осим ако их не увезете из другог iOS уређаја. Не можете да активирате закључавање регистрације док је PIN искључен."
+    "messageformat": "Ако искључите PIN, изгубићете све податке када поново региструјете Signal. Не можете укључити закључавање регистрације док је PIN искључен."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Искључи PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Обавили смо мања фина прилагођавања, исправке грешака и побољшања перформанси. Хвала што користите Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Анкете сада можете креирати и у индивидуалним ћаскањима."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Администратори група сада могу да угасе ћаскања помоћу опције „Угаси групу“ у подешавањима групе. Гашење групе онемогућава њеним члановима да шаљу поруке, започињу видео-позиве или шаљу позивнице."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Представљамо нестајуће активности везане за позиве: Сви пропуштени, одлазни или долазни позиви након инсталације овог ажурирања аутоматски ће нестајати из свих ћаскања у којима су нестајуће поруке омогућене."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Сада можете да преслажете инсталиране пакете налепница тако да вам омиљене налепнице увек буду надохват руке."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Олакшали смо претрагу чланова групе на страници подешавања групе."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Додали смо два нова нивоа зумирања у подешавањима изгледа (110% и 90%)."
   }
 }

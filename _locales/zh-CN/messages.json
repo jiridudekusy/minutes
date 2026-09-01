@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "全部聊天"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, other {{count,number} 条未读消息}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "检查网络连接状态"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "您设备的日期不准确。请调整您的时钟，然后重试。您设备的日期和时间是："
   },
   "icu:submitDebugLog": {
     "messageformat": "调试日志"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "查看全部"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "搜索"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, other {{count,number} 个共同群组}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "将 Signal 群组链接复制到剪贴板"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "搜索成员"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "搜索"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "搜索管理员"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "搜索联系人"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "筛选"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "全部成员"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "管理员"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "联系人"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "无结果"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "没有找到“{searchQuery}”的相关结果"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "管理员"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "搜索结果"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "添加成员"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "添加成员"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "通过群组链接邀请"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "请求 ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "已屏蔽的群组"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "于 {blockedAt} 屏蔽"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal 安全备份"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "警告"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "若禁用密码，您在重新注册 Signal 时将会丢失所有数据，除非您从另一台 iOS 设备转移数据。密码禁用时，无法启用注册锁定。"
+    "messageformat": "如果您禁用密码，您在重新注册 Signal 时会丢失所有数据。密码被禁用时，您无法启用注册锁定。"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "禁用密码"
@@ -8694,16 +8745,16 @@
     "messageformat": "我们进行了功能微调、漏洞修复和性能强化。感谢使用 Signal！",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "现在一对一聊天中也可以创建投票。"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "群组管理员现在可以通过群组设置中的“解散群组”新选项来结束群组聊天。解散群组后，群组成员将无法发送消息或发起通话，邀请功能也将被禁用。"
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "推出限时通话事件功能：安装此更新后，在任何启用了限时消息的聊天中，未接来电、拨出通话和已接来电将自动消失。"
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "现在您可以重排已安装的贴纸包，这样一来您最喜欢的贴纸包就不会排在最后了。"
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "在群组设置页面搜索群组成员现更容易。"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "我们在外观设置中新增了两个缩放级别（110% 和 90%）。"
   }
 }

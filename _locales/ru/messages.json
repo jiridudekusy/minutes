@@ -93,7 +93,7 @@
     "messageformat": "Неизвестный контакт"
   },
   "icu:deletedAccount": {
-    "messageformat": "Удалённая учётная запись"
+    "messageformat": "Удалённый пользователь"
   },
   "icu:unknownContactShort": {
     "messageformat": "Неизвестно"
@@ -319,9 +319,6 @@
   },
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Все чаты"
-  },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
   },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} непрочитанное сообщение} few {{count,number} непрочитанных сообщения} many {{count,number} непрочитанных сообщений} other {{count,number} непрочитанных сообщений}}"
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Проверьте ваше сетевое соединение."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "На вашем устройстве указана неточная дата. Измените дату на вашем устройстве и повторите попытку. Дата и время на вашем устройстве:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Журнал отладки"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Просмотреть все"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Поиск"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} общая группа} few {{count,number} общие группы} many {{count,number} общих групп} other {{count,number} общей группы}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Скопируйте ссылку на signal.group в буфер обмена"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Поиск участников"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Поиск"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Найти администраторов"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Поиск контактов"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Фильтр"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Все участники"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Администраторы"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Контакты"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Нет результатов"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Нет результатов для «{searchQuery}»"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Администратор"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Результаты поиска"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Добавить участника"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Добавить участников"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Пригласить в группу через ссылку"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Запросы ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Заблокированные группы"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Заблокирован {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Безопасное резервное копирование Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Предупреждение"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Если вы отключите Пин-код, то потеряете все данные, когда повторно зарегистрируетесь в Signal (если только не перенесёте их с другого устройства iOS). Вы не можете включить блокировку регистрации, когда Пин-код отключён."
+    "messageformat": "Если вы отключите Пин-код, то потеряете все данные, когда переустановите Signal. Вы не можете включить блокировку регистрации, когда Пин-код отключён."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Отключить PIN-код"
@@ -8694,16 +8745,16 @@
     "messageformat": "Небольшие изменения, исправления ошибок и улучшения производительности. Спасибо за то, что пользуетесь Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Опросы теперь можно создавать и в индивидуальных чатах. Предложите своему нерешительному другу тщательно подобранный список вариантов или отправьте своей пассии волшебную записку, создав опрос «Я тебе нравлюсь? Да/Нет/Может быть»."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Администраторы групп теперь могут завершать чаты с помощью новой опции «Закрыть группу» в настройках группы. После закрытия группы её участники больше не смогут отправлять сообщения или начинать звонки, а также посылать приглашения. Теперь вы можете быть уверены, что все на одной волне, закрыв прошлогоднюю группу по плаванию, прежде чем отправить в плавание новую."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Представляем исчезающие звонки! Пропущенные, исходящие и принятые звонки, которые будут иметь место после установки этого обновления, теперь будут автоматически исчезать в любом чате, где включена функция исчезающих сообщений."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Теперь вы можете переупорядочивать установленные наборы стикеров, чтобы ваши новые любимцы не застряли в хвосте списка."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Мы упростили поиск участников группы на странице настроек группы, так что вы сможете быстро выяснить, добавила ли ваша мама вашего троюродного брата в список участников третьего ежегодного семейного барбекю."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Мы добавили два новых уровня масштабирования в настройках интерфейса, так что вы без особых усилий сможете увеличить свои сообщения на 110% (или на 90%)."
   }
 }

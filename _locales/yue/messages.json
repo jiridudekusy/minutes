@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "全部聊天"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, other {{count,number} 個未讀訊息}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "請檢查一吓你嘅網絡連線。"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "你部裝置嘅日期唔準確。較下你個鐘，然後再試多次。你裝置嘅日期同時間係："
   },
   "icu:submitDebugLog": {
     "messageformat": "除錯記錄"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "全部睇晒"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "搜尋"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, other {{count,number} 個有緣相遇嘅谷}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "將 signal.group 連結複製到剪貼簿"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "搵谷友"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "搜尋"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "搜尋話事人"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "搵聯絡人"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "篩選"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "所有成員"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "話事人"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "聯絡人"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "乜都搵唔到"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "搵唔到同「{searchQuery}」相關嘅搜尋結果"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "管理員"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "搵到嘅結果"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "加谷友"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "加谷友"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "用谷拎嚟邀請"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "請求（{count,number} 個）"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "被封鎖嘅群組"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "喺 {blockedAt} 封鎖咗"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal 安全備份"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "警告"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "若然停用 PIN 碼，當你重新註冊 Signal 嘅時候，除非係你由另一部 iOS 機搬過嚟，否則所有資料都將會無哂。當 PIN 碼停用嘅時候，你亦都冇得開啟註冊鎖。"
+    "messageformat": "若然你停用 PIN 碼，咁當你重新註冊 Signal 嘅時候，你會無哂所有資料。IN 碼停用嘅時候冇得開啟註冊鎖。"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "停用 PIN 碼"
@@ -8694,16 +8745,16 @@
     "messageformat": "我哋做咗啲調整、修復咗一啲錯誤，同埋加強咗程式功能。多謝你使用 Signal！",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "而家你可以喺個人聊天入面建立投票啦。為你嗰位有選擇困難症嘅朋友打造精心設計嘅選擇清單，或者建立「你鍾意我嗎？係/唔係/可能」嘅投票，嚟重拾向你暗戀嘅人傳紙仔嘅情懷。"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "谷嘅話事人而家可以喺谷設定度用「解散個谷」呢個新選項，等個聊天自然咁摺埋。解散個谷可以令到谷友唔好再發送訊息或者發起通話。另外，邀請功能都停埋。而家，你可以喺開始籌備新一期嘅串珠仔聚會之前，先解散上期嘅聚會谷，咁樣大家就一定會跟得上啱嘅訊息串。"
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "隆重介紹「自動銷毀通話相關事件」功能：安裝呢次更新之後出現嘅未接來電、打出電話同收聽來電，而家都會喺啟用咗「自動銷毀訊息」嘅聊天入面自動消失。"
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "而家你可以重新排過安裝咗嘅貼圖包次序，等你嘅新寵貼圖包唔會被人迫到去隊尾。"
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "我哋令你更容易喺谷嘅設定頁面度搵谷友，咁你就可以即刻知道阿媽係咪已經將二表弟加咗入去「第三屆家族年度BBQ團聚」個谷度。"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "我哋喺外觀設定加咗兩個新嘅縮放級別，所以你輕輕郁一郁手指就可以將訊息放大到 110%（或縮到 90%）。"
   }
 }

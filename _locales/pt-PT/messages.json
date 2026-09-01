@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Todos os chats"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} mensagem por ler} other {{count,number} mensagens por ler}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Verifique a sua ligação de rede."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "A data do seu dispositivo está incorreta. Ajuste o seu relógio e tente novamente. A data e hora do seu dispositivo é:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Enviar relatório de depuração"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Ver tudo"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Procurar"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} grupo em comum} other {{count,number} grupos em comum}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Copiar link do grupo do Signal para a área de transferência"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Pesquisar membros"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Procurar"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Pesquisar administradores"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Pesquisar contactos"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrar"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Todos os membros"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administradores"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Contactos"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Sem resultados"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Nenhum resultado para “{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrador"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Procurar resultados"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Adicionar novo membro"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Adicionar membros"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Convite via link de grupo"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Pedidos ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Grupos bloqueados"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloqueado às {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Cópias de segurança protegidas do Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Aviso"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Se você desativar o PIN, todos os dados serão perdidos ao registar-se novamente no Sinal, a menos que o transfira de outro dispositivo iOS. Você não pode ativar o 'Bloqueio de registo' enquanto o PIN estiver desativado."
+    "messageformat": "Se desativar o PIN, todos os dados serão perdidos ao registar-se novamente no Signal. Não pode ativar o bloqueio de registo enquanto o PIN estiver desativado."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Desativar PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Pequenos ajustes adicionais, correções de bugs e melhorias de desempenho. Obrigado por usar o Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "As sondagens agora podem ser criadas em chats individuais também."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Os administradores dos grupos agora podem concluir chats com a nova opção \"Encerrar grupo\" nas definições de grupo. Encerrar um grupo impede os membros do grupo de enviar mensagens ou iniciar chamadas e também desativa convites."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Apresentamos os eventos de chamadas temporárias: as chamadas perdidas, efetuadas ou recebidas que ocorrerem após a instalação desta atualização irão agora desaparecer automaticamente de qualquer chat com as mensagens temporárias ativas."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Agora pode reordenar os pacotes de autocolantes instalados."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Tornámos mais fácil pesquisar por membros do grupo na página de definições do grupo."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Adicionámos dois novos níveis de zoom nas definições de aspeto (110% e 90%)."
   }
 }

@@ -4,7 +4,7 @@
 import semver from 'semver';
 
 /** Upstream Signal Desktop release (sync when merging upstream). */
-export const MINUTES_SIGNAL_BASE_VERSION = '8.23.0';
+export const MINUTES_SIGNAL_BASE_VERSION = '8.25.0';
 
 export const MINUTES_CONFIRMED_FIX_LABEL = 'potvrzeno-k-oprave';
 
@@ -85,10 +85,7 @@ export function normalizeMinutesVersionForCompare(version: string): string {
   }
 
   if (isLegacyPlainMeetupVersion(normalized)) {
-    return formatMinutesProductVersion(
-      MINUTES_SIGNAL_BASE_VERSION,
-      normalized
-    );
+    return formatMinutesProductVersion(MINUTES_SIGNAL_BASE_VERSION, normalized);
   }
 
   return normalized;
@@ -163,10 +160,7 @@ export function formatMinutesVersionLabel(appVersion: string): string {
   }
 
   if (isLegacyPlainMeetupVersion(normalized)) {
-    return formatMinutesProductVersion(
-      MINUTES_SIGNAL_BASE_VERSION,
-      normalized
-    );
+    return formatMinutesProductVersion(MINUTES_SIGNAL_BASE_VERSION, normalized);
   }
 
   return normalized;

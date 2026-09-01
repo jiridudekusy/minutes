@@ -14,6 +14,7 @@ import { AxoTooltip } from './AxoTooltip.dom.tsx';
 import { AxoTheme } from './AxoTheme.dom.tsx';
 import { useAxoIntl } from './_internal/AxoIntl.dom.tsx';
 import { variants } from './_internal/variants.dom.tsx';
+import { unreachable } from './_internal/assert.std.tsx';
 
 const { useContentEscapeBehavior } = AxoBaseDialog;
 
@@ -376,7 +377,7 @@ export namespace AxoDialog {
    * --------------------------------------------------------------------------
    */
 
-  export type ExperimentalSearchProps = Readonly<{
+  export type SearchProps = Readonly<{
     /**
      * A search input element.
      */
@@ -385,14 +386,16 @@ export namespace AxoDialog {
 
   /**
    * A padded slot for a search input, placed between `Header` and `Body`.
-   * Pair with `Body` using `padding="only-scrollbar-gutter"` so the list
-   * content aligns with the search field.
    */
-  export const ExperimentalSearch: FC<ExperimentalSearchProps> = memo(props => {
-    return <div className={tw('px-4 pb-2')}>{props.children}</div>;
+  export const Search: FC<SearchProps> = memo(props => {
+    return (
+      <div className={tw('flex items-center gap-2 px-4 pb-2')}>
+        {props.children}
+      </div>
+    );
   });
 
-  ExperimentalSearch.displayName = 'AxoDialog.ExperimentalSearch';
+  Search.displayName = 'AxoDialog.Search';
 
   /**
    * <AxoDialog.Body>
@@ -401,12 +404,17 @@ export namespace AxoDialog {
 
   /**
    * Horizontal padding applied to the body content.
-   * - `normal`: Standard 24px inline padding (default).
-   * - `only-scrollbar-gutter`: No padding, only reserves space for the scrollbar.
-   *   Use when content (e.g. a list) provides its own padding, or when paired
-   *   with `ExperimentalSearch` so items align with the search field.
+   * - lg: 24px (default) - Generally used for more textual body content.
+   * - md: 16px - Generally used for "card-style" content like AxoLists.
+   * - sm: 12px - Generally used for AxoItems that are not wrapped with "card-style" lists.
+   * - deprecated-only-scrollbar-gutter: No padding, fallback to browser's native scrollbar
+   *   gutter handling which is unreliable depending on your OS scrollbar preference.
    */
-  export type BodyPadding = 'normal' | 'only-scrollbar-gutter';
+  export type BodyPadding =
+    | 'lg'
+    | 'md'
+    | 'sm'
+    | 'deprecated-only-scrollbar-gutter';
 
   export type BodyProps = Readonly<{
     /**
@@ -415,7 +423,7 @@ export namespace AxoDialog {
     scrollbarWidth?: 'thin' | 'none';
     /**
      * Horizontal padding applied to the body content.
-     * Defaults to `normal`.
+     * Defaults to `lg`.
      */
     padding?: BodyPadding;
     /**
@@ -423,6 +431,16 @@ export namespace AxoDialog {
      * Defaults to `440`.
      */
     maxHeight?: number;
+    /**
+     * Set to true if the dialog has no footer after it, hides the bottom scroll hint.
+     * TODO: Find a CSS solution to this so it's just automatic
+     */
+    noFooterHideBottomScrollHint?: boolean;
+
+    /**
+     * Force the dialog to always be at its maxHeight
+     */
+    forceMaxHeight?: boolean;
     /**
      * The scrollable body content.
      */
@@ -436,19 +454,46 @@ export namespace AxoDialog {
   export const Body: FC<BodyProps> = memo(props => {
     const {
       scrollbarWidth = 'thin',
-      padding = 'normal',
+      padding = 'lg',
       maxHeight = 440,
+      forceMaxHeight,
     } = props;
 
     const style = useMemo((): CSSProperties | undefined => {
-      if (padding === 'only-scrollbar-gutter') {
-        return;
+      const styles: CSSProperties = {};
+
+      if (forceMaxHeight) {
+        styles.minHeight = maxHeight;
       }
 
-      return {
-        paddingInline: 'calc(24px - var(--axo-scrollbar-gutter-thin-vertical))',
-      };
-    }, [padding]);
+      let paddingInline: string | null;
+
+      if (padding === 'lg') {
+        paddingInline = '24px';
+      } else if (padding === 'md') {
+        paddingInline = '16px';
+      } else if (padding === 'sm') {
+        paddingInline = '12px';
+      } else if (padding === 'deprecated-only-scrollbar-gutter') {
+        paddingInline = null;
+      } else {
+        unreachable(padding);
+      }
+
+      if (paddingInline != null) {
+        if (scrollbarWidth === 'thin') {
+          paddingInline = `calc(${paddingInline} - var(--axo-scrollbar-gutter-thin-vertical))`;
+        } else if (scrollbarWidth === 'none') {
+          // ignore
+        } else {
+          unreachable(scrollbarWidth);
+        }
+
+        styles.paddingInline = paddingInline;
+      }
+
+      return styles;
+    }, [forceMaxHeight, maxHeight, padding, scrollbarWidth]);
 
     return (
       <AxoScrollArea.Root
@@ -457,7 +502,9 @@ export namespace AxoDialog {
         scrollbarVisibility="as-needed"
       >
         <AxoScrollArea.Hint edge="top" />
-        <AxoScrollArea.Hint edge="bottom" />
+        {!props.noFooterHideBottomScrollHint && (
+          <AxoScrollArea.Hint edge="bottom" />
+        )}
         <AxoScrollArea.Viewport>
           <AxoScrollArea.Content>
             <div style={style}>{props.children}</div>
@@ -622,7 +669,7 @@ export namespace AxoDialog {
     /**
      * Optional leading icon.
      */
-    symbol?: AxoSymbol.InlineGlyphName;
+    symbol?: AxoSymbol.Name;
     /**
      * When `true`, shows a forward arrow on the trailing side.
      */
@@ -696,7 +743,7 @@ export namespace AxoDialog {
     /**
      * The icon to display.
      */
-    symbol: AxoSymbol.IconName;
+    symbol: AxoSymbol.Name;
     /**
      * Event handler called when the button is clicked.
      */

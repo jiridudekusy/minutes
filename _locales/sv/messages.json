@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Alla chattar"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} oläst meddelande} other {{count,number} olästa meddelanden}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Kontrollera din nätverksanslutning."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Enhetens datum är felaktigt. Justera klockan och försök igen. Enhetens datum och tid är:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Loggfil för felsökning"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Se alla"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Sök"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} grupp gemensamt} other {{count,number} grupper gemensamt}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopiera signal.group-länk till urklipp"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Sök medlemmar"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Sök"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Sök administratörer"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Sök kontakter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Alla medlemmar"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratörer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakter"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Inga resultat"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Inga resultat för ”{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administratör"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Sökresultat"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Lägg till medlem"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Lägg till medlemmar"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Bjud in via grupplänk"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Förfrågningar ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blockerade grupper"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blockerad {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Säkerhetskopiering av Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Varning"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Om du inaktiverar PIN-koden kommer du att förlora alla data när du registrerar om Signal om du inte överför data från en annan iOS-enhet. Du kan inte slå på registreringslåset medan PIN-koden är inaktiverad."
+    "messageformat": "Om du inaktiverar pinkoden kommer du att förlora alla data när du registrerar om Signal. Du kan inte aktivera registreringslåset medan pinkoden är inaktiverad."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Inaktivera PIN-koden"
@@ -8694,16 +8745,16 @@
     "messageformat": "Små justeringer, buggfixar och prestandaförbättringar. Tack för att du använder Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Omröstningar kan nu skapas även i individuella chattar."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Gruppadministratörer kan nu avsluta chattar med det nya alternativet Avsluta grupp i gruppinställningarna. När en grupp avslutas kan gruppmedlemmarna inte längre skicka meddelanden eller starta samtal, och inbjudningar inaktiveras."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Vi introducerar försvinnande samtalshändelser: Missade, utgående och mottagna samtal som sker efter att du har installerat den här uppdateringen försvinner nu automatiskt i alla chattar där försvinnande meddelanden är aktiverade."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Nu kan du ändra ordning på installerade klistermärkespaket så att dina nya favoriter inte hamnar längst bak i kön."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Vi har gjort det enklare att söka efter gruppmedlemmar på sidan för gruppinställningar."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Vi har lagt till två nya zoomnivåer i utseendeinställningarna (110 % och 90 %)."
   }
 }

@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Svi razgovori"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} nepročitana poruka} few {{count,number} nepročitane poruke} many {{count,number} nepročitanih poruka} other {{count,number} nepročitanih poruka}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Check your network connection."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Datum vašeg uređaja nije tačan. Podesite sat i pokušajte ponovo. Datum i vrijeme vašeg uređaja su:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Zapis za ispravljanje grešaka"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Vidi sve"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Traži"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} zajednička grupa} few {{count,number} zajedničke grupe} many {{count,number} zajedničkih grupa} other {{count,number} zajedničkih grupa}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopirajte vezu signal.group u međuspremnik"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Pretraži članove"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Traži"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Pretraži administratore"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Pretraži kontakte"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Svi članovi"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratori"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakti"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nema rezultata"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Nema rezultata za “{searchQuery}”"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrator"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Rezultati pretraživanja"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Dodaj člana"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Dodaj članove"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Pozovi putem linka grupe"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Zahtjevi ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blokirane grupe"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blokirano na {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Zaštićene kopije podataka"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Upozorenje"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Ako onemogućite PIN, izgubit ćete sve podatke kada se ponovo registrirate na Signal, osim ako ih ne prenesete s drugog iOS uređaja. Ne možete uključiti Zaključavanje registracije dok je PIN onemogućen."
+    "messageformat": "Ako onemogućite PIN, izgubit ćete sve podatke kada se ponovo registrirate na Signal. Ne možete uključiti Zaključavanje registracije dok je PIN onemogućen."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Isključi PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Mala podešavanja, otklanjanje grešaka i poboljšanja performansi. Hvala vam što koristite Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Ankete se sada mogu kreirati i u individualnim chatovima."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Administratori grupe sada mogu privesti razgovore kraju pomoću nove opcije „Okončaj grupu” u postavkama grupe. Okončavanje grupe sprječava članove grupe da šalju poruke ili pokreću pozive, a također onemogućava pozivnice."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Predstavljamo nestajuće aktivnosti vezane za pozive: propušteni, odlazni i primljeni pozivi koji se dogode nakon što instalirate ovo ažuriranje automatski će nestati u svakom razgovoru u kojem su omogućene poruke koje nestaju."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Sada možete promijeniti redoslijed instaliranih paketa naljepnica, tako da vam vaši novi favoriti uvijek budu nadohvat ruke."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Olakšali smo pretraživanje članova grupe na stranici postavki grupe."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Dodali smo dva nova nivoa zumiranja u postavkama izgleda (110% i 90%)."
   }
 }

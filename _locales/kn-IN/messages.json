@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "ಎಲ್ಲ ಚಾಟ್ ಗಳು"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} ಓದದಿರುವ ಸಂದೇಶ} other {{count,number} ಓದದಿರುವ ಸಂದೇಶಗಳು}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "ನಿಮ್ಮ ನೆಟ್‌ವರ್ಕ್ ಸಂಪರ್ಕವನ್ನು ಪರಿಶೀಲಿಸಿ."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "ನಿಮ್ಮ ಸಾಧನದ ದಿನಾಂಕವು ನಿಖರವಾಗಿಲ್ಲ. ನಿಮ್ಮ ಗಡಿಯಾರವನ್ನು ಸರಿಹೊಂದಿಸಿ ಮತ್ತು ಪುನಃ ಪ್ರಯತ್ನಿಸಿ. ನಿಮ್ಮ ಸಾಧನದ ದಿನಾಂಕ ಮತ್ತು ಸಮಯವು:"
   },
   "icu:submitDebugLog": {
     "messageformat": "ಡೀಬಗ್ ಲಾಗ್"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "ಎಲ್ಲವನ್ನು ನೋಡಿ"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "ಹುಡುಕಿ"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {ಸಾಮಾನ್ಯ ಗುಂಪು {count,number}} other {{count,number} ಗುಂಪುಗಳಲ್ಲಿ ನೀವಿಬ್ಬರೂ ಇರುವಿರಿ}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "signal.group ಲಿಂಕ್ ಅನ್ನು ಕ್ಲಿಪ್‌ಬೋರ್ಡ್‌ಗೆ ಕಾಪಿ ಮಾಡಿ"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "ಸದಸ್ಯರನ್ನು ಹುಡುಕಿ"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "ಹುಡುಕಿ"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "ಅಡ್ಮಿನ್‌ಗಳನ್ನು ಹುಡುಕಿ"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "ಸಂಪರ್ಕಗಳನ್ನು ಹುಡುಕಿ"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "ಫಿಲ್ಟರ್"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "ಎಲ್ಲಾ ಸದಸ್ಯರು"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "ಅಡ್ಮಿನ್‌‌ಗಳು"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "ಸಂಪರ್ಕಗಳು"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "ಫಲಿತಾಂಶಗಳಿಲ್ಲ"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "{searchQuery} ಗೆ ಫಲಿತಾಂಶಗಳು ಲಭ್ಯವಿಲ್ಲ"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "ಅಡ್ಮಿನ್‌‌"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "ಹುಡುಕಾಟದ ಫಲಿತಾಂಶಗಳು"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "ಸದಸ್ಯರನ್ನು ಸೇರಿಸಿ"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "ಗುಂಪು ಲಿಂಕ್ ಮೂಲಕ ಆಹ್ವಾನಿಸಿ"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "ವಿನಂತಿಗಳು ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "ನಿರ್ಬಂಧಿಸಲಾದ ಗುಂಪುಗಳು"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "{blockedAt} ರಂದು ನಿರ್ಬಂಧಿಸಲಾಗಿದೆ"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal ಸುರಕ್ಷಿತ ಬ್ಯಾಕಪ್‌ಗಳು"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "ಎಚ್ಚರಿಕೆ"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "ನೀವು PIN ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದರೆ, ನೀವು Signal ಅನ್ನು ಮರು-ನೋಂದಣಿ ಮಾಡಿದಾಗ, ನೀವು ಅದನ್ನು ಬೇರೆ iOS ಸಾಧನದಿಂದ ವರ್ಗಾಯಿಸದ ಹೊರತು, ನೀವು ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಕಳೆದುಕೊಳ್ಳುತ್ತೀರಿ. PIN ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದಾಗ ನೀವು ನೋಂದಣಿ ಲಾಕ್ ಅನ್ನು ಆನ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ."
+    "messageformat": "ನೀವು PIN ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದರೆ, ನೀವು Signal ಗೆ ಮರು ನೋಂದಣಿ ಮಾಡುವಾಗ ನೀವು ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಕಳೆದುಕೊಳ್ಳುವಿರಿ. PIN ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿದಾಗ ನೀವು ನೋಂದಣಿ ಲಾಕ್ ಅನ್ನು ಆನ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "ಪಿನ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ"
@@ -8694,16 +8745,16 @@
     "messageformat": "ಸಣ್ಣ ಟ್ವೀಕ್‌ಗಳು, ಬಗ್ ಫಿಕ್ಸ್‌ಗಳು ಮತ್ತು ಕಾರ್ಯಕ್ಷಮತೆ ವರ್ಧನೆಗಳು. Signal ಬಳಸುತ್ತಿರುವುದಕ್ಕಾಗಿ ಧನ್ಯವಾದಗಳು!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "ಸಮೀಕ್ಷೆಗಳನ್ನು ಈಗ ಪ್ರತ್ಯೇಕ ಚಾಟ್‌ಗಳಲ್ಲಿಯೂ ರಚಿಸಬಹುದು. ನಿರ್ಧಾರ ತೆಗೆದುಕೊಳ್ಳಲು ಕಷ್ಟಪಡುತ್ತಿರುವ ನಿಮ್ಮ ಸ್ನೇಹಿತರಿಗೆ ಕ್ಯುರೇಟ್ ಮಾಡಲಾದ ಆಯ್ಕೆಗಳ ಪಟ್ಟಿಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ. ಅಥವಾ ‘ನಿನಗೆ ನಾನು ಇಷ್ಟವೇ? ಹೌದು / ಇಲ್ಲ / ಬಹುಶಃ’ ಎಂಬ ಸಮೀಕ್ಷೆಯನ್ನು ರಚಿಸುವ ಮೂಲಕ ನೀವು ಇಷ್ಟಪಡುವವರಿಗೆ ಚೀಟಿ ಕೊಟ್ಟು ಕೇಳುತ್ತಿದ್ದ ಆ ಸಿಹಿ ಕ್ಷಣಗಳನ್ನು ಮತ್ತೆ ಅನುಭವಿಸಿ."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "ಗುಂಪು ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿನ \"ಗುಂಪು ಕೊನೆಗೊಳಿಸಿ\" ಆಯ್ಕೆಯೊಂದಿಗೆ ಗುಂಪಿನ ಅಡ್ಮಿನ್‌ಗಳು ಚಾಟ್‌ಗಳನ್ನು ಕೊನೆಗೊಳಿಸಬಹುದು. ಗುಂಪನ್ನು ಕೊನೆಗೊಳಿಸುವುದರಿಂದ ಸದಸ್ಯರು ಮೆಸೇಜ್ ಕಳುಹಿಸಲು ಅಥವಾ ಕರೆ ಮಾಡಲು ಸಾಧ್ಯವಾಗುವುದಿಲ್ಲ ಮತ್ತು ಆಹ್ವಾನಗಳನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸುತ್ತದೆ. ಈಗ, ಹೊಸದನ್ನು ರಚಿಸುವ ಮೊದಲು ಹಳೆಯ ಗುಂಪನ್ನು ಕೊನೆಗೊಳಿಸುವ ಮೂಲಕ, ಎಲ್ಲರೂ ಒಂದೇ ಚಾಟ್‌ನಲ್ಲಿದ್ದಾರೆ ಎಂದು ನೀವು ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಬಹುದು."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "★ ಕಣ್ಮರೆಯಾಗುತ್ತಿರುವ ಕಾಲ್ ಇವೆಂಟ್‌ಗಳನ್ನು ಪರಿಚಯಿಸಲಾಗುತ್ತಿದೆ: ಈ ಅಪ್‌ಡೇಟ್ ಅನ್ನು ಇನ್‌ಸ್ಟಾಲ್ ಮಾಡಿದ ನಂತರ ನಡೆಯುವ ತಪ್ಪಿಹೋದ, ಹೊರಹೋಗುವ ಮತ್ತು ಸ್ವೀಕರಿಸಿದ ಕರೆಗಳು, ಮಾಯವಾಗುವ ಸಂದೇಶಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿರುವ ಯಾವುದೇ ಚಾಟ್‌ನಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಕಣ್ಮರೆಯಾಗುತ್ತವೆ."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "ನಿಮ್ಮ ಹೊಸ ಮೆಚ್ಚಿನ ಸ್ಟಿಕರ್‌ಗಳು ಸಾಲಿನಲ್ಲಿ ಸಿಲುಕಿಕೊಳ್ಳದಂತೆ ಈಗ ನೀವು ಸ್ಥಾಪಿಸಲಾದ ಸ್ಟಿಕ್ಕರ್ ಪ್ಯಾಕ್‌ಗಳನ್ನು ಮರುಕ್ರಮಗೊಳಿಸಬಹುದು."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "ಗುಂಪು ಸೆಟ್ಟಿಂಗ್‌ಗಳ ಪುಟದಲ್ಲಿ ಗುಂಪಿನ ಸದಸ್ಯರನ್ನು ಹುಡುಕುವುದನ್ನು ಇನ್ನಷ್ಟು ಸುಲಭಗೊಳಿಸಿದ್ದೇವೆ. ಹಾಗಾಗಿ, ಮೂರನೇ ವರ್ಷದ ವಿಸ್ತೃತ ಕುಟುಂಬ ಪುನರ್ಮಿಲನ BBQ ಗುಂಪಿಗೆ ನಿಮ್ಮ ಅಮ್ಮ ನಿಮ್ಮ ಎರಡನೇ ಕಸಿನ್‌ರನ್ನು ಈಗಾಗಲೇ ಸೇರಿಸಿದ್ದಾರೆಯೇ ಎಂದು ಕ್ಷಣದಲ್ಲೇ ತಿಳಿದುಕೊಳ್ಳಬಹುದು."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "ರೂಪದ ಸೆಟ್ಟಿಂಗ್‌ಗಳಲ್ಲಿ ನಾವು ಎರಡು ಹೊಸ ಝೂಮ್ ಹಂತಗಳನ್ನು ಸೇರಿಸಿದ್ದೇವೆ, ಹಾಗಾಗಿ ತೀರಾ ಕಡಿಮೆ ಶ್ರಮದೊಂದಿಗೆ ಸಹ ನೀವು ನಿಮ್ಮ ಮೆಸೇಜ್‌ಗಳಿಗೆ 110% (ಅಥವಾ 90%) ನೀಡಬಹುದು."
   }
 }

@@ -4,11 +4,10 @@ import { memo, useCallback } from 'react';
 import type { FC, ReactNode, JSX, MouseEvent, Ref } from 'react';
 import { tw } from './tw.dom.tsx';
 import { AxoSymbol } from './AxoSymbol.dom.tsx';
-import type { SpinnerVariant } from '../components/SpinnerV2.dom.tsx';
-import { SpinnerV2 } from '../components/SpinnerV2.dom.tsx';
 import { useAxoIntl } from './_internal/AxoIntl.dom.tsx';
 import { variants } from './_internal/variants.dom.tsx';
 import { forwardExtraPropsForRadix } from './_internal/props.dom.tsx';
+import { AxoBaseSpinner } from './status/_AxoBaseSpinner.dom.tsx';
 
 /**
  * A text button with optional leading icon and trailing arrow.
@@ -70,7 +69,7 @@ export namespace AxoButton {
 
   const baseStyles = tw(
     'relative inline-flex max-w-full items-center-safe justify-center-safe rounded-full',
-    'outline-none keyboard-mode:focus:axo-focus-ring',
+    'not-forced-colors:outline-none keyboard-mode:focus:axo-focus-ring',
     'forced-colors:border',
     'forced-colors:aria-disabled:text-[GrayText]'
   );
@@ -81,31 +80,31 @@ export namespace AxoButton {
       baseStyles,
       'bg-secondary text-primary',
       'not-aria-disabled:active:bg-secondary-pressed',
-      'data-axo-discouraged:text-disabled'
+      'data-[axo-discouraged=true]:text-disabled'
     ),
     'strong-primary': tw(
       baseStyles,
       'bg-accent text-primary-oncolor',
       'not-aria-disabled:active:bg-accent-pressed',
-      'data-axo-discouraged:text-disabled-oncolor'
+      'data-[axo-discouraged=true]:text-disabled-oncolor'
     ),
     'strong-affirmative': tw(
       baseStyles,
       'bg-affirmative text-primary-oncolor',
       'not-aria-disabled:active:bg-affirmative-pressed',
-      'data-axo-discouraged:text-disabled-oncolor'
+      'data-[axo-discouraged=true]:text-disabled-oncolor'
     ),
     'strong-warning': tw(
       baseStyles,
       'bg-warning-bright text-primary-onbright',
       'not-aria-disabled:active:bg-warning-bright-pressed',
-      'data-axo-discouraged:text-disabled-onbright'
+      'data-[axo-discouraged=true]:text-disabled-onbright'
     ),
     'strong-destructive': tw(
       baseStyles,
       'bg-destructive text-primary-oncolor',
       'not-aria-disabled:active:bg-destructive-pressed',
-      'data-axo-discouraged:text-disabled-oncolor'
+      'data-[axo-discouraged=true]:text-disabled-oncolor'
     ),
 
     // subtle
@@ -113,31 +112,31 @@ export namespace AxoButton {
       baseStyles,
       'bg-primary text-primary',
       'not-aria-disabled:active:bg-primary-pressed',
-      'data-axo-discouraged:text-disabled'
+      'data-[axo-discouraged=true]:text-disabled'
     ),
     'subtle-primary': tw(
       baseStyles,
       'bg-accent-tint text-accent',
       'not-aria-disabled:active:bg-accent-tint-pressed',
-      'data-axo-discouraged:text-accent-disabled'
+      'data-[axo-discouraged=true]:text-accent-disabled'
     ),
     'subtle-affirmative': tw(
       baseStyles,
       'bg-affirmative-tint text-affirmative',
       'not-aria-disabled:active:bg-affirmative-tint-pressed',
-      'data-axo-discouraged:text-affirmative-disabled'
+      'data-[axo-discouraged=true]:text-affirmative-disabled'
     ),
     'subtle-warning': tw(
       baseStyles,
       'bg-warning-tint text-warning',
       'not-aria-disabled:active:bg-warning-tint-pressed',
-      'data-axo-discouraged:text-warning-disabled'
+      'data-[axo-discouraged=true]:text-warning-disabled'
     ),
     'subtle-destructive': tw(
       baseStyles,
       'bg-destructive-tint text-destructive',
       'not-aria-disabled:active:bg-destructive-tint-pressed',
-      'data-axo-discouraged:text-destructive-disabled'
+      'data-[axo-discouraged=true]:text-destructive-disabled'
     ),
 
     // elevated
@@ -145,7 +144,7 @@ export namespace AxoButton {
       baseStyles,
       'bg-material-tertiary text-primary shadow-elevation-1 backdrop-blur-thin',
       'not-aria-disabled:active:bg-material-tertiary-pressed',
-      'data-axo-discouraged:text-disabled'
+      'data-[axo-discouraged=true]:text-disabled'
     ),
 
     // implied
@@ -154,28 +153,28 @@ export namespace AxoButton {
       'bg-transparent text-primary',
       'not-aria-disabled:hover:bg-primary',
       'not-aria-disabled:active:bg-primary-pressed',
-      'data-axo-discouraged:text-disabled'
+      'data-[axo-discouraged=true]:text-disabled'
     ),
     'implied-primary': tw(
       baseStyles,
       'bg-transparent text-accent',
       'not-aria-disabled:hover:bg-accent-tint',
       'not-aria-disabled:active:bg-accent-tint-pressed',
-      'data-axo-discouraged:text-accent-disabled'
+      'data-[axo-discouraged=true]:text-accent-disabled'
     ),
     'implied-affirmative': tw(
       baseStyles,
       'bg-transparent text-affirmative',
       'not-aria-disabled:hover:bg-affirmative-tint',
       'not-aria-disabled:active:bg-affirmative-tint-pressed',
-      'data-axo-discouraged:text-affirmative-disabled'
+      'data-[axo-discouraged=true]:text-affirmative-disabled'
     ),
     'implied-destructive': tw(
       baseStyles,
       'bg-transparent text-destructive',
       'not-aria-disabled:hover:bg-destructive-tint',
       'not-aria-disabled:active:bg-destructive-tint-pressed',
-      'data-axo-discouraged:text-destructive-disabled'
+      'data-[axo-discouraged=true]:text-destructive-disabled'
     ),
 
     // message
@@ -183,13 +182,13 @@ export namespace AxoButton {
       baseStyles,
       'bg-onmessage-incoming-primary text-primary',
       'not-aria-disabled:active:bg-onmessage-incoming-primary-pressed',
-      'data-axo-discouraged:text-disabled'
+      'data-[axo-discouraged=true]:text-disabled'
     ),
     'message-outgoing-primary': tw(
       baseStyles,
       'bg-onmessage-outgoing-primary text-primary-oncolor',
       'not-aria-disabled:active:bg-onmessage-outgoing-primary-pressed',
-      'data-axo-discouraged:text-disabled-oncolor'
+      'data-[axo-discouraged=true]:text-disabled-oncolor'
     ),
   });
 
@@ -208,8 +207,7 @@ export namespace AxoButton {
     full: tw('w-full'),
   });
 
-  type ArrowSymbol = AxoSymbol.InlineGlyphName;
-  const Arrows = variants<Arrow, ArrowSymbol>('AxoButton.Arrow', {
+  const Arrows = variants<Arrow, AxoSymbol.Name>('AxoButton.Arrow', {
     collapse: 'chevron-up',
     expand: 'chevron-down',
     next: 'chevron-[end]',
@@ -250,7 +248,7 @@ export namespace AxoButton {
     /**
      * Optional leading icon.
      */
-    symbol?: AxoSymbol.InlineGlyphName;
+    symbol?: AxoSymbol.Name;
     /**
      * Optional trailing arrow icon.
      */
@@ -400,57 +398,53 @@ export namespace AxoButton {
    * -------------------
    */
 
-  const SpinnerVariants = variants<Variant, SpinnerVariant>(
+  const SpinnerVariants = variants<Variant, AxoBaseSpinner.Variant>(
     'AxoButton.Variant',
     {
-      'strong-primary': 'axo-button-spinner-oncolor',
-      'strong-secondary': 'axo-button-spinner-secondary',
-      'strong-affirmative': 'axo-button-spinner-oncolor',
-      'strong-warning': 'axo-button-spinner-oncolor',
-      'strong-destructive': 'axo-button-spinner-oncolor',
-      'subtle-primary': 'axo-button-spinner-primary',
-      'subtle-secondary': 'axo-button-spinner-secondary',
-      'subtle-affirmative': 'axo-button-spinner-affirmative',
-      'subtle-warning': 'axo-button-spinner-warning',
-      'subtle-destructive': 'axo-button-spinner-destructive',
-      'elevated-secondary': 'axo-button-spinner-secondary',
-      'implied-primary': 'axo-button-spinner-primary',
-      'implied-secondary': 'axo-button-spinner-secondary',
-      'implied-affirmative': 'axo-button-spinner-affirmative',
-      'implied-destructive': 'axo-button-spinner-destructive',
-      'message-incoming-primary': 'axo-button-spinner-oncolor',
-      'message-outgoing-primary': 'axo-button-spinner-secondary',
+      'strong-primary': 'oncolor',
+      'strong-secondary': 'default',
+      'strong-affirmative': 'oncolor',
+      'strong-warning': 'oncolor',
+      'strong-destructive': 'oncolor',
+      'subtle-primary': 'default',
+      'subtle-secondary': 'default',
+      'subtle-affirmative': 'default',
+      'subtle-warning': 'default',
+      'subtle-destructive': 'default',
+      'elevated-secondary': 'default',
+      'implied-primary': 'default',
+      'implied-secondary': 'default',
+      'implied-affirmative': 'default',
+      'implied-destructive': 'default',
+      'message-incoming-primary': 'default',
+      'message-outgoing-primary': 'default',
     }
   );
 
-  type SpinnerSizeConfig = Readonly<{
-    size: number;
-    strokeWidth: number;
-  }>;
-
-  const SpinnerSizes = variants<Size, SpinnerSizeConfig>('AxoButton.Size', {
-    lg: { size: 20, strokeWidth: 2 },
-    md: { size: 20, strokeWidth: 2 },
-    sm: { size: 16, strokeWidth: 1.5 },
+  const SpinnerSizes = variants<Size, number>('AxoButton.Size', {
+    lg: 18,
+    md: 18,
+    sm: 16,
   });
 
   /** @internal */
   type SpinnerProps = Readonly<{
-    buttonVariant: Variant;
     buttonSize: Size;
+    buttonVariant: Variant;
   }>;
 
   /** @internal */
   function Spinner(props: SpinnerProps): JSX.Element {
+    const size = SpinnerSizes.get(props.buttonSize);
     const variant = SpinnerVariants.get(props.buttonVariant);
-    const sizeConfig = SpinnerSizes.get(props.buttonSize);
     return (
       <span className={tw('absolute inset-0 flex items-center justify-center')}>
-        <SpinnerV2
-          size={sizeConfig.size}
-          strokeWidth={sizeConfig.strokeWidth}
+        <AxoBaseSpinner.Root
+          size={size}
+          weight="regular"
           variant={variant}
           value="indeterminate"
+          track={false}
         />
       </span>
     );

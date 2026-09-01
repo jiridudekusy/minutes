@@ -1572,14 +1572,16 @@ function removeMember(
   return noopAction('removeMember');
 }
 
-function filterAvatarData(
+export function filterAvatarData(
   avatars: ReadonlyArray<AvatarDataType>,
   data: AvatarDataType
 ): Array<AvatarDataType> {
   return avatars.filter(avatarData => !isSameAvatarData(data, avatarData));
 }
 
-function getNextAvatarId(avatars: ReadonlyArray<AvatarDataType>): number {
+export function getNextAvatarId(
+  avatars: ReadonlyArray<AvatarDataType>
+): number {
   return Math.max(...avatars.map(x => Number(x.id))) + 1;
 }
 
@@ -3768,7 +3770,7 @@ async function syncMessageRequestResponse(
     response,
     {
       source: MessageRequestResponseSource.LOCAL,
-      timestamp: Date.now(),
+      blockedAt: Date.now(),
     },
     { shouldSave }
   );
@@ -4007,7 +4009,7 @@ function acceptConversation(
         messageRequestEnum.ACCEPT,
         {
           source: MessageRequestResponseSource.LOCAL,
-          timestamp: Date.now(),
+          blockedAt: Date.now(),
         },
         { shouldSave: true }
       );
@@ -4083,7 +4085,7 @@ function blockConversation(
         messageRequestEnum.BLOCK,
         {
           source: MessageRequestResponseSource.LOCAL,
-          timestamp: Date.now(),
+          blockedAt: Date.now(),
         },
         { shouldSave: true }
       );

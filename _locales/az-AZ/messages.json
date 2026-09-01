@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Bütün çatlar"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} oxunmamış mesaj} other {{count,number} oxunmamış mesaj}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "İnternet bağlantınızı yoxlayın."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Cihazınızdakı tarix qeyri-dəqiqdir. Cihaz saatını tənzimləyib, yenidən cəhd edin. Cihazınızdakı tarix və vaxt:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Sazlama jurnalı"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Hamısına bax"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Axtar"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} ortaq qrupunuz var} other {{count,number} ortaq qrupunuz var}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "signal.group keçidini klaviaturaya kopiyalayın"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Üzvləri axtar"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Axtar"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Adminləri axtar"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Kontaktları axtar"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtr"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Bütün üzvlər"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Adminlər"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Əlaqələr"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nəticə yoxdur"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "“{searchQuery}” üçün heç bir nəticə yoxdur"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Axtarış nəticələri"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Üzv əlavə et"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Üzv əlavə et"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Qrup keçidi vasitəsilə dəvət et"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Tələb ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Bloklanmış qruplar"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloklanma vaxtı: {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal-ın Təhlükəsiz Ehtiyat Nüsxələri"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Xəbərdarlıq"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "PIN kodu qeyri-aktiv etsəniz, Signal-da təkrar qeydiyyatdan keçərkən, digər bir iOS cihazından köçürmədiyiniz təqdirdə bütün məlumatları itirəcəksiniz. PIN kod qeyri-aktiv edildikdə qeydiyyat kilidini yandıra bilməzsiniz."
+    "messageformat": "PIN kodu qeyri-aktiv etsəniz, Signal-da təkrar qeydiyyatdan keçərkən bütün məlumatlarınız silinmiş olacaq. PIN kod qeyri-aktiv edildikdə Qeydiyyat kilidini yandıra bilməzsiniz."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "PIN-i sıradan çıxart"
@@ -8694,16 +8745,16 @@
     "messageformat": "Kiçik spesifik tənzimləmələr, xəta düzəlişləri və məhsuldarlığın artırılması. Signal istifadə etdiyiniz üçün təşəkkürlər!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Səsvermə artıq fərdi çatlarda da yaradıla bilər. Tərəddüd edən dostunuza xüsusi seçimlər siyahısı təqdim edin və ya \"Məni bəyənirsən? B/X/Bəlkə\" sorğusu ilə bir səsvermə yaradaraq sevdiyiniz insana qısa mesaj ötürmə xatirəsini yenidən yad edin."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Artıq qrup adminləri qrup parametrlərində \"Qrupu sonlandır\" seçimi ilə çatları təbii şəkildə yekunlaşdıra bilər. Qrupu sonlandırdıqda qrup üzvləri mesajlaşa və ya zəng edə bilmir, dəvətlər qeyri-aktiv edilir. Artıq yeni qrupu birgə yaratmazdan əvvəl keçən ilki köhnə qrupu sonlandıra və hər kəsi doğru yolda saxlaya bilərsiniz."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "\"Yox olan zəng etmə hadisələri\" xüsusiyyəti təqdim olunur: Bu yeniləməni quraşdırdıqdan sonra baş verən buraxılmış, çıxan və qəbul edilən zənglər, yoxa çıxan mesajların aktiv olduğu bütün çatlardan avtomatik olaraq silinəcək."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Artıq quraşdırılmış stiker paketlərinin yerini dəyişə və sevdiyiniz yeni paketləri daha ön sıralara yerləşdirə bilərsiniz."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Biz qrup parametrləri səhifəsində qrup üzvlərinin axtarışını asanlaşdırdıq, artıq bir qrupa kimin əlavə edilib-edilmədiyini asanlıqla tapa bilərsiniz."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Görünüş parametrlərinə iki yeni yaxınlaşdırma səviyyəsi əlavə etdik ki, çox az bir səylə belə mesajlarınızı 110% (və ya 90%) yaxınlaşdıra biləsiniz."
   }
 }

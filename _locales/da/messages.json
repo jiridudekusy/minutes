@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Alle chats"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} ulæst besked} other {{count,number} ulæste beskeder}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Kontroller din netværksforbindelse."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Din enheds dato er ikke korrekt. Ret dato og klokkeslæt, og prøv igen. Din enheds dato og klokkeslæt er:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Fejlsøgningslog"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Se alle"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Søg"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} gruppe til fælles} other {{count,number} grupper til fælles}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopiér signal.group-linket til din udklipsholder"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Søg blandt medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Søg"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Søg i administratorer"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Søg i kontakter"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrér"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Alle medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratorer"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakter"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Ingen resultater"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Ingen resultater for \"{searchQuery}\""
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrator"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Søgeresultater"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Tilføj medlem"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Tilføj medlemmer"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Inviter via gruppelink"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Anmodninger ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Blokerede grupper"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blokeret {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Sikre Signal-sikkerhedskopier"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Advarsel"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Hvis du deaktiverer din pinkode, mister du alle data når du genregistrerer Signal, medmindre du overfører den fra en anden iOS-enhed. Du kan ikke aktivere registreringslås, mens pinkoden er déaktiveret."
+    "messageformat": "Hvis du deaktiverer pinkoden, mister du alle data, når du opretter Signal igen. Du kan ikke aktivere registreringslås, mens pinkoden er deaktiveret."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Deaktiver pinkode"
@@ -8694,16 +8745,16 @@
     "messageformat": "Små tweaks, rettelser og forbedringer af appens præstation. Tak fordi du bruger Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Afstemninger kan nu også oprettes i individuelle chats. Præsenter din ubeslutsomme ven for en udvalgt liste af muligheder, eller genskab følelsen af en klassisk seddel med en “Kan du lide mig? Ja/Nej/Måske”-afstemning."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Gruppeadministratorer kan nu afslutte gruppen, når den ikke længere er i brug, med \"Afslut gruppe\" i gruppeindstillingerne. Når en gruppe afsluttes, kan medlemmer ikke længere sende beskeder, starte opkald eller invitere nye medlemmer. Afslut gruppen med sidste års syklub, før du starter en ny, så alle finder vej til den nye tråd."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Vi introducerer forsvindende opkaldsbegivenheder: Ubesvarede, udgående og modtagne opkald, der finder sted efter installationen af denne opdatering, forsvinder nu automatisk i alle chats, hvor forsvindende beskeder er aktiveret."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Nu kan du ændre rækkefølgen af installerede klistermærkepakker, så dine nye favoritter altid er lige ved hånden."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Vi har gjort det nemmere at søge efter gruppemedlemmer i gruppeindstillingerne, så du hurtigt kan se, om din mor allerede har tilføjet din grandkusine til den årlige familiekomsammen."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Vi har tilføjet to nye zoomniveauer under udseendeindstillingerne, så du selv med en meget lille indsats stadig kan give dine beskeder 110 % (eller 90 %)."
   }
 }

@@ -439,10 +439,6 @@
     "messageformat": "All chats",
     "description": "Left Pane > Inbox > Chat List > Chat Folders > Item Label > All chats"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount, number}+",
-    "description": "(Deleted 2026/07/15) Left Pane > Inbox > Chat List > Chat Folders > Item > Badge Count > When over the max count (Example: 1000 or more would be 999+)"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {# Unread Message} other {# Unread Messages}}",
     "description": "Left Pane > Inbox > Chat List > Chat Folders > Item > Badge Count > Accessible Label"
@@ -1050,6 +1046,10 @@
   "icu:checkNetworkConnection": {
     "messageformat": "Check your network connection.",
     "description": "Obvious instructions for when a user's computer loses its network connection"
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Your device date is inaccurate. Adjust your clock and try again. Your device date and time is:",
+    "description": "Warning notification that the system clock is out of date. The user's device date and time is shown directly below, for example: Jul 31, 2026, 12:42:19 PM PDT"
   },
   "icu:submitDebugLog": {
     "messageformat": "Debug log",
@@ -6770,6 +6770,10 @@
     "messageformat": "See all",
     "description": "This is a button on the conversation details to show all members"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Search",
+    "description": "ConversationDetailsMembershipList > Search > Accessibility Label"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {# group} other {# groups}} in common",
     "description": "Title of the groups-in-common panel, in the contact details"
@@ -6861,6 +6865,66 @@
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Copy signal.group link to clipboard",
     "description": "GroupLinkManagement > Header > Group link text > Button (looks like normal text) > Accessibility label"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Search members",
+    "description": "GroupMembersSearchDialog > Dialog Title"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Search",
+    "description": "GroupMembersSearchDialog > Search > Placeholder"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Search admins",
+    "description": "GroupMembersSearchDialog > Search > Placeholder"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Search contacts",
+    "description": "GroupMembersSearchDialog > Search > Placeholder"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filter",
+    "description": "GroupMembersSearchDialog > Filter Menu > Label"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "All members",
+    "description": "GroupMembersSearchDialog > Filter Menu > "
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Admins",
+    "description": "GroupMembersSearchDialog > Filter Menu > Admins"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Contacts",
+    "description": "GroupMembersSearchDialog > Filter Menu > System Contacts"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "No results",
+    "description": "GroupMembersSearchDialog > No results (without search query)"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "No results for “{searchQuery}”",
+    "description": "GroupMembersSearchDialog > No results (with search query)"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Admin",
+    "description": "GroupMembersSearchDialog > Member Item > Admin"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Search Results",
+    "description": "GroupMembersSearchDialog > Search Results > Title"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Add member",
+    "description": "(Deleted 2026/08/19) GroupMembersSearchDialog > Bottom Actions > Add member"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Add members",
+    "description": "GroupMembersSearchDialog > Bottom Actions > Add members"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Invite via group link",
+    "description": "GroupMembersSearchDialog > Bottom Actions > Invite via group link"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Requests ({count, number})",
@@ -8476,6 +8540,10 @@
     "messageformat": "Blocked Groups",
     "description": "Header for groups section on the blocked preferences subpage"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Blocked on {blockedAt}",
+    "description": "A second line shown under the contact's name in block list if we have a timestamp for that blocked contact or group"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal Secure Backups",
     "description": "Feature name for message backups using the Signal service."
@@ -9437,7 +9505,7 @@
     "description": "Header on dialog shown when user chooses to disable the PIN entirely"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "If you disable the PIN, you will lose all data when you re-register Signal unless you transfer it from another iOS device. You can not turn on Registration Lock while the PIN is disabled.",
+    "messageformat": "If you disable the PIN, you will lose all data when you re-register Signal. You can not turn on Registration Lock while the PIN is disabled.",
     "description": "Description on dialog shown when user chooses to disable the PIN entirely"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
@@ -11561,14 +11629,6 @@
     "description": "Release notes for releases that only include bug fixes",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Polls can now be created in individual chats too. Present a curated list of choices to your indecisive friend, or recapture the magic of passing a note to your crush by creating a “Do you like me? Y/N/Maybe” poll.",
-    "description": "(Deleted 2026/07/09) Release notes for 8.18"
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Group admins can now bring chats to their natural conclusion with the new \"End Group\" option in group settings. Ending a group prevents group members from sending messages or starting calls, and also disables invites. Now you can make sure everyone stays on the right thread by ending last year's sewing meetup group before stitching a new one together.",
-    "description": "(Deleted 2026/07/15) Release notes for 8.19"
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Introducing disappearing call events: Missed, outgoing, and received calls that occur after you install this update will now automatically disappear in any chat where disappearing messages are enabled.",
     "description": "(Deleted 2026/07/22) Release notes for 8.20"
@@ -11576,5 +11636,13 @@
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Now you can reorder installed sticker packs so your new favorites don’t get stuck in the back of the line.",
     "description": "(Deleted 2026/07/22) Release notes for 8.20"
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "We made it easier to search for group members on the group settings page, so you can quickly figure out if your Mom already added your second cousin to the third-annual extended family reunion BBQ group.",
+    "description": "(Deleted 2026/08/19) Release notes for 8.24"
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "We added two new zoom levels in the appearance settings, so even with very little effort you can still give your messages 110% (or 90%).",
+    "description": "Release notes for 8.25"
   }
 }

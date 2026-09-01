@@ -144,8 +144,12 @@ describe('registration', function (this: Mocha.Suite) {
 
     {
       debug('COMPLETE: Verify data was stored in SVR');
-      const storedData = await app.getSvr2StoreParameters();
-      assert.strictEqual(storedData?.pin, PIN);
+      const storedData = await app.waitForSVRStore();
+      assert.strictEqual(
+        storedData?.pin,
+        PIN,
+        'checking what was stored in SVR'
+      );
     }
 
     {
@@ -362,16 +366,16 @@ describe('registration', function (this: Mocha.Suite) {
       await window.getByRole('button', { name: 'OK' }).click();
     }
 
+    const PIN = '876543';
+    const DATA = randomBytes(32);
+
     {
       debug('VERIFY_PIN: enter correct PIN');
-
-      const CORRECT_PIN = '876543';
-      const DATA = randomBytes(32);
 
       const phoneInput = window.getByPlaceholder('Enter your PIN');
 
       await phoneInput.clear();
-      await typeIntoInput(phoneInput, CORRECT_PIN, '');
+      await typeIntoInput(phoneInput, PIN, '');
 
       server.setRegisterResponseError(undefined);
       await app.saveSVR2RestoreResponse({

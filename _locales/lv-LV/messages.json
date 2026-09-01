@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Visas sarunas"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, zero {{count,number} nelasītu ziņu} one {{count,number} nelasīta ziņa} other {{count,number} nelasītas ziņas}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Pārbaudiet tīkla savienojumu."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Jūsu ierīces datums nav pareizs. Pielāgojiet pulksteņa laiku un mēģiniet vēlreiz. Jūsu ierīces datums un laiks ir:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Atkļūdošanas žurnāls"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "Skatīt visus"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Meklēt"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, zero {{count,number} kopīga grupa} one {{count,number} kopīga grupa} other {{count,number} kopīgas grupas}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Kopēt Signal grupas saiti starpliktuvē"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Meklēt dalībniekus"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Meklēt"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Meklēt administratorus"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Meklēt kontaktpersonas"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Filtrs"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Visi lietotāji"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Administratori"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Kontakti"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Nav rezultātu"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Meklējot “{searchQuery}\", rezultātu nav"
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Administrators"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Meklēšanas rezultāti"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Pievienot dalībnieku"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Pievienot dalībniekus"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Uzaicināt ar grupas saiti"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Pieprasījumi ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Bloķētās grupas"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bloķēts plkst. {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Signal drošās rezerves kopijas"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Brīdinājums"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Ja atspējosiet PIN, zaudēsiet visus datus, kad atkārtoti reģistrēsieties lietotnē Signal, ja vien tos nepārsūtīsiet no citas iOS ierīces. Reģistrācijas bloķēšanu nevar ieslēgt, kamēr PIN ir atspējots."
+    "messageformat": "Ja atspējosiet PIN, zaudēsiet visus datus, kad atkārtoti reģistrēsieties lietotnē Signal Reģistrācijas bloķēšanu nevar ieslēgt, kamēr PIN ir atspējots."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Atspējot PIN"
@@ -8694,16 +8745,16 @@
     "messageformat": "Nelielas izmaiņas, kļūdu labojumi un darbības uzlabojumi. Paldies, ka lietojat Signal!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Tagad aptaujas var izveidot arī individuālās sarunās. Piedāvājiet neizlēmīgiem draugiem ierobežotu izvēļu sarakstus vai aizsūtiet savai simpātijai aptauju kā vidusskolā, pajautājot ”Vai es tev patīku? Jā/Nē/Varbūt”."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Grupu administratori tagad var organiski izbeigt sarunas, izmantojot jauno iespēju “Slēgt grupu” grupas iestatījumos. Pēc grupas slēgšanas grupas biedri vairs nevarēs nosūtīt ziņas vai veikt zvanus, vai uzaicināt jaunus biedrus. Tagad varat droši slēgt \"aizmigušās\" interešu grupas pirms jaunu grupu izveides."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Iepazīstinām ar gaistošiem zvanu notikumiem: neatbildētie, izejošie un saņemtie zvani, kas veikti pēc šī atjauninājuma instalēšanas, tagad automātiski izgaisīs visās sarunās, kurās ir iespējotas gaistošās ziņas."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Tagad vari mainīt instalēto uzlīmju komplektu secību, lai iecienītākie komplekti nav saraksta beigās."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Mēs vienkāršojām grupas biedru meklēšanu grupas iestatījumos, lai jūs varētu ātri noskaidrot, vai mamma jau ir pievienojusi otrās pakāpes brālēnu ģimenes barbekjū grupai."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Mēs izskata iestatījumos pievienojām divus jaunus tālummaiņas līmeņus, kas ļauj skatīt ziņas 110% vai 90% mērogā."
   }
 }

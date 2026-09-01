@@ -320,9 +320,6 @@
   "icu:LeftPaneChatFolders__ItemLabel--All": {
     "messageformat": "Gach comhrá"
   },
-  "icu:LeftPaneChatFolders__ItemUnreadBadge__MaxCount": {
-    "messageformat": "{maxCount,number}+"
-  },
   "icu:LeftPaneChatFolders__ItemUnreadBadge__AccessibleLabel": {
     "messageformat": "{count, plural, one {{count,number} teachtaireacht neamhléite} two {{count,number} theachtaireacht neamhléite} few {{count,number} theachtaireacht neamhléite} many {{count,number} dteachtaireacht neamhléite} other {{count,number} teachtaireacht neamhléite}}"
   },
@@ -781,6 +778,9 @@
   },
   "icu:checkNetworkConnection": {
     "messageformat": "Seiceáil do nasc líonra."
+  },
+  "icu:clockSkewDetected": {
+    "messageformat": "Tá dáta do ghléis míchruinn. Athraigh do chlog agus triail arís. Dáta agus am do ghléis:"
   },
   "icu:submitDebugLog": {
     "messageformat": "Logchomhad dífhabhtaithe"
@@ -5096,6 +5096,9 @@
   "icu:ConversationDetailsMembershipList--show-all": {
     "messageformat": "See All"
   },
+  "icu:ConversationDetailsMembershipList__Search__AccessibilityLabel": {
+    "messageformat": "Cuardaigh"
+  },
   "icu:ConversationDetailsGroups--title": {
     "messageformat": "{count, plural, one {{count,number} ghrúpa i bpáirt} two {{count,number} ghrúpa i bpáirt} few {{count,number} ghrúpa i bpáirt} many {{count,number} ngrúpa i bpáirt} other {{count,number} grúpa i bpáirt}}"
   },
@@ -5164,6 +5167,51 @@
   },
   "icu:GroupLinkManagement__CopyGroupLinkButtonLabel": {
     "messageformat": "Cóipeáil nasc signal.group chuig an ngearrthaisce"
+  },
+  "icu:GroupMembersSearchDialog__DialogTitle": {
+    "messageformat": "Cuardaigh baill"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder": {
+    "messageformat": "Cuardaigh"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringByAdmins": {
+    "messageformat": "Cuardaigh riarthóirí"
+  },
+  "icu:GroupMembersSearchDialog__SearchField__Placeholder--FilteringBySystemContacts": {
+    "messageformat": "Cuardaigh teagmhálaithe"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Label": {
+    "messageformat": "Scag"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__AllMembers": {
+    "messageformat": "Na baill go léir"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__Admins": {
+    "messageformat": "Riarthóirí"
+  },
+  "icu:GroupMembersSearchDialog__FilterMenu__SystemContacts": {
+    "messageformat": "Teagmhálaithe"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithoutSearchQuery": {
+    "messageformat": "Gan torthaí"
+  },
+  "icu:GroupMembersSearchDialog__EmptyState__NoResults--WithSearchQuery": {
+    "messageformat": "Ní bhfuarthas aon torthaí ar \"{searchQuery}\""
+  },
+  "icu:GroupMembersSearchDialog__MemberItem__Admin": {
+    "messageformat": "Riarthóir"
+  },
+  "icu:GroupMembersSearchDialog__SearchResults__Title": {
+    "messageformat": "Torthaí Cuardaigh"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMember": {
+    "messageformat": "Cuir ball leis"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__AddMembers": {
+    "messageformat": "Cuir baill leis"
+  },
+  "icu:GroupMembersSearchDialog__BottomActions__InviteViaGroupLink": {
+    "messageformat": "Tabhair cuireadh trí nasc grúpa"
   },
   "icu:PendingInvites--tab-requests": {
     "messageformat": "Iarratais ({count,number})"
@@ -6376,6 +6424,9 @@
   "icu:Preferences--blocked-groups": {
     "messageformat": "Grúpaí Bactha"
   },
+  "icu:Preferences--blocked--blocked-on": {
+    "messageformat": "Bac curtha air/uirthi an {blockedAt}"
+  },
   "icu:Preferences--signal-backups": {
     "messageformat": "Cúltacaí Slána Signal"
   },
@@ -7097,7 +7148,7 @@
     "messageformat": "Rabhadh"
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--description": {
-    "messageformat": "Má dhíchumasaíonn tú an UAP, caillfidh tú do chuid sonraí go léir nuair a athchláróidh tú Signal, mura bhfuil siad ar fáil le haistriú ó ghléas iOS eile. Ní féidir leat Glas Clárúcháin a chur ar siúl agus an UAP díchumasaithe."
+    "messageformat": "Má dhíchumasaíonn tú an UAP, caillfidh tú na sonraí go léir nuair a athchláraíonn tú Signal. Ní féidir leat Glas Cláraithe a chasadh air agus an UAP díchumasaithe."
   },
   "icu:StandaloneRegistration--CreatePIN--DisableWarning--disable-button": {
     "messageformat": "Díchumasaigh an UAP"
@@ -8694,16 +8745,16 @@
     "messageformat": "Mionathruithe, paistí fabhtanna agus feabhsuithe ar fheidhmíocht. Go raibh maith agat as Signal a úsáid!",
     "ignoreUnused": true
   },
-  "icu:WhatsNew__8.18--0": {
-    "messageformat": "Is féidir suirbhéanna a chruthú i gcomhráite aonair anois freisin."
-  },
-  "icu:WhatsNew__8.19--0": {
-    "messageformat": "Féadann riarthóirí grúpa comhráite críoch a chur le teachtaireachtaí anois leis an rogha nua \"Cuir Deireadh leis an nGrúpa\" i socruithe an ghrúpa. Cuirtear cosc ar bhaill den ghrúpa teachtaireachtaí a sheoladh nó glaonna a chur, agus díchumasaítear cuirí freisin, trí dheireadh a chur le grúpa."
-  },
   "icu:WhatsNew__8.20--0": {
     "messageformat": "Tús eolais ar imeachtaí glaonna a imíonn as radharc: Tar éis duit an nuashonrú seo a shuiteáil, imeoidh glaonna caillte, glaonna amach agus glaonna a fuarthas as radharc go huathoibríoch in aon chomhrá ina mbíonn teachtaireachtaí sealadacha cumasaithe."
   },
   "icu:WhatsNew__8.20--1": {
     "messageformat": "Anois is féidir leat bearta greamán a suiteáladh a chur in ord nua ionas nach mbeidh do chuid ceanán nua gafa ar chúl na líne."
+  },
+  "icu:WhatsNew__8.24--1": {
+    "messageformat": "Rinneamar cuardach le haghaidh baill den ghrúpa níos éasca ar leathanach socruithe an ghrúpa."
+  },
+  "icu:WhatsNew__8.25--0": {
+    "messageformat": "Chuireamar dhá leibhéal zúmála leis i socruithe na cuma, mar sin is féidir 110% (nó 90%) a thabhairt do do theachtaireachtaí gan ach fíorbheagán iarrachta."
   }
 }

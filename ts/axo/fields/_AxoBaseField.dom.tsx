@@ -160,7 +160,7 @@ export namespace AxoBaseField {
   /**
    * Visual style of the field.
    */
-  export type Variant = 'text' | 'search';
+  export type Variant = 'text' | 'search' | 'listitem';
 
   const ContainerVariants = variants<Variant>('AxoBaseField.Variant', {
     text: tw(
@@ -169,6 +169,7 @@ export namespace AxoBaseField {
       'shadow-elevation-0 shadow-no-outline'
     ),
     search: tw('rounded-full bg-primary'),
+    listitem: tw('curved-lg'),
   });
 
   /**
@@ -229,10 +230,12 @@ export namespace AxoBaseField {
             'group flex items-stretch',
             'overflow-hidden',
             ContainerWidths.get(width),
-            ContainerVariants.get(props.variant),
+            ContainerVariants.get(variant),
             'placeholder:text-placeholder',
-            'not-forced-colors:has-[input:focus]:axo-focus-ring',
-            'forced-colors:border-[ButtonBorder] forced-colors:bg-[ButtonFace] forced-colors:text-[ButtonText]'
+            '-outline-offset-1 has-[input:focus]:axo-focus-ring',
+            'forced-colors:border forced-colors:border-[ButtonBorder]',
+            'forced-colors:bg-[ButtonFace] forced-colors:text-[ButtonText]',
+            'forced-colors:has-user-invalid:border-[LinkText]'
           )}
         >
           {props.children}
@@ -249,7 +252,7 @@ export namespace AxoBaseField {
    */
 
   export type IconProps = Readonly<{
-    symbol: AxoSymbol.IconName;
+    symbol: AxoSymbol.Name;
   }>;
 
   export const Icon: FC<IconProps> = memo(props => {
@@ -494,7 +497,7 @@ export namespace AxoBaseField {
             'py-1.5',
             'indent-1',
             'text-primary',
-            'not-forced-colors:outline-none',
+            'outline-none',
             'disabled:text-disabled',
 
             '[&::-webkit-search-cancel-button]:appearance-none'
@@ -594,6 +597,7 @@ export namespace AxoBaseField {
   const ClearVariants = variants<Variant>('AxoBaseField.Variant', {
     text: tw('group-enabled/clear:group-hover/clear:bg-surface-secondary'),
     search: tw('group-enabled/clear:group-hover/clear:bg-primary'),
+    listitem: tw('group-enabled/clear:group-hover/clear:bg-surface-secondary'),
   });
 
   export const Clear: FC = memo(() => {
@@ -658,13 +662,16 @@ export namespace AxoBaseField {
       'group-not-aria-disabled/action:group-hover/action:bg-surface-secondary'
     ),
     search: tw('group-not-aria-disabled/action:group-hover/action:bg-primary'),
+    listitem: tw(
+      'group-not-aria-disabled/action:group-hover/action:bg-surface-secondary'
+    ),
   });
 
   export type ActionProps = Readonly<{
     /** Accessible label for the button describing the action to be taken, not the icon. */
     label: string;
     /** Icon to display inside the button. */
-    symbol: AxoSymbol.IconName;
+    symbol: AxoSymbol.Name;
     /** Called when the button is clicked. */
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void;
     /** Overrides the `disabled` state from `Root` for this button only. */

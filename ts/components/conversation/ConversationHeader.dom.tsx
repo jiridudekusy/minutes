@@ -28,7 +28,10 @@ import {
   MessageRequestState,
 } from './MessageRequestActionsConfirmation.dom.tsx';
 import type { MinimalConversation } from '../../hooks/useMinimalConversation.std.ts';
-import { InAnotherCallTooltip } from './InAnotherCallTooltip.dom.tsx';
+import {
+  getTooltipContent,
+  InAnotherCallTooltip,
+} from './InAnotherCallTooltip.dom.tsx';
 import { DeleteMessagesConfirmationDialog } from '../DeleteMessagesConfirmationDialog.dom.tsx';
 import { AxoDropdownMenu } from '../../axo/AxoDropdownMenu.dom.tsx';
 import { strictAssert } from '../../util/assert.std.ts';
@@ -972,7 +975,11 @@ function OutgoingCallButtons({
       conversation.terminated);
   const inAnotherCall = !disabled && hasActiveCall;
 
-  const videoButton = (
+  const callButtonTooltip = inAnotherCall
+    ? { label: getTooltipContent(i18n) }
+    : true;
+
+  const videoElement = (
     <div
       className={
         inAnotherCall || disabled ? tw('opacity-50 dark:opacity-40') : undefined
@@ -984,16 +991,10 @@ function OutgoingCallButtons({
         size="md"
         onClick={onOutgoingVideoCall}
         label={i18n('icu:makeOutgoingVideoCall')}
-        // A separate tooltip is shown if we are inAnotherCall
-        tooltip={!inAnotherCall}
+        tooltip={callButtonTooltip}
         variant="implied-secondary"
       />
     </div>
-  );
-  const videoElement = inAnotherCall ? (
-    <InAnotherCallTooltip i18n={i18n}>{videoButton}</InAnotherCallTooltip>
-  ) : (
-    videoButton
   );
 
   const startCallShortcuts = useStartCallShortcuts(
@@ -1009,7 +1010,7 @@ function OutgoingCallButtons({
       return videoElement;
     case OutgoingCallButtonStyle.Both:
       // oxlint-disable-next-line no-case-declarations
-      const audioButton = (
+      const audioElement = (
         <div
           className={
             inAnotherCall ? tw('opacity-50 dark:opacity-40') : undefined
@@ -1021,8 +1022,7 @@ function OutgoingCallButtons({
             size="md"
             onClick={onOutgoingAudioCall}
             label={i18n('icu:makeOutgoingCall')}
-            // A separate tooltip is shown if we are inAnotherCall
-            tooltip={!inAnotherCall}
+            tooltip={callButtonTooltip}
             variant="implied-secondary"
           />
         </div>
@@ -1031,44 +1031,41 @@ function OutgoingCallButtons({
       return (
         <>
           {videoElement}
-          {inAnotherCall ? (
-            <InAnotherCallTooltip i18n={i18n}>
-              {audioButton}
-            </InAnotherCallTooltip>
-          ) : (
-            audioButton
-          )}
+          {audioElement}
         </>
       );
     case OutgoingCallButtonStyle.Join:
-      // oxlint-disable-next-line no-case-declarations
-      const joinButton = (
+      return (
         <>
-          <div className={tw('@min-[500px]:hidden')}>
+          <div
+            className={tw(
+              '@min-[500px]:hidden',
+              inAnotherCall && 'opacity-50 dark:opacity-40'
+            )}
+          >
             <AxoIconButton.Root
               symbol="videocamera-fill"
               size="md"
               label={i18n('icu:joinOngoingCall')}
               onClick={onOutgoingVideoCall}
               variant="strong-affirmative"
+              tooltip={callButtonTooltip}
             />
           </div>
           <div className={tw('hidden @min-[500px]:block')}>
-            <AxoButton.Root
-              size="md"
-              symbol="videocamera-fill"
-              onClick={onOutgoingVideoCall}
-              variant="strong-affirmative"
-            >
-              {i18n('icu:joinOngoingCall')}
-            </AxoButton.Root>
+            <InAnotherCallTooltip inAnotherCall={inAnotherCall} i18n={i18n}>
+              <AxoButton.Root
+                size="md"
+                symbol="videocamera-fill"
+                discouraged={inAnotherCall}
+                onClick={onOutgoingVideoCall}
+                variant="strong-affirmative"
+              >
+                {i18n('icu:joinOngoingCall')}
+              </AxoButton.Root>
+            </InAnotherCallTooltip>
           </div>
         </>
-      );
-      return inAnotherCall ? (
-        <InAnotherCallTooltip i18n={i18n}>{joinButton}</InAnotherCallTooltip>
-      ) : (
-        joinButton
       );
     default:
       throw missingCaseError(outgoingCallButtonStyle);

@@ -61,6 +61,7 @@ const SemverKeys = [
 export type SemverKeyType = ArrayValues<typeof SemverKeys>;
 
 const ScalarKeys = [
+  'client.maxAllowedClockSkewSeconds',
   'desktop.callQualitySurveyPPM',
   'desktop.calling.dredDuration.alpha',
   'desktop.calling.dredDuration.beta',
@@ -72,7 +73,6 @@ const ScalarKeys = [
   'desktop.mediaQuality.levels',
   'desktop.messageCleanup',
   'desktop.recentGifs.allowLegacyTenorCdnUrls',
-  'desktop.requirePqRatio',
   'desktop.retryRespondMaxAge',
   'desktop.senderKey.retry',
   'desktop.senderKeyMaxAge',

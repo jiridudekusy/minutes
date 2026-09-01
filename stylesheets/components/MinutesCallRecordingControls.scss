@@ -34,8 +34,8 @@
     width: 12px;
     height: 14px;
     margin: auto;
-    border-left: 4px solid variables.$color-white;
-    border-right: 4px solid variables.$color-white;
+    border-inline-start: 4px solid variables.$color-white;
+    border-inline-end: 4px solid variables.$color-white;
     box-sizing: border-box;
   }
 
@@ -47,7 +47,7 @@
     margin: auto;
     border-top: 8px solid transparent;
     border-bottom: 8px solid transparent;
-    border-left: 12px solid variables.$color-white;
+    border-inline-start: 12px solid variables.$color-white;
   }
 
   &--stop::before {

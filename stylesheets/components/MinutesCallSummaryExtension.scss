@@ -8,7 +8,8 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 16px 18px;
+  padding-block: 16px;
+  padding-inline: 18px;
   border-radius: 12px;
   border: 1px solid variables.$color-gray-15;
 
@@ -28,7 +29,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 16px;
-  padding: 10px 0;
+  padding-block: 10px;
+  padding-inline: 0;
 
   &:not(:last-child) {
     border-bottom: 1px solid variables.$color-gray-15;
@@ -80,7 +82,8 @@
 
 .MinutesCallSummaryExtensionModal__progress {
   margin-top: 16px;
-  padding: 12px 16px;
+  padding-block: 12px;
+  padding-inline: 16px;
   border-radius: 10px;
   @include mixins.font-body-2;
 
@@ -139,7 +142,8 @@
 }
 
 .MinutesCallSummaryExtensionModal__error {
-  margin: 12px 0 0;
+  margin-block: 12px 0;
+  margin-inline: 0;
   @include mixins.font-body-small;
   color: #c62828;
 
@@ -149,7 +153,8 @@
 }
 
 .MinutesCallSummaryExtensionModal__modelField {
-  margin: 20px 0 0;
+  margin-block: 20px 0;
+  margin-inline: 0;
   padding: 0;
   border: 0;
   display: flex;
@@ -179,7 +184,8 @@
 .MinutesCallSummaryExtensionModal__numberInput {
   border-radius: 8px;
   border: 1px solid variables.$color-gray-15;
-  padding: 10px 12px;
+  padding-block: 10px;
+  padding-inline: 12px;
   max-width: 120px;
   @include mixins.font-body-2;
 
@@ -197,7 +203,8 @@
 .MinutesCallSummaryExtensionModal__modelSelect {
   border-radius: 8px;
   border: 1px solid variables.$color-gray-15;
-  padding: 10px 12px;
+  padding-block: 10px;
+  padding-inline: 12px;
   @include mixins.font-body-2;
 
   @include mixins.light-theme {
