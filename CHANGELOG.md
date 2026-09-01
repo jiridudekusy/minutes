@@ -16,6 +16,97 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ### Added
 - (doplňte před příštím release)
 
+## [8.25.0-m1.3.0-beta.6] - 2026-09-01
+
+### Added
+- Add 90% and 110% zoom level options
+- Add global setting for reaction notifications
+- Add backup tier code to improve debuggability
+- Add backdrop blur to megaphones
+- Add tooltip to group call layout button
+
+### Changed
+- 8.25.0
+- Update strings
+- 8.25.0-beta.2
+- Use legacy fields if acisBinary set, remove from cache
+- Update electron to 43.4.1
+- Update sqlcipher to 4.0.5
+- 8.25.0-beta.1
+- Release notes for 8.25
+- Revert "Add global setting for reaction notifications"
+- Cleanup expired uninstalled sticker packs in storage
+- Init AxoFieldList
+- Update group member search add members label
+- FIlter result of postBatchIdentityCheck
+- Update electron to 43.4.0
+- Hydrate blocked cache after ready is set to true
+- Bump to libsignal v0.100.0
+- Allow storybook error text to be selected
+- Update DNS fallback
+- Release notes for 8.24
+- Improve resiliency of edit mock test
+- Improve policy file generation
+- Init AxoMessage and AxoExpireTimer
+- Persist timestamp along with blocked contacts and groups
+- Ignore extract-zip advisory to fix audit failure
+- Init AxoMediaButton
+- Clamp story start expiration
+- Init AxoLoadingIndicator and AxoProgressIndicator
+- Improve bidi isolation
+- Improve validation of call link previews
+- Allow missing custom color during backup export
+- Patch react-popper for React 19
+- Improve reliability of mock test storage service assertions
+- Update symbol font and simplify symbol name types
+- Additional cleanup on group/distributionList deletion
+- Registration mock tests: Use event to validate SVR saves
+- Simplify startup backup handling
+- Fixes for group member search dialog UI
+- Use high-contrast material colors for prefers-reduced-transparency
+- Upgrade nanoid to fix audit
+- Convert ContactModal to AxoDialog
+- Improve default value handling for AttachmentPointer
+- A few fixes for SVR and storage service
+- Init group member search dialog
+- Upgrade js-yaml to fix audit
+- Update result handling for os auth prompt
+- Detect excessive clock skew
+- v8.25.0-alpha.1
+- Release notes for 8.23
+- Linkify more types of urls
+- Update margin in textarea Input
+- Update dependencies
+- Adopt libsignal getDevices and setDeviceName APIs
+- make version and environment selectable again
+- Improve performance of body range processing
+- Improve reaction and poll vote targeting
+- Init AxoItem and AxoList
+- Check that sender certificate matches type requested
+- Clamp blurhash aspect ratio
+- Bump to libsignal v0.99.2
+- Improve handling of block state of release notes chat
+- Update brace-expansion libraries
+- Show tooltip on "change view" calling button
+- Improve processing of sticker pack manifest
+- On conversation delete, keep messageRequestResponseType
+- Check group conversation acceptance state before ringing
+- Check incoming group stories for author membership
+- Restore default path when saving attachments
+- Publish Packages
+- Increase attachment download concurrency
+- Update file-too-large toast message
+- Use address book name instead of profile first name in delete message text
+- Adopt several Libsignal backup APIs
+- v8.24.0-alpha.1
+
+### Fixed
+- Fix default avatars for group member search
+- Fix AxoList background color
+- Fix formatting of AxoMediaButton
+- Fix wasPreviouslyAMember check when processing group state
+- Fix overflow behavior of link previews, quotes, and group descriptions
+
 ## [8.23.0-m1.3.0-beta.5] - 2026-08-24
 
 ### Added
