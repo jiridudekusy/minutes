@@ -8,6 +8,7 @@ import type {
   CallSummary,
   DeviceId,
   GroupCallObserver,
+  GroupCallSvcConfig,
   PeekInfo,
   UserId,
   VideoFrameSource,
@@ -123,6 +124,8 @@ import {
   REQUESTED_SCREEN_SHARE_WIDTH,
   REQUESTED_SCREEN_SHARE_HEIGHT,
   REQUESTED_SCREEN_SHARE_FRAMERATE,
+  SVC_DEFAULT_MODE,
+  SVC_DEFAULT_MODE_FOR_SCREENSHARE,
 } from '../calling/constants.std.ts';
 import { callingMessageToProto } from '../util/callingMessageToProto.node.ts';
 import { requestMicrophonePermissions } from '../util/requestMicrophonePermissions.dom.ts';
@@ -1460,13 +1463,24 @@ class CallingClass {
     let isRequestingMembershipProof = false;
     const config = this.#getRemoteAndOverrideConfigValues();
 
-    // Minutes RingRTC 2.70.2 has no GroupCallSvcConfig (Signal 8.26 / 2.71.0).
+    const svcConfig: GroupCallSvcConfig | undefined =
+      config.isGroupSvcEnabled === true
+        ? {
+            mode: config.groupSvcMode ?? SVC_DEFAULT_MODE,
+            modeForScreenshare:
+              config.groupSvcModeForScreenshare ??
+              SVC_DEFAULT_MODE_FOR_SCREENSHARE,
+            maxBitrateBps: config.groupMaxBitrate,
+          }
+        : undefined;
+
     const outerGroupCall = RingRTC.getGroupCall(
       groupIdBuffer,
       this.sfuUrl,
       new Uint8Array(),
       AUDIO_LEVEL_INTERVAL_MS,
       config.dredDuration,
+      svcConfig,
       {
         ...this.#getGroupCallObserver(conversationId, CallMode.Group),
         async requestMembershipProof(groupCall) {
@@ -1540,7 +1554,17 @@ class CallingClass {
     }
     const config = this.#getRemoteAndOverrideConfigValues();
 
-    // Minutes RingRTC 2.70.2 has no GroupCallSvcConfig (Signal 8.26 / 2.71.0).
+    const svcConfig: GroupCallSvcConfig | undefined =
+      config.isGroupSvcEnabled === true
+        ? {
+            mode: config.groupSvcMode ?? SVC_DEFAULT_MODE,
+            modeForScreenshare:
+              config.groupSvcModeForScreenshare ??
+              SVC_DEFAULT_MODE_FOR_SCREENSHARE,
+            maxBitrateBps: config.groupMaxBitrate,
+          }
+        : undefined;
+
     const outerGroupCall = RingRTC.getCallLinkCall(
       this.sfuUrl,
       endorsementsPublicKey,
@@ -1550,6 +1574,7 @@ class CallingClass {
       new Uint8Array(),
       AUDIO_LEVEL_INTERVAL_MS,
       config.dredDuration,
+      svcConfig,
       this.#getGroupCallObserver(roomId, CallMode.Adhoc)
     );
 

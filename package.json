@@ -148,7 +148,7 @@
     "@modelcontextprotocol/sdk": "1.29.0",
     "@signalapp/libsignal-client": "0.100.0",
     "@signalapp/mute-state-change": "workspace:*",
-    "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz",
+    "@signalapp/ringrtc": "https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz",
     "@signalapp/sqlcipher": "4.1.0",
     "@signalapp/types": "workspace:*",
     "@signalapp/windows-ucv": "workspace:*",
