@@ -62,8 +62,8 @@ importers:
         specifier: workspace:*
         version: link:packages/mute-state-change
       '@signalapp/ringrtc':
-        specifier: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz
-        version: '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz'
+        specifier: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz
+        version: '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz'
       '@signalapp/sqlcipher':
         specifier: 4.1.0
         version: 4.1.0
@@ -2190,9 +2190,9 @@ packages:
     resolution: {integrity: sha512-6QEf6yqFbETdwGITKq57aYoPfX/3K8XFNwsAlx0C1M7o8cb79sv1M3w+tWuWvIcSbNqrLF7OD7YpZMVVz335hQ==, tarball: https://registry.npmjs.org/@manypkg/tools/-/tools-2.1.2.tgz}
     engines: {node: '>=20.0.0'}
 
-  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz':
-    resolution: {integrity: sha512-YHXwtcwMtQ1BsRAdwZhIN1ABEcCqkkmvmXVKevp54H2rD9CxH6twyjYJ8KThrXT+DRIzgciFCH29GiKEl0us1w==, tarball: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz}
-    version: 2.70.2-minutes.3
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz':
+    resolution: {integrity: sha512-niUUe8HhxpkAhH3vhOVE+HV0wOuhB0P6oNss0nZ/+rBlZ61LNkiJ1CTMzhdSb1XGhhD3bR03iiOFGAOsnEMTAw==, tarball: https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz}
+    version: 2.71.0-minutes.1
     hasBin: true
 
   '@modelcontextprotocol/sdk@1.29.0':
@@ -13447,9 +13447,10 @@ snapshots:
       tinyglobby: 0.2.17
       yaml: 2.9.0
 
-  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.70.2-minutes.3/minutes-ringrtc-2.70.2-minutes.3.tgz':
+  '@minutes/ringrtc@https://github.com/jiridudekusy/minutes-ringrtc/releases/download/v2.71.0-minutes.1/minutes-ringrtc-2.71.0-minutes.1.tgz':
     dependencies:
       https-proxy-agent: 7.0.6
+      tar: 7.5.22
     transitivePeerDependencies:
       - supports-color
 

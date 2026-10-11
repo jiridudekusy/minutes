@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 export const MINUTES_RINGRTC_PACKAGE_NAME = '@minutes/ringrtc';
-export const MINUTES_RINGRTC_PACKAGE_VERSION = '2.70.2-minutes.3';
-export const MINUTES_RINGRTC_UPSTREAM_VERSION = '2.70.2';
+export const MINUTES_RINGRTC_PACKAGE_VERSION = '2.71.0-minutes.1';
+export const MINUTES_RINGRTC_UPSTREAM_VERSION = '2.71.0';
 export const MINUTES_RINGRTC_TAP_API_VERSION = 1;
 export const MINUTES_RINGRTC_INSTALL_SCRIPT =
   'node scripts/fetch-minutes-prebuild.js';

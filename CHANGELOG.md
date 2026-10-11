@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+
 - (doplňte před příštím release)
+
+### Changed
+
+- **Volání a nahrávání**: beta používá Minutes RingRTC `2.71.0-minutes.1`, založené na Signal RingRTC 2.71.0, se zachovanými audio a video tapy pro nahrávání
 
 ## [8.26.0-m1.6.3-beta.2] - 2026-10-09
 

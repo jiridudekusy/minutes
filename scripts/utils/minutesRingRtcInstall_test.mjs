@@ -3,37 +3,30 @@
 
 import { assert } from 'chai';
 
-import {
-  MINUTES_RINGRTC_INSTALL_SCRIPT,
-  MINUTES_RINGRTC_PACKAGE_NAME,
-  MINUTES_RINGRTC_PACKAGE_VERSION,
-  MINUTES_RINGRTC_TAP_API_VERSION,
-  MINUTES_RINGRTC_UPSTREAM_VERSION,
-  validateMinutesRingRtcPackage,
-} from './minutesRingRtcInstall.mjs';
+import { validateMinutesRingRtcPackage } from './minutesRingRtcInstall.mjs';
 
 const validManifest = {
-  name: MINUTES_RINGRTC_PACKAGE_NAME,
-  version: MINUTES_RINGRTC_PACKAGE_VERSION,
+  name: '@minutes/ringrtc',
+  version: '2.71.0-minutes.1',
   config: {
-    upstreamVersion: MINUTES_RINGRTC_UPSTREAM_VERSION,
-    tapApiVersion: MINUTES_RINGRTC_TAP_API_VERSION,
+    upstreamVersion: '2.71.0',
+    tapApiVersion: 1,
   },
-  scripts: { install: MINUTES_RINGRTC_INSTALL_SCRIPT },
+  scripts: { install: 'node scripts/fetch-minutes-prebuild.js' },
 };
 
 describe('validateMinutesRingRtcPackage', () => {
-  it('accepts the pinned Signal 8.25 Minutes package', () => {
+  it('accepts the pinned Signal 8.26 Minutes package', () => {
     assert.doesNotThrow(() => validateMinutesRingRtcPackage(validManifest));
   });
 
   /** @type {ReadonlyArray<readonly [string, Record<string, unknown>]>} */
   const invalidManifests = [
     ['package name', { name: '@minutes/untrusted' }],
-    ['package version', { version: '2.70.2-minutes.2' }],
+    ['package version', { version: '2.70.2-minutes.3' }],
     [
       'upstream version',
-      { config: { ...validManifest.config, upstreamVersion: '2.71.0' } },
+      { config: { ...validManifest.config, upstreamVersion: '2.70.2' } },
     ],
     ['tap API', { config: { ...validManifest.config, tapApiVersion: 2 } }],
     ['install script', { scripts: { install: 'node unexpected.js' } }],
