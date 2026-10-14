@@ -279,6 +279,20 @@ describe('live Signal MCP capabilities', () => {
     );
   });
 
+  it('accepts mention identities and ranges in send_message', async () => {
+    const sent = await request(4, 'tools/call', {
+      name: 'send_message',
+      arguments: {
+        conversationId: 'group-1',
+        text: 'Hi @Tomáš',
+        mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+      },
+    });
+    assert.deepInclude(JSON.parse(sent.result?.content?.[0]?.text ?? '{}'), {
+      mentions: [{ contactId: 'tomas', start: 3, length: 6 }],
+    });
+  });
+
   it('reads canonical conversation resources and invokes mutations', async () => {
     const resource = await request(3, 'resources/read', {
       uri: 'minutes://conversations/conversation-1',

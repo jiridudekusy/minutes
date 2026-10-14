@@ -5,6 +5,7 @@ import { createLogger } from '../logging/log.std.ts';
 import { ToastType } from '../types/Toast.dom.tsx';
 import * as Errors from '../types/errors.std.ts';
 import type { AttachmentType } from '../types/Attachment.std.ts';
+import type { DraftBodyRanges } from '../types/BodyRange.std.ts';
 import { formatMarkdownForSignalMessage } from './signalChatText.std.ts';
 
 const log = createLogger('minutes/sendSignalChat');
@@ -15,7 +16,8 @@ export async function sendSignalChatMessage(
   conversationId: string,
   text: string | undefined,
   logLabel: string,
-  attachments: Array<AttachmentType> = []
+  attachments: Array<AttachmentType> = [],
+  bodyRanges?: DraftBodyRanges
 ): Promise<boolean> {
   const conversation = window.ConversationController.get(conversationId);
   if (!conversation) {
@@ -26,9 +28,10 @@ export async function sendSignalChatMessage(
     return false;
   }
 
+  // Explicit ranges refer to this exact body; Markdown conversion would shift them.
   const formatted =
-    text == null
-      ? { body: undefined, bodyRanges: undefined }
+    text == null || bodyRanges != null
+      ? { body: text, bodyRanges }
       : formatMarkdownForSignalMessage(text);
   if (!formatted.body && attachments.length === 0) {
     window.reduxActions.toast.showToast({ toastType: ToastType.Error });

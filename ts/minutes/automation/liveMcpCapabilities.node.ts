@@ -7,6 +7,7 @@ import * as z from 'zod/v4';
 
 import { hasAtMostGraphemes } from '../../util/grapheme.std.ts';
 import type { RendererAutomationService } from './rendererAutomationService.std.ts';
+import { automationMentionsSchema } from './messageMentionAutomation.std.ts';
 import {
   ALL_AUTOMATION_TOOL_NAMES,
   type AutomationToolName,
@@ -232,10 +233,11 @@ export function registerLiveMcpCapabilities(
       'send_message',
       {
         description:
-          'Sends text and/or staged local attachments to a Signal conversation. Attachment paths must be inside the outgoing directory returned by get_attachment_directories. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
+          'Sends text and/or staged local attachments to a Signal conversation. For real @mentions in Group V2 chats, supply mentions with exact contactId from get_group/list_contacts and start/length in UTF-16 code units of the original text (zero-based). Each range is replaced with a native Signal mention. Text with mentions is sent literally, without Markdown conversion. Attachment paths must be inside the outgoing directory returned by get_attachment_directories. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
         inputSchema: {
           conversationId: z.string().min(1),
           text: z.string().min(1).max(65_536).optional(),
+          mentions: automationMentionsSchema.optional(),
           attachments: z
             .array(
               z.object({
