@@ -1,0 +1,7 @@
+{
+  "plugins": [],
+  "jsPlugins": [],
+  "categories": { "correctness": "off" },
+  "env": { "browser": true, "node": true },
+  "rules": { "eslint/no-undef": "error" }
+}

@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+
 - (doplňte před příštím release)
+
+### Fixed
+
+- **Start bety**: opraven pád preloadu při inicializaci MCP zmínek; buildy a CI nově kontrolují chybějící inicializační funkce ve výsledném produkčním bundlu
 
 ## [8.26.0-m1.6.3-beta.5] - 2026-10-14
 
