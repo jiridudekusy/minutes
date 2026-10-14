@@ -11,6 +11,7 @@ import type {
 } from './automationContracts.std.ts';
 import type { AutomationRendererBridge } from './automationRendererBridge.node.ts';
 import type { AutomationPage } from './pagination.std.ts';
+import type { AutomationMention } from './messageMentionAutomation.std.ts';
 
 export class RendererAutomationService {
   readonly bridge: AutomationRendererBridge;
@@ -237,6 +238,7 @@ export class RendererAutomationService {
   sendMessage(options: {
     conversationId: string;
     text?: string;
+    mentions?: ReadonlyArray<AutomationMention>;
     attachments?: ReadonlyArray<
       Readonly<{ path: string; contentType?: string }>
     >;

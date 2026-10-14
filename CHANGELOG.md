@@ -14,7 +14,8 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+
+- **MCP zmínky**: `send_message` podporuje skutečné označení členů skupiny pomocí `mentions` (ID kontaktu a úsek textu); kontroluje členství a zachovává ochranu proti duplicitnímu odeslání
 
 ## [8.26.0-m1.6.3-beta.4] - 2026-10-14
 

@@ -120,6 +120,7 @@ export class AutomationRendererHandler {
             conversationId: Reflect.get(request.params, 'conversationId'),
             text: Reflect.get(request.params, 'text'),
             attachments: Reflect.get(request.params, 'attachments'),
+            mentions: Reflect.get(request.params, 'mentions'),
           }
         : {
             method: request.method,

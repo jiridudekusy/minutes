@@ -240,6 +240,33 @@ describe('AutomationRendererHandler', () => {
     }
   });
 
+  it('rejects reuse of an idempotency key for a different mentioned contact', async () => {
+    const handler = new AutomationRendererHandler(createCapabilities());
+    const params = {
+      conversationId: 'group-1',
+      text: 'Hi @Alex',
+      idempotencyKey: 'reused-mention-key',
+      mentions: [{ contactId: 'alex-1', start: 3, length: 5 }],
+    };
+    await handler.handle({
+      id: 'mention-first',
+      method: 'sendMessage',
+      params,
+    });
+    const result = await handler.handle({
+      id: 'mention-second',
+      method: 'sendMessage',
+      params: {
+        ...params,
+        mentions: [{ contactId: 'alex-2', start: 3, length: 5 }],
+      },
+    });
+    assert.isFalse(result.ok);
+    if (!result.ok) {
+      assert.equal(result.error.code, 'IDEMPOTENCY_CONFLICT');
+    }
+  });
+
   it('rejects reuse of an idempotency key for different attachments', async () => {
     const handler = new AutomationRendererHandler(createCapabilities());
     await handler.handle({

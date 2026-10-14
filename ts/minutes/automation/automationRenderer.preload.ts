@@ -48,6 +48,7 @@ import {
 } from '../../types/Polls.dom.ts';
 import { callRecordingService } from '../callRecordingService.preload.ts';
 import { sendSignalChatMessage } from '../sendSignalChatMessage.preload.ts';
+import { prepareAutomationMentions } from './messageMentionAutomation.std.ts';
 import { videoRecordingService } from '../videoRecordingService.preload.ts';
 import type {
   AutomationConversation,
@@ -1585,8 +1586,30 @@ export function initializeAutomationRenderer(): void {
     },
     sendMessage: async params => {
       const conversationId = requiredString(params, 'conversationId');
-      const text =
-        params.text === undefined ? undefined : requiredString(params, 'text');
+      const text = optionalTypedString(params, 'text');
+      if (text !== undefined && text.trim().length === 0) {
+        return automationError(
+          'INVALID_ARGUMENT',
+          'text must be a non-empty string'
+        );
+      }
+      const conversation = window.ConversationController.get(conversationId);
+      const group =
+        conversation != null && isGroupV2(conversation.attributes)
+          ? conversation
+          : undefined;
+      const prepared = prepareAutomationMentions(
+        text,
+        params.mentions,
+        contactId => {
+          const contact = requireExactContact(contactId);
+          const aci = contact.getAci();
+          return aci == null ? null : { aci, name: contact.getTitle() };
+        },
+        group == null
+          ? undefined
+          : new Set((group.get('membersV2') ?? []).map(member => member.aci))
+      );
       const attachmentSpecs = optionalAttachmentSpecs(params);
       if (text == null && attachmentSpecs.length === 0) {
         return automationError(
@@ -1601,9 +1624,10 @@ export function initializeAutomationRenderer(): void {
       );
       const queued = await sendSignalChatMessage(
         conversationId,
-        text,
+        prepared.body,
         'automation/sendMessage',
-        attachments
+        attachments,
+        prepared.bodyRanges
       );
       if (!queued) {
         const error = new Error('Message could not be queued');
