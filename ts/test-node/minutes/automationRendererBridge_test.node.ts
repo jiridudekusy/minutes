@@ -76,6 +76,26 @@ describe('AutomationRendererBridge', () => {
     await expectRejected(timedOut, 'Renderer request timed out');
   });
 
+  for (const method of ['editMessage', 'deleteMessage'] as const) {
+    it(`reports an uncertain ${method} result after a timeout`, async () => {
+      const bridge = new AutomationRendererBridge({
+        send: () => undefined,
+        timeoutMs: 5,
+      });
+      let caught: unknown;
+      try {
+        await bridge.request(method, {
+          conversationId: 'group',
+          messageId: 'message',
+          idempotencyKey: 'mutation',
+        });
+      } catch (error) {
+        caught = error;
+      }
+      assert.propertyVal(caught, 'code', 'QUEUE_STATUS_UNKNOWN');
+    });
+  }
+
   it('reports an unknown queue state when a message send times out', async () => {
     const bridge = new AutomationRendererBridge({
       send: () => undefined,

@@ -14,6 +14,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
 
 import { verifyAutomationToken } from './auth.node.ts';
+import packageJson from '../../../package.json' with { type: 'json' };
 
 const HOST = '127.0.0.1';
 const MAX_REQUEST_BYTES = 1_048_576;
@@ -64,16 +65,24 @@ async function readJsonBody(request: IncomingMessage): Promise<unknown> {
 function createProtocolServer(
   configureServer: ((server: McpServer) => void) | undefined
 ): McpServer {
-  const server = new McpServer({
-    name: 'minutes',
-    version: '1.0.0',
-    description: 'Local automation for Minutes',
-  });
+  const server = new McpServer(
+    {
+      name: 'minutes',
+      version: packageJson.version,
+      description:
+        'Signal messages, native @mentions, groups, calls and recordings in Minutes',
+    },
+    {
+      instructions:
+        "Use the currently advertised tool schemas as the source of available capabilities; they depend on the user's enabled tools and may change after an app update. send_message and edit_message support native Signal @mentions via mentions with exact group member IDs and UTF-16 text spans. Use get_group to resolve members. Message mutations use exact conversationId/messageId values; delete_message requires an explicit scope. Reuse stable idempotencyKey values with identical arguments after uncertain mutation results. get_server_status reports the installed application version.",
+    }
+  );
   server.registerTool(
     'get_server_status',
     {
       title: 'Get Minutes MCP server status',
-      description: 'Returns non-sensitive status for the local Minutes server.',
+      description:
+        'Returns the installed Minutes application version and non-sensitive MCP server status. Use the version to identify which build advertises the current tool schemas.',
       annotations: {
         readOnlyHint: true,
         destructiveHint: false,
@@ -84,7 +93,11 @@ function createProtocolServer(
       content: [
         {
           type: 'text',
-          text: JSON.stringify({ service: 'minutes-mcp', status: 'running' }),
+          text: JSON.stringify({
+            service: 'minutes-mcp',
+            status: 'running',
+            version: packageJson.version,
+          }),
         },
       ],
     })

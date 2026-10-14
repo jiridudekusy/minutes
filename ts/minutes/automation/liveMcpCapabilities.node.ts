@@ -232,11 +232,24 @@ export function registerLiveMcpCapabilities(
     server.registerTool(
       'send_message',
       {
+        title: 'Send message with text, attachments and @mentions',
         description:
-          'Sends text and/or staged local attachments to a Signal conversation. For real @mentions in Group V2 chats, supply mentions with exact contactId from get_group/list_contacts and start/length in UTF-16 code units of the original text (zero-based). Each range is replaced with a native Signal mention. Text with mentions is sent literally, without Markdown conversion. Attachment paths must be inside the outgoing directory returned by get_attachment_directories. Supply a stable idempotencyKey and reuse it for retries to prevent duplicate delivery.',
+          'Sends text, attachments and real Signal @mentions. For mentions, use the mentions parameter with an exact group member contactId and a span of the original text; obtain member IDs using get_group. Mentions require a Group V2 chat. Text with mentions stays literal. Attachment paths must be inside the outgoing directory returned by get_attachment_directories. Supply a stable idempotencyKey and reuse the same key and arguments for retries to prevent duplicate delivery.',
         inputSchema: {
-          conversationId: z.string().min(1),
-          text: z.string().min(1).max(65_536).optional(),
+          conversationId: z
+            .string()
+            .min(1)
+            .describe(
+              'Exact conversation/group id returned by list_conversations or get_group'
+            ),
+          text: z
+            .string()
+            .min(1)
+            .max(65_536)
+            .optional()
+            .describe(
+              'Message text. Mention ranges refer to this exact string before any formatting or replacement; required when mentions are supplied'
+            ),
           mentions: automationMentionsSchema.optional(),
           attachments: z
             .array(
@@ -257,6 +270,91 @@ export function registerLiveMcpCapabilities(
         },
       },
       async input => jsonResult(await live.sendMessage(input))
+    );
+  }
+  if (enabledTools.has('edit_message')) {
+    server.registerTool(
+      'edit_message',
+      {
+        title: 'Edit own message, including @mentions',
+        description:
+          'Edits the text of an existing own Signal chat message, including native @mentions. Obtain exact messageId and conversationId using get_messages, get_message or search_messages. Signal author, time and edit-count restrictions apply (normally within 24 hours and up to 10 edits, with Note to Self exceptions). Attachments and quote are preserved; text and mention ranges are replaced, so resupply every mention wanted in the new text. Text is literal. Reuse the same idempotencyKey and arguments for retries. queued:true confirms queuing, not recipient delivery.',
+        inputSchema: {
+          conversationId: z
+            .string()
+            .min(1)
+            .describe('Exact conversation id containing the target message'),
+          messageId: z
+            .string()
+            .min(1)
+            .describe(
+              'Exact id of the own message to edit; must belong to conversationId'
+            ),
+          text: z
+            .string()
+            .min(1)
+            .max(65_536)
+            .describe(
+              'Full replacement text, sent literally; not a patch or appended text'
+            ),
+          mentions: automationMentionsSchema.optional(),
+          idempotencyKey: z
+            .string()
+            .min(1)
+            .max(256)
+            .optional()
+            .describe(
+              'Stable unique key for this edit. Reuse the same key and arguments after a timeout'
+            ),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.editMessage(input))
+    );
+  }
+  if (enabledTools.has('delete_message')) {
+    server.registerTool(
+      'delete_message',
+      {
+        title: 'Delete message for me or for everyone',
+        description:
+          "Deletes one exact Signal chat message with an explicitly selected scope. for_me uses Signal delete-for-me and may sync removal to your linked devices; other participants keep their copies. for_everyone sends a deletion request to participants, subject to Signal author/admin permissions and time limits. Group admins may delete other members' messages only where Signal permits it. There is no automatic fallback between scopes. Reuse the same idempotencyKey and arguments for retries. queued:true does not confirm deletion on recipients' devices.",
+        inputSchema: {
+          conversationId: z
+            .string()
+            .min(1)
+            .describe('Exact conversation id containing the target message'),
+          messageId: z
+            .string()
+            .min(1)
+            .describe(
+              'Exact message id from get_messages, get_message or search_messages'
+            ),
+          scope: z
+            .enum(['for_me', 'for_everyone'])
+            .describe(
+              'Required explicit scope: for_me removes from your account/devices; for_everyone requests removal for participants under Signal rules'
+            ),
+          idempotencyKey: z
+            .string()
+            .min(1)
+            .max(256)
+            .optional()
+            .describe(
+              'Stable unique key for this deletion; reuse it and all arguments after a timeout'
+            ),
+        },
+        annotations: {
+          readOnlyHint: false,
+          destructiveHint: true,
+          openWorldHint: true,
+        },
+      },
+      async input => jsonResult(await live.deleteMessage(input))
     );
   }
   if (enabledTools.has('create_poll')) {

@@ -11,12 +11,32 @@ import type { AciString } from '../../types/ServiceId.std.ts';
 export const automationMentionsSchema = z
   .array(
     z.object({
-      contactId: z.string().min(1),
-      start: z.number().int().nonnegative(),
-      length: z.number().int().positive(),
+      contactId: z
+        .string()
+        .min(1)
+        .describe(
+          'Exact member id returned by get_group or list_contacts; this is not a display name'
+        ),
+      start: z
+        .number()
+        .int()
+        .nonnegative()
+        .describe(
+          'Zero-based start in the ORIGINAL text, measured in UTF-16 units; an emoji may count as two'
+        ),
+      length: z
+        .number()
+        .int()
+        .positive()
+        .describe(
+          'Length of the text span to replace with a native Signal @mention, measured in UTF-16 units'
+        ),
     })
   )
-  .max(100);
+  .max(100)
+  .describe(
+    'Native Signal @mentions for current Group V2 members. Example: text="Ahoj @Tomáš", mentions=[{contactId:"member-id",start:5,length:6}]. The supplied span is replaced with a real mention; typing @name alone does not mention the user. Ranges must not overlap. Text containing mentions is sent literally without Markdown conversion. Omit or use [] when no mentions are needed.'
+  );
 
 export type AutomationMention = z.infer<
   typeof automationMentionsSchema

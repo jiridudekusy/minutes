@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import { ipcRenderer } from 'electron';
+import { createLogger } from '../../logging/log.std.ts';
 import { mkdir } from 'node:fs/promises';
 import { basename, join } from 'node:path';
 
@@ -24,6 +25,11 @@ import { canChangeTimer } from '../../util/canChangeTimer.preload.ts';
 import { canEditGroupInfo } from '../../util/canEditGroupInfo.preload.ts';
 import { Emoji } from '../../axo/emoji.std.ts';
 import { getMessageById } from '../../messages/getMessageById.preload.ts';
+import { sendEditedMessage } from '../../util/sendEditedMessage.preload.ts';
+import { sendDeleteForEveryoneMessage } from '../../util/sendDeleteForEveryoneMessage.preload.ts';
+import { canSendDeleteForEveryone } from '../../util/canDeleteForEveryone.preload.ts';
+import { getMessageSentTimestamp } from '../../util/getMessageSentTimestamp.std.ts';
+import { isSignalConversation } from '../../util/isSignalConversation.dom.ts';
 import { enqueueReactionForSend } from '../../reactions/enqueueReactionForSend.preload.ts';
 import type { AttachmentType } from '../../types/Attachment.std.ts';
 import { AttachmentDownloadUrgency } from '../../types/AttachmentDownload.std.ts';
@@ -49,6 +55,10 @@ import {
 import { callRecordingService } from '../callRecordingService.preload.ts';
 import { sendSignalChatMessage } from '../sendSignalChatMessage.preload.ts';
 import { prepareAutomationMentions } from './messageMentionAutomation.std.ts';
+import {
+  editAutomationMessage,
+  deleteAutomationMessage,
+} from './messageMutationAutomation.dom.ts';
 import { videoRecordingService } from '../videoRecordingService.preload.ts';
 import type {
   AutomationConversation,
@@ -96,6 +106,7 @@ import {
 } from './attachmentFiles.node.ts';
 
 const MAX_QUERY_ITEMS = 500;
+const log = createLogger('minutes/automation');
 const MAX_GROUP_AVATAR_BYTES = 10 * 1024 * 1024;
 const GROUP_AVATAR_DIRECTORY_NAME = 'automation-group-avatars';
 const AUTOMATION_ATTACHMENTS_DIRECTORY_NAME = 'automation-attachments';
@@ -523,6 +534,55 @@ function requireExactContact(contactId: string): ConversationModel {
     conversation.getServiceId() == null
   ) {
     return automationError('NOT_FOUND', `Contact not found: ${contactId}`);
+  }
+  return conversation;
+}
+
+function prepareMentionText(
+  conversationId: string,
+  text: string | undefined,
+  mentions: unknown
+) {
+  const conversation = window.ConversationController.get(conversationId);
+  const group =
+    conversation != null && isGroupV2(conversation.attributes)
+      ? conversation
+      : undefined;
+  return prepareAutomationMentions(
+    text,
+    mentions,
+    contactId => {
+      const contact = requireExactContact(contactId);
+      const aci = contact.getAci();
+      return aci == null ? null : { aci, name: contact.getTitle() };
+    },
+    group == null
+      ? undefined
+      : new Set((group.get('membersV2') ?? []).map(member => member.aci))
+  );
+}
+
+function requireMessageMutationConversation(
+  conversationId: string,
+  forSending: boolean
+): ConversationModel {
+  const conversation = window.ConversationController.get(conversationId);
+  if (conversation == null || conversation.id !== conversationId) {
+    return automationError('NOT_FOUND', 'Conversation not found');
+  }
+  if (
+    forSending &&
+    (isSignalConversation(conversation.attributes) ||
+      conversation.isBlocked() ||
+      conversation.get('left') ||
+      conversation.get('terminated') ||
+      (conversation.get('type') === 'group' &&
+        !isGroupV2(conversation.attributes)))
+  ) {
+    return automationError(
+      'INVALID_STATE',
+      'Cannot send message mutations to this conversation'
+    );
   }
   return conversation;
 }
@@ -1593,22 +1653,10 @@ export function initializeAutomationRenderer(): void {
           'text must be a non-empty string'
         );
       }
-      const conversation = window.ConversationController.get(conversationId);
-      const group =
-        conversation != null && isGroupV2(conversation.attributes)
-          ? conversation
-          : undefined;
-      const prepared = prepareAutomationMentions(
+      const prepared = prepareMentionText(
+        conversationId,
         text,
-        params.mentions,
-        contactId => {
-          const contact = requireExactContact(contactId);
-          const aci = contact.getAci();
-          return aci == null ? null : { aci, name: contact.getTitle() };
-        },
-        group == null
-          ? undefined
-          : new Set((group.get('membersV2') ?? []).map(member => member.aci))
+        params.mentions
       );
       const attachmentSpecs = optionalAttachmentSpecs(params);
       if (text == null && attachmentSpecs.length === 0) {
@@ -1653,6 +1701,60 @@ export function initializeAutomationRenderer(): void {
         },
       });
       return { queued: true, attachmentCount: attachments.length };
+    },
+    editMessage: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const messageId = requiredString(params, 'messageId');
+      requireMessageMutationConversation(conversationId, true);
+      const message = await getMessageById(messageId);
+      return editAutomationMessage(
+        message?.attributes,
+        { conversationId, text: params.text, mentions: params.mentions },
+        {
+          prepareText: (text, mentions) =>
+            prepareMentionText(conversationId, text, mentions),
+          sendEdit: async payload => {
+            await sendEditedMessage(conversationId, payload);
+          },
+        }
+      );
+    },
+    deleteMessage: async params => {
+      const conversationId = requiredString(params, 'conversationId');
+      const messageId = requiredString(params, 'messageId');
+      const conversation = requireMessageMutationConversation(
+        conversationId,
+        params.scope === 'for_everyone'
+      );
+      const message = await getMessageById(messageId);
+      return deleteAutomationMessage(
+        message?.attributes,
+        { conversationId, scope: params.scope },
+        {
+          canDeleteForEveryone: target =>
+            canSendDeleteForEveryone({
+              targetMessage: target,
+              targetConversation: conversation.attributes,
+              ourAci: itemStorage.user.getCheckedAci(),
+              isDeleterGroupAdmin: areWeAdmin(conversation.attributes),
+            }),
+          deleteForMe: async target => {
+            // This native async thunk is typed as returning void by Redux bindings.
+            await Promise.resolve(
+              window.reduxActions.conversations.deleteMessages({
+                conversationId,
+                messageIds: [target.id],
+              })
+            );
+          },
+          deleteForEveryone: async target => {
+            await sendDeleteForEveryoneMessage(conversation.attributes, {
+              id: target.id,
+              timestamp: getMessageSentTimestamp(target, { log }),
+            });
+          },
+        }
+      );
     },
     createPoll: async params => {
       const conversationId = requiredString(params, 'conversationId');

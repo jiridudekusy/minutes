@@ -57,6 +57,25 @@ describe('automation message mapping', () => {
     ]);
   });
 
+  it('exposes deletion and last-edit state so clients can verify mutations', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'deleted',
+        conversationId: 'group',
+        type: 'outgoing',
+        sent_at: 100,
+        deletedForEveryone: true,
+        editMessageTimestamp: 200,
+      },
+      () => null
+    );
+    assert.deepInclude(result, {
+      deletedForEveryone: true,
+      editedAt: 200,
+      text: null,
+    });
+  });
+
   it('identifies the author of an incoming group message', () => {
     const result = toAutomationMessage(
       {

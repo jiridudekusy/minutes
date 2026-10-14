@@ -86,7 +86,9 @@ export class AutomationRendererHandler {
     request: AutomationRendererRequest
   ): Promise<AutomationRendererResponse> {
     if (
-      (request.method !== 'sendMessage' && request.method !== 'createPoll') ||
+      !['sendMessage', 'createPoll', 'editMessage', 'deleteMessage'].includes(
+        request.method
+      ) ||
       request.params == null ||
       typeof request.params !== 'object' ||
       Array.isArray(request.params) ||
@@ -114,10 +116,12 @@ export class AutomationRendererHandler {
       }
     }
     const signature = JSON.stringify(
-      request.method === 'sendMessage'
+      request.method !== 'createPoll'
         ? {
             method: request.method,
             conversationId: Reflect.get(request.params, 'conversationId'),
+            messageId: Reflect.get(request.params, 'messageId'),
+            scope: Reflect.get(request.params, 'scope'),
             text: Reflect.get(request.params, 'text'),
             attachments: Reflect.get(request.params, 'attachments'),
             mentions: Reflect.get(request.params, 'mentions'),

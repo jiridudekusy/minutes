@@ -6,6 +6,7 @@ import { request as httpRequest } from 'node:http';
 
 import { hashAutomationToken } from '../../minutes/automation/auth.node.ts';
 import { MinutesMcpHttpServer } from '../../minutes/automation/mcpHttpServer.node.ts';
+import packageJson from '../../../package.json' with { type: 'json' };
 
 const TOKEN = 'test-token';
 
@@ -206,9 +207,13 @@ describe('MinutesMcpHttpServer', () => {
     const sessionId = initialize.headers.get('mcp-session-id');
     assert.isString(sessionId);
     const initialized = (await initialize.json()) as {
-      result?: { serverInfo?: { name?: string } };
+      result?: { serverInfo?: { name?: string; version?: string } };
     };
     assert.strictEqual(initialized.result?.serverInfo?.name, 'minutes');
+    assert.strictEqual(
+      initialized.result?.serverInfo?.version,
+      packageJson.version
+    );
 
     const notification = await fetch(`${baseUrl}/mcp`, {
       method: 'POST',

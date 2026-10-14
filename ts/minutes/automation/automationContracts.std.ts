@@ -90,6 +90,8 @@ export type AutomationMessage = Readonly<{
   sentAt: number;
   receivedAt?: number;
   text: string | null;
+  deletedForEveryone?: boolean;
+  editedAt?: number;
   attachments: ReadonlyArray<{
     id: string;
     contentType?: string;
@@ -132,6 +134,8 @@ export type AutomationRendererMethod =
   | 'getAttachmentDirectories'
   | 'downloadAttachment'
   | 'sendMessage'
+  | 'editMessage'
+  | 'deleteMessage'
   | 'createPoll'
   | 'getPollResults'
   | 'votePoll'

@@ -247,6 +247,25 @@ export class RendererAutomationService {
     return this.bridge.request('sendMessage', options);
   }
 
+  editMessage(options: {
+    conversationId: string;
+    messageId: string;
+    text: string;
+    mentions?: ReadonlyArray<AutomationMention>;
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('editMessage', options);
+  }
+
+  deleteMessage(options: {
+    conversationId: string;
+    messageId: string;
+    scope: 'for_me' | 'for_everyone';
+    idempotencyKey?: string;
+  }): Promise<unknown> {
+    return this.bridge.request('deleteMessage', options);
+  }
+
   createPoll(options: {
     conversationId: string;
     question: string;

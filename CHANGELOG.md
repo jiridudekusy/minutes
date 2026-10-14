@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
-- (doplňte před příštím release)
+
+- **MCP zprávy**: nové destruktivní nástroje `edit_message` a `delete_message` s nativními pravidly Signalu, podporou zmínek při úpravě a povinným rozsahem mazání pro sebe / pro všechny
+
+### Changed
+
+- **MCP metadata**: zmínky jsou uvedené hned v popisu `send_message` a vysvětlené u parametrů; server hlásí skutečnou verzi aplikace a zprávy vracejí stav smazání i čas poslední úpravy
 
 ## [8.26.0-m1.6.3-beta.6] - 2026-10-14
 

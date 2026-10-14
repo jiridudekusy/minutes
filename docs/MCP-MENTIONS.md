@@ -5,7 +5,7 @@ vytvoří skutečnou Signal zmínku konkrétního člena. Samotný text `@jméno
 bez tohoto parametru zůstává obyčejným textem.
 
 Nejdřív načtěte členy přes `get_group` a použijte přesné `id` daného člena
-jako `contactId`. Lze použít také ID z `list_contacts` nebo `get_contact`,
+jako `contactId`. Lze použít také ID z `list_contacts`,
 ale označený kontakt musí být aktuálním členem cílové skupiny. Nemusí být
 uložený v adresáři; stačí jeho profil známý z dané skupiny.
 
@@ -39,3 +39,7 @@ ve stejném požadavku. Bez zmínek zůstává dosavadní chování odesílání
 Při opakování stejného požadavku použijte stejný `idempotencyKey` i stejné
 `mentions`. Změna zmíněného kontaktu se stejným klíčem vrátí
 `IDEMPOTENCY_CONFLICT` stejně jako změna textu nebo příloh.
+
+`edit_message` přijímá stejné `mentions`. Při úpravě předejte kompletní nový
+text a všechny požadované zmínky; původní text i jeho zmínky se nahrazují.
+Podrobnosti jsou v [MCP-MESSAGE-MUTATIONS.md](MCP-MESSAGE-MUTATIONS.md).

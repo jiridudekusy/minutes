@@ -112,6 +112,7 @@
 | `ts/minutes/components/MinutesAutomationSettings*.dom.tsx`, `stylesheets/components/MinutesAutomationSettings.scss` | nastavení MCP URL, tokenu, úrovní oprávnění nástrojů a roztahovatelného dialogu |
 | `ts/minutes/automation/toolCatalog.std.ts` | katalog MCP nástrojů včetně úrovně čtení / běžný zápis / destruktivní zápis |
 | `ts/minutes/automation/messageMentionAutomation.std.ts` | validace MCP zmínek podle ID členů skupiny, převod UTF-16 úseků textu na nativní Signal mention body ranges; popis API v `docs/MCP-MENTIONS.md` |
+| `ts/minutes/automation/messageMutationAutomation.dom.ts` | validace cílů MCP úprav/mazání; editace používá pravidla a odesílání Signalu, mazání má explicitní rozsah a samostatné destruktivní oprávnění; API v `docs/MCP-MESSAGE-MUTATIONS.md` |
 | `ts/minutes/screenLockCallPolicy.std.ts` | zachování aktivního hovoru při zamknutí obrazovky |
 | `package.json` + `rolldown.config.ts` | závislost `node-llama-cpp` (native, external); `asarUnpack` + `sleep-promise/build`; FileSet pro `build/*.json` |
 | `ts/minutes/perplexitySummary.main.ts` | Perplexity API (bez web search) |

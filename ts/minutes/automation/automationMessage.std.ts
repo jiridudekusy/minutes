@@ -23,6 +23,8 @@ type AutomationMessageSource = Pick<
   | 'received_at_ms'
   | 'body'
   | 'bodyRanges'
+  | 'deletedForEveryone'
+  | 'editMessageTimestamp'
   | 'attachments'
   | 'reactions'
   | 'poll'
@@ -72,6 +74,8 @@ export function toAutomationMessage(
     sentAt: message.sent_at,
     receivedAt: message.received_at_ms,
     text,
+    deletedForEveryone: message.deletedForEveryone === true,
+    editedAt: message.editMessageTimestamp,
     attachments: (message.attachments ?? []).map((attachment, index) => ({
       id: getAutomationAttachmentId(message.id, attachment, index),
       contentType: attachment.contentType,

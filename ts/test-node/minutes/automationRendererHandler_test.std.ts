@@ -37,6 +37,8 @@ function createCapabilities(
     }),
     downloadAttachment: async () => ({ path: '/safe/downloads/file' }),
     sendMessage: async () => ({ messageId: 'message-1' }),
+    editMessage: async () => ({ queued: true }),
+    deleteMessage: async () => ({ deleted: true }),
     createPoll: async () => ({ messageId: 'poll-message-1' }),
     getPollResults: async () => ({ messageId: 'poll-message-1' }),
     votePoll: async () => ({ queued: true }),
@@ -239,6 +241,50 @@ describe('AutomationRendererHandler', () => {
       assert.strictEqual(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
     }
   });
+
+  for (const method of ['editMessage', 'deleteMessage'] as const) {
+    it(`deduplicates ${method} and rejects changing its target with the same key`, async () => {
+      let calls = 0;
+      const handler = new AutomationRendererHandler(
+        createCapabilities({
+          [method]: async () => {
+            calls += 1;
+            return { changed: true };
+          },
+        })
+      );
+      const params = {
+        conversationId: 'group',
+        messageId: 'one',
+        text: 'new',
+        scope: 'for_me',
+        idempotencyKey: `dedupe-${method}`,
+      };
+      const first = await handler.handle({
+        id: `${method}-first`,
+        method,
+        params,
+      });
+      assert.isTrue(first.ok);
+      const retry = await handler.handle({
+        id: `${method}-retry`,
+        method,
+        params,
+      });
+      assert.isTrue(retry.ok);
+      assert.equal(calls, 1);
+      const conflict = await handler.handle({
+        id: `${method}-conflict`,
+        method,
+        params: { ...params, messageId: 'two' },
+      });
+      assert.isFalse(conflict.ok);
+      if (!conflict.ok) {
+        assert.equal(conflict.error.code, 'IDEMPOTENCY_CONFLICT');
+      }
+      assert.equal(calls, 1);
+    });
+  }
 
   it('rejects reuse of an idempotency key for a different mentioned contact', async () => {
     const handler = new AutomationRendererHandler(createCapabilities());
