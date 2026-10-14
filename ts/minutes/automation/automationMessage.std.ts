@@ -2,6 +2,11 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 import type { MessageType } from '../../sql/Interface.std.ts';
+import {
+  applyRangesToText,
+  BodyRange,
+  type HydratedBodyRangeMention,
+} from '../../types/BodyRange.std.ts';
 import type {
   AutomationMessage,
   AutomationPoll,
@@ -17,6 +22,7 @@ type AutomationMessageSource = Pick<
   | 'sent_at'
   | 'received_at_ms'
   | 'body'
+  | 'bodyRanges'
   | 'attachments'
   | 'reactions'
   | 'poll'
@@ -54,6 +60,9 @@ export function toAutomationMessage(
 ): AutomationMessage {
   const source = message.type === 'incoming' ? 'incoming' : 'outgoing';
   const author = resolveMessageAuthor(message.sourceServiceId, source);
+  const text = resolveAutomationMessageText(message, mentionAci =>
+    resolveMessageAuthor(mentionAci, 'incoming')
+  );
   return {
     id: message.id,
     conversationId: message.conversationId,
@@ -62,7 +71,7 @@ export function toAutomationMessage(
     authorName: author?.name ?? null,
     sentAt: message.sent_at,
     receivedAt: message.received_at_ms,
-    text: message.body ?? null,
+    text,
     attachments: (message.attachments ?? []).map((attachment, index) => ({
       id: getAutomationAttachmentId(message.id, attachment, index),
       contentType: attachment.contentType,
@@ -78,6 +87,41 @@ export function toAutomationMessage(
         ? undefined
         : toAutomationPoll(message.poll, resolvePollVoter),
   };
+}
+
+function resolveAutomationMessageText(
+  message: Pick<AutomationMessageSource, 'body' | 'bodyRanges'>,
+  resolveMention: (
+    mentionAci: string
+  ) => Readonly<{ id: string; name: string }> | null
+): string | null {
+  if (message.body == null) {
+    return null;
+  }
+
+  const mentions = (message.bodyRanges ?? []).flatMap(
+    (range): ReadonlyArray<HydratedBodyRangeMention> => {
+      if (!BodyRange.isMention(range)) {
+        return [];
+      }
+      const contact = resolveMention(range.mentionAci);
+      if (contact == null) {
+        return [];
+      }
+      return [
+        {
+          ...range,
+          conversationID: contact.id,
+          replacementText: contact.name,
+        },
+      ];
+    }
+  );
+
+  return applyRangesToText(
+    { body: message.body, bodyRanges: mentions },
+    { replaceMentions: true, replaceSpoilers: false }
+  ).body;
 }
 
 function toAutomationPoll(

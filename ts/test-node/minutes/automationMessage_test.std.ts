@@ -83,6 +83,44 @@ describe('automation message mapping', () => {
     });
   });
 
+  it('replaces mention placeholders with resolved contact names', () => {
+    const result = toAutomationMessage(
+      {
+        id: 'message-with-mentions',
+        conversationId: 'group-1',
+        type: 'outgoing',
+        sent_at: 250,
+        body: 'Call \uFFFC / \uFFFC',
+        bodyRanges: [
+          {
+            start: 5,
+            length: 1,
+            mentionAci: 'lukas-aci' as AciString,
+          },
+          {
+            start: 9,
+            length: 1,
+            mentionAci: 'tomas-aci' as AciString,
+          },
+        ],
+        attachments: [],
+        reactions: [],
+      },
+      () => null,
+      sourceServiceId => {
+        if (sourceServiceId === 'lukas-aci') {
+          return { id: 'lukas-id', name: 'Lukáš Kutík' };
+        }
+        if (sourceServiceId === 'tomas-aci') {
+          return { id: 'tomas-id', name: 'Tomáš Lesný' };
+        }
+        return null;
+      }
+    );
+
+    assert.equal(result.text, 'Call @Lukáš Kutík / @Tomáš Lesný');
+  });
+
   it('returns deduplicated current poll results with resolved voters', () => {
     const result = toAutomationMessage(
       {
