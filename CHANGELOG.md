@@ -14,7 +14,12 @@ GitHub Actions pak automaticky sestaví instalátor a vytvoří Release s patch 
 ## [Unreleased]
 
 ### Added
+
 - (doplňte před příštím release)
+
+### Fixed
+
+- **MCP zprávy**: `get_messages`, `get_message` a `search_messages` vracejí textové zmínky jako čitelná jména kontaktů místo prázdných zástupných znaků
 
 ## [8.26.0-m1.6.3-beta.3] - 2026-10-11
 
