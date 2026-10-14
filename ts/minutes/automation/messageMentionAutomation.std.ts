@@ -1,7 +1,7 @@
 // Copyright 2026 Signal Messenger, LLC
 // SPDX-License-Identifier: AGPL-3.0-only
 
-import * as z from 'zod/v4';
+import * as z from 'zod';
 import type {
   DraftBodyRangeMention,
   DraftBodyRanges,

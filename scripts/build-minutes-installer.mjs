@@ -57,6 +57,8 @@ if (!existsSync(mainBundle)) {
   process.exit(1);
 }
 
+run('Check preload module initializers', 'pnpm run check:minutes:preload');
+
 run(
   isMac ? 'DMG (unsigned)' : 'NSIS installer (unsigned)',
   [

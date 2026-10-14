@@ -55,6 +55,9 @@ jobs:
       - name: Generate build artifacts
         run: pnpm run generate
 
+      - name: Check preload module initializers
+        run: pnpm run check:minutes:preload
+
       - name: Typecheck
         run: pnpm run check:types
 

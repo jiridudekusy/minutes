@@ -95,6 +95,7 @@
 | `scripts/minutes-after-pack.mjs` | wrapper nad Signal `after-pack.mjs` — po přehození fuses ad-hoc podepíše `.app` (`codesign --force --deep --sign -`), jinak macOS zabije nepodepsaný build při startu (Code Signature Invalid) |
 | `scripts/install-minutes-ringrtc.mjs` + `scripts/utils/minutesRingRtcInstall.mjs` | ověří přesný Minutes RingRTC package/version/API a teprve potom stáhne prebuild s kontrolou SHA-256 |
 | `scripts/build-minutes-installer.mjs` | build instalátoru — Windows NSIS (`.exe`), macOS DMG arm64 (`.dmg`) podle `process.platform` |
+| `scripts/check-minutes-preload.mjs`, `scripts/minutes-bundle-check.oxlintrc.json` | kontrola neexistujících generovaných module initializerů v produkčním preloadu; CI i balení instalátorů selže před publikací nefunkčního buildu |
 | `config/minutes_ffmpeg_artifacts.json`, `ts/minutes/videoMp4Support.*` | systémový FFmpeg s kontrolou kodeků nebo volitelně stažená a SHA-256/nonfree ověřená GPL podpora pro macOS ARM64 / Windows x64 / Linux x64 |
 | `ts/minutes/videoMp4Export.*` | bezpečný, zrušitelný a atomický export kanonického WebM do H.264/AAC MP4 s průběhem; FFmpeg není součástí instalátoru |
 | `scripts/patch-electron-icon.mjs` | ikona electron.exe pro dev na Windows |
